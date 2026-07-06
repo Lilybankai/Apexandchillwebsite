@@ -36,7 +36,10 @@ export function Marquee({
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-base to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-base to-transparent" />
 
-      <div className="flex shrink-0 animate-marquee items-center whitespace-nowrap group-hover:[animation-play-state:paused]">
+      <div
+        aria-hidden
+        className="flex shrink-0 animate-marquee items-center whitespace-nowrap group-hover:[animation-play-state:paused]"
+      >
         {loop.map((item, i) => (
           <span key={i} className="flex items-center">
             <span className="px-6 font-display text-sm font-semibold uppercase tracking-widest text-muted">

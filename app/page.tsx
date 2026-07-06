@@ -16,7 +16,14 @@ import { CommunityCTA } from "@/components/home/CommunityCTA";
 // statically rendered and revalidated so it's fast but not stale.
 export const revalidate = 300;
 
-/** Pick the league whose next race is soonest (future first), else earliest. */
+/**
+ * Pick the league whose next race to feature in the banner.
+ *
+ * Live data wins over sample data, so the banner never shows a fabricated
+ * sample date ahead of a real upcoming race (e.g. a placeholder GT7 date must
+ * not outrank the live LMU round). Within the same tier we prefer the soonest
+ * future race, falling back to the earliest known.
+ */
 function soonest(
   entries: { league: League; result: ApiResult<NextRace> }[],
 ): { league: League; result: ApiResult<NextRace> } {
@@ -24,12 +31,20 @@ function soonest(
   const withTime = entries.map((e) => ({
     ...e,
     ts: new Date(`${e.result.data.date}T${e.result.data.time || "00:00"}`).getTime(),
+    isLive: e.result.source !== "sample",
   }));
-  const future = withTime
-    .filter((e) => Number.isFinite(e.ts) && e.ts >= now)
-    .sort((a, b) => a.ts - b.ts);
-  if (future.length) return future[0];
-  // No future race found — fall back to the earliest known.
+  const byTs = (a: { ts: number }, b: { ts: number }) => a.ts - b.ts;
+  const future = withTime.filter((e) => Number.isFinite(e.ts) && e.ts >= now);
+
+  // Prefer a live upcoming race, then any upcoming race.
+  const liveFuture = future.filter((e) => e.isLive).sort(byTs);
+  if (liveFuture.length) return liveFuture[0];
+  const anyFuture = [...future].sort(byTs);
+  if (anyFuture.length) return anyFuture[0];
+
+  // No upcoming race — fall back to the earliest known, still preferring live.
+  const liveKnown = withTime.filter((e) => e.isLive && Number.isFinite(e.ts)).sort(byTs);
+  if (liveKnown.length) return liveKnown[0];
   return withTime.sort((a, b) => (a.ts || Infinity) - (b.ts || Infinity))[0] ?? entries[0];
 }
 

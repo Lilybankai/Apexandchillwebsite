@@ -61,7 +61,7 @@ lib/
   types.ts           # Shared domain types
   supabase.ts        # Supabase client
   api/               # Simgrid / Sim League Pro / YouTube clients
-  merch/             # Tapstitch / Printful clients + cart
+  merch/             # Tapstitch / Printify clients + cart
 supabase/schema.sql  # Database schema
 ```
 
@@ -128,7 +128,11 @@ secrets.**
 | --- | --- |
 | `YOUTUBE_API_KEY` | The only value you must supply (Google Cloud → Credentials). |
 | `YOUTUBE_CHANNEL_ID` | Defaults to Apex & Chill's channel. |
-| `YOUTUBE_UPLOADS_PLAYLIST_ID` | Defaults to the curated replays playlist. |
+| `YOUTUBE_UPLOADS_PLAYLIST_ID` | Single playlist to pull replays from. Accepts a bare id **or** a pasted playlist/share URL (the `list=` id is extracted for you). Blank = the channel's uploads. |
+| `YOUTUBE_PLAYLISTS` | Show **several** playlists as separate sections on the Replays page. Comma-separated; each entry is `Heading \| url-or-id` (the `Heading \|` is optional — without it the playlist's own YouTube title is used). Supersedes `YOUTUBE_UPLOADS_PLAYLIST_ID` when set. |
+
+> **Finding a playlist id:** open the playlist on YouTube and copy the `list=` value from the URL (e.g. `.../playlist?list=PLxxxx` → `PLxxxx`). You can also paste the whole URL — it's parsed automatically. Example of two sections:
+> `YOUTUBE_PLAYLISTS=GT7 League | PLaaaa, LMU League | PLbbbb`
 
 **Supabase — join submissions + optional cached standings**
 | Variable | Notes |
@@ -137,11 +141,13 @@ secrets.**
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key (public, browser-safe). |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Server-only** — never expose to the client. |
 
-**Merch — Tapstitch + Printful (print-on-demand)**
+**Merch — Tapstitch + Printify (print-on-demand)**
 | Variable | Notes |
 | --- | --- |
 | `TAPSTITCH_API_KEY` / `TAPSTITCH_STORE_ID` | Tapstitch store credentials. |
-| `PRINTFUL_API_KEY` / `PRINTFUL_STORE_ID` | Printful store credentials. |
+| `PRINTIFY_API_KEY` | Printify Personal Access Token (Account → Connections). |
+| `PRINTIFY_SHOP_ID` | Numeric shop id (from `GET /v1/shops.json`). Required. |
+| `PRINTIFY_AUTO_CONFIRM` | `true` = webhook sends Printify orders to production automatically; unset/`false` = create orders to review and send yourself. |
 
 **Stripe — checkout**
 | Variable | Notes |
@@ -152,17 +158,22 @@ secrets.**
 
 ### 3. Merch integration path
 
-The store reads the **Tapstitch and Printful product APIs directly** and
+The store reads the **Tapstitch and Printify product APIs directly** and
 normalises both into a single provider-agnostic product/variant model — so there
 is **no WordPress import/sync step** (the pain point on the old site is gone).
 Products merge into one catalog; when keys are absent, a bundled sample catalog
 is shown instead.
 
 Checkout uses **Stripe-hosted checkout** (no card data touches this app).
-Fulfilment is wired via webhook: **TODO** — `POST /api/webhooks/stripe` should
-verify the signature with `STRIPE_WEBHOOK_SECRET` and, on
-`checkout.session.completed`, push the order to the relevant provider's Orders
-API (Tapstitch / Printful) for print-and-ship.
+Fulfilment is wired via webhook: `POST /api/webhooks/stripe` verifies the
+signature with `STRIPE_WEBHOOK_SECRET` and, on `checkout.session.completed`,
+pushes the order to **Printify's Orders API** for print-and-ship. Register the
+endpoint in the Stripe Dashboard (Developers → Webhooks) at
+`https://<your-domain>/api/webhooks/stripe`, subscribed to
+`checkout.session.completed`. Printify orders are created but **not sent to
+production** by default — set `PRINTIFY_AUTO_CONFIRM=true` to fulfil
+automatically. Tapstitch items are logged for manual fulfilment until a Tapstitch
+Orders client is added.
 
 ### 4. Apply the database schema
 

@@ -148,3 +148,46 @@ create policy "Public can read replays cache"
   using (true);
 
 -- Cache writes/upserts use the service-role key only (no anon write policy).
+
+-- ----------------------------------------------------------------------------
+-- Table: merch_orders
+--   One row per completed Stripe checkout. Written by the Stripe webhook
+--   (POST /api/webhooks/stripe) after `checkout.session.completed`, and read by
+--   the /admin dashboard. Printify items are pushed to Printify automatically;
+--   Tapstitch items have no API, so those orders are flagged
+--   `needs_manual_fulfilment` and emailed to the operator to key in by hand.
+--
+--   `stripe_session_id` is UNIQUE so a webhook Stripe retries upserts the same
+--   row instead of duplicating the order. Amounts are stored in integer pence
+--   (avoids float rounding); divide by 100 for display.
+-- ----------------------------------------------------------------------------
+create table if not exists public.merch_orders (
+  id                       uuid primary key default gen_random_uuid(),
+  stripe_session_id        text        not null unique,
+  email                    text,
+  customer_name            text,
+  amount_total_pence       int         not null default 0,
+  currency                 text        not null default 'GBP',
+  shipping                 jsonb,                        -- { name, address1, address2, city, state, postalCode, country }
+  line_items               jsonb       not null default '[]'::jsonb,  -- [{ variantId, quantity, title, variantName, unitPrice, provider }]
+  needs_manual_fulfilment  boolean     not null default false,
+  status                   text        not null default 'new',        -- new | fulfilled
+  printify_order_id        text,
+  printify_status          text,
+  notes                    text,
+  created_at               timestamptz not null default now(),
+  fulfilled_at             timestamptz
+);
+
+comment on table public.merch_orders is 'Completed merch checkouts; source of truth for fulfilment + the /admin dashboard.';
+
+create index if not exists merch_orders_created_at_idx
+  on public.merch_orders (created_at desc);
+create index if not exists merch_orders_status_idx
+  on public.merch_orders (status);
+
+alter table public.merch_orders enable row level security;
+
+-- No anon/authenticated policies: orders are read & written ONLY with the
+-- service-role key (the webhook and the password-gated /admin dashboard).
+-- RLS-on with no policy = deny-all for the public anon/auth roles.

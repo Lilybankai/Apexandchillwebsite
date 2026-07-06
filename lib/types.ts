@@ -36,7 +36,7 @@ export const LEAGUE_LABELS: Record<League, string> = {
  *   we fell back to bundled placeholder data so the site still renders.
  *
  * The UI can surface this to keep the "live vs cached vs waiting" state honest
- * rather than silently faking freshness. `tapstitch` / `printful` are the
+ * rather than silently faking freshness. `tapstitch` / `printify` are the
  * print-on-demand providers behind the merch store.
  */
 export type DataSource =
@@ -45,7 +45,7 @@ export type DataSource =
   | 'youtube'
   | 'cache'
   | 'tapstitch'
-  | 'printful'
+  | 'printify'
   | 'sample';
 
 /**
@@ -123,6 +123,46 @@ export interface NextRace {
 }
 
 /**
+ * A single round in a league's season calendar. Aligns with the SimGrid
+ * `races[]` payload and the Sim League Pro schedule, so the Schedule page and
+ * the `RoundCard` component share one shape.
+ */
+export interface ScheduleRound {
+  /** League this round belongs to. */
+  league: League;
+  /** Round number within the season (1-based, chronological). */
+  round: number;
+  /** Circuit / track name. */
+  track: string;
+  /** Car class / category running this round. */
+  class: string;
+  /** Race date as an ISO-8601 date (`YYYY-MM-DD`), in UK time. */
+  date: string;
+  /** Local (UK) start time, e.g. `20:00`. */
+  time?: string;
+  /** When the lobby opens, e.g. `19:45`. */
+  lobbyOpens?: string;
+  /** Whether this round runs dynamic / variable weather. */
+  variableWeather?: boolean;
+  /** Whether the round has already been run. */
+  status: 'upcoming' | 'completed';
+}
+
+/**
+ * A full season calendar for one league.
+ */
+export interface Schedule {
+  /** League these rounds belong to. */
+  league: League;
+  /** Display label for the season, e.g. `Season 2`. */
+  seasonLabel: string;
+  /** Where the data came from (`sample` when live keys are missing). */
+  source: DataSource;
+  /** Rounds, pre-sorted chronologically by round number. */
+  rounds: ScheduleRound[];
+}
+
+/**
  * A YouTube replay video, normalised from the YouTube Data API v3.
  */
 export interface Replay {
@@ -149,6 +189,20 @@ export interface Replay {
   league?: League | null;
   /** Best-effort series/round label derived from the title, else `null`. */
   series?: string | null;
+}
+
+/**
+ * A named group of replays sourced from one YouTube playlist. The replays page
+ * renders one section per group so the operator can surface several playlists
+ * (e.g. "GT7 League", "LMU League", "Highlights") side by side.
+ */
+export interface ReplayPlaylist {
+  /** The YouTube playlist id this group came from. */
+  id: string;
+  /** Section heading — an operator override, else the playlist's YouTube title. */
+  label: string;
+  /** Replays in this playlist, newest first. */
+  replays: Replay[];
 }
 
 /**
@@ -224,7 +278,7 @@ export interface JoinResult {
  * ------------------------------------------------------------------------- */
 
 /** Which print-on-demand provider a product came from. */
-export type MerchProvider = 'tapstitch' | 'printful' | 'sample';
+export type MerchProvider = 'tapstitch' | 'printify' | 'sample';
 
 /**
  * A single buyable variant of a product (a size/colour combination).
@@ -252,7 +306,7 @@ export interface ProductVariant {
  * shape the UI and cart consume.
  */
 export interface Product {
-  /** Globally-unique id, provider-prefixed, e.g. `printful:123`. */
+  /** Globally-unique id, provider-prefixed, e.g. `printify:123`. */
   id: string;
   /** URL slug used for the product detail route (`/merch/[handle]`). */
   handle: string;
@@ -286,7 +340,7 @@ export interface MerchFeed {
   /** All products across providers, deduped by handle. */
   products: Product[];
   /** Where each provider's slice came from (`sample` when its key is absent). */
-  providers: Partial<Record<'tapstitch' | 'printful', DataSource>>;
+  providers: Partial<Record<'tapstitch' | 'printify', DataSource>>;
   /** Aggregated note when any provider fell back to sample data. */
   error: string | null;
 }

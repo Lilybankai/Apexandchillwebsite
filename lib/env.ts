@@ -21,16 +21,26 @@ function read(name: string): string | undefined {
 }
 
 /**
- * SimGrid configuration — powers the LMU league (standings + next race).
- * @see https://www.simgrid.com
+ * SimGrid (GridOS) configuration — powers the LMU league and any other SimGrid
+ * championships (standings, schedule + next race).
+ * @see https://www.thesimgrid.com
  */
 export const simgrid = {
-  /** API base URL. Defaults to SimGrid's public API host. */
-  baseUrl: read('SIMGRID_API_BASE_URL') ?? 'https://www.simgrid.com/api',
+  /** GridOS API base URL. Defaults to SimGrid's public v1 API host. */
+  baseUrl: read('SIMGRID_API_BASE_URL') ?? 'https://www.thesimgrid.com/api/v1',
   /** Bearer token/key for the SimGrid API (`SIMGRID_API_KEY`, legacy alias `SIMGRID_API_TOKEN`). */
   token: read('SIMGRID_API_KEY') ?? read('SIMGRID_API_TOKEN'),
   /** SimGrid championship id for the current LMU season. */
   championshipId: read('SIMGRID_LMU_CHAMPIONSHIP_ID'),
+  /**
+   * Championship ids keyed by league id, so extra SimGrid leagues (e.g. the
+   * Thursday league) are a config-only addition. `LMU` mirrors
+   * {@link championshipId} for back-compat.
+   */
+  championships: {
+    LMU: read('SIMGRID_LMU_CHAMPIONSHIP_ID'),
+    THU: read('SIMGRID_THURSDAY_CHAMPIONSHIP_ID'),
+  } as Record<string, string | undefined>,
 } as const;
 
 /**
@@ -49,6 +59,65 @@ export const simLeaguePro = {
 } as const;
 
 /**
+ * Extract a bare YouTube playlist id from an operator-supplied string.
+ *
+ * Operators paste all sorts of things: a bare id (`PL…`, `UU…`, `FL…`, `OL…`),
+ * a full playlist URL (`…/playlist?list=PL…`), or — most commonly — a "share"
+ * fragment copied from a video that belongs to a playlist
+ * (`VIDEOID&list=PL…` or `…/watch?v=VIDEOID&list=PL…`). In every case the real
+ * playlist id is whatever follows `list=`. When there's no `list=` marker we
+ * assume the input is already a bare id and return it unchanged.
+ *
+ * @param raw - The pasted playlist id, URL, or share fragment.
+ * @returns The extracted playlist id, trimmed.
+ */
+export function extractPlaylistId(raw: string): string {
+  const value = raw.trim();
+  const match = value.match(/[?&]?list=([^&\s]+)/);
+  return match ? match[1] : value;
+}
+
+/** A single configured YouTube playlist to surface on the replays page. */
+export interface YoutubePlaylistConfig {
+  /**
+   * Operator-supplied section heading. `null` when none was given, in which case
+   * the data layer falls back to the playlist's own title from YouTube.
+   */
+  label: string | null;
+  /** The playlist id (`PL…`, `UU…`, …), already sanitised. */
+  id: string;
+}
+
+/**
+ * Parse the `YOUTUBE_PLAYLISTS` env var into an ordered list of playlists.
+ *
+ * Format: a comma-separated list of entries, each either a bare
+ * URL/id or `Label | url-or-id` (the `|` separates an optional heading from the
+ * playlist). Example:
+ *
+ * ```
+ * YOUTUBE_PLAYLISTS=GT7 League | https://youtube.com/playlist?list=PLaaa, LMU League | PLbbb
+ * ```
+ *
+ * @param raw - The raw env value (may be undefined).
+ * @returns Configs in declared order; empty when nothing valid is present.
+ */
+function parsePlaylists(raw: string | undefined): YoutubePlaylistConfig[] {
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const sep = entry.indexOf('|');
+      if (sep === -1) return { label: null, id: extractPlaylistId(entry) };
+      const label = entry.slice(0, sep).trim();
+      return { label: label || null, id: extractPlaylistId(entry.slice(sep + 1)) };
+    })
+    .filter((p) => p.id.length > 0);
+}
+
+/**
  * YouTube Data API v3 configuration — powers the replays gallery.
  * @see https://developers.google.com/youtube/v3
  */
@@ -58,11 +127,22 @@ export const youtube = {
   /** Channel id (`UC...`). Defaults to the Apex & Chill channel. */
   channelId: read('YOUTUBE_CHANNEL_ID') ?? 'UCu7lyaGuo3sY2wWZo42-LVw',
   /**
-   * Playlist to pull replays from. Defaults to the curated Apex & Chill replays
-   * playlist. Any playlist id works with `playlistItems`; when unset, the
-   * channel's uploads playlist is derived from {@link channelId}.
+   * Single playlist to pull replays from (`YOUTUBE_UPLOADS_PLAYLIST_ID`). Any
+   * playlist id works with `playlistItems`. Tolerant of pasted URLs / share
+   * fragments (see {@link extractPlaylistId}). When unset, the channel's uploads
+   * playlist is derived from {@link channelId}. Superseded by {@link playlists}
+   * when that is configured.
    */
-  uploadsPlaylistId: read('YOUTUBE_UPLOADS_PLAYLIST_ID') ?? 'PLHRp_wnmBUBcaFRSJwhWdgNvyzzUobCu0',
+  uploadsPlaylistId: (() => {
+    const raw = read('YOUTUBE_UPLOADS_PLAYLIST_ID');
+    return raw ? extractPlaylistId(raw) : undefined;
+  })(),
+  /**
+   * Multiple labelled playlists (`YOUTUBE_PLAYLISTS`), each rendered as its own
+   * section on the replays page. Empty when unset, in which case the site shows
+   * the single {@link uploadsPlaylistId} (or channel uploads) feed.
+   */
+  playlists: parsePlaylists(read('YOUTUBE_PLAYLISTS')),
 } as const;
 
 /**
@@ -94,8 +174,10 @@ export function isConfigured(
     | 'supabase'
     | 'supabaseAdmin'
     | 'tapstitch'
-    | 'printful'
-    | 'stripe',
+    | 'printify'
+    | 'stripe'
+    | 'resend'
+    | 'admin',
 ): boolean {
   switch (integration) {
     case 'simgrid':
@@ -110,10 +192,14 @@ export function isConfigured(
       return Boolean(supabase.url && supabase.serviceRoleKey);
     case 'tapstitch':
       return Boolean(tapstitch.apiKey);
-    case 'printful':
-      return Boolean(printful.apiKey);
+    case 'printify':
+      return Boolean(printify.apiKey && printify.shopId);
     case 'stripe':
       return Boolean(stripe.secretKey);
+    case 'resend':
+      return Boolean(resend.apiKey && resend.to);
+    case 'admin':
+      return Boolean(admin.password);
     default:
       return false;
   }
@@ -133,24 +219,24 @@ export const tapstitch = {
 } as const;
 
 /**
- * Printful configuration — a print-on-demand provider for the merch store.
- * @see https://developers.printful.com
+ * Printify configuration — a print-on-demand provider for the merch store.
+ * @see https://developers.printify.com
  */
-export const printful = {
-  /** API base URL. */
-  baseUrl: read('PRINTFUL_API_BASE_URL') ?? 'https://api.printful.com',
-  /** API key (Bearer token) for the Printful store. */
-  apiKey: read('PRINTFUL_API_KEY'),
-  /** Optional Printful store id (required for account-level tokens). */
-  storeId: read('PRINTFUL_STORE_ID'),
+export const printify = {
+  /** API base URL (all product/order calls are shop-scoped under `/shops/{id}`). */
+  baseUrl: read('PRINTIFY_API_BASE_URL') ?? 'https://api.printify.com/v1',
+  /** API key (Personal Access Token, Bearer) for the Printify account. */
+  apiKey: read('PRINTIFY_API_KEY'),
+  /** Printify shop id — required; every product/order call is scoped to one shop. */
+  shopId: read('PRINTIFY_SHOP_ID'),
   /**
-   * When `true`, orders pushed from the Stripe webhook are auto-confirmed
-   * (Printful charges & fulfils immediately). When `false` (default) they land
-   * as **draft** orders for the operator to review and confirm in the Printful
-   * dashboard — safer while going live. Set `PRINTFUL_AUTO_CONFIRM=true` to ship
-   * automatically.
+   * When `true`, orders pushed from the Stripe webhook are auto-confirmed (sent
+   * to production, so Printify charges & fulfils immediately). When `false`
+   * (default) the order is created but left for the operator to review and send
+   * to production from the Printify dashboard — safer while going live. Set
+   * `PRINTIFY_AUTO_CONFIRM=true` to ship automatically.
    */
-  autoConfirm: read('PRINTFUL_AUTO_CONFIRM') === 'true',
+  autoConfirm: read('PRINTIFY_AUTO_CONFIRM') === 'true',
 } as const;
 
 /**
@@ -164,6 +250,35 @@ export const stripe = {
   publishableKey: read('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY'),
   /** Webhook signing secret — SERVER ONLY. */
   webhookSecret: read('STRIPE_WEBHOOK_SECRET'),
+} as const;
+
+/**
+ * Resend configuration — sends the operator an email for every completed order
+ * (used especially for manual-fulfilment Tapstitch items). Uses Resend's REST
+ * API directly (no SDK), so nothing is sent when the key is absent.
+ * @see https://resend.com/docs
+ */
+export const resend = {
+  /** Resend API key (`re_...`). SERVER ONLY. */
+  apiKey: read('RESEND_API_KEY'),
+  /** Who order notifications are sent TO (the operator). Defaults to the store inbox. */
+  to: read('ORDER_NOTIFICATION_EMAIL'),
+  /**
+   * The verified From address, e.g. `Apex & Chill <orders@apexandchill.com>`.
+   * Must be on a domain verified in Resend. Defaults to Resend's shared sandbox
+   * sender, which only delivers to the account owner's email while testing.
+   */
+  from: read('ORDER_EMAIL_FROM') ?? 'Apex & Chill Orders <onboarding@resend.dev>',
+} as const;
+
+/**
+ * Admin dashboard access — a single shared password gate for `/admin`.
+ * SERVER ONLY; the password is never sent to the browser (only an opaque,
+ * httpOnly session cookie derived from it). When unset, `/admin` returns 503.
+ */
+export const admin = {
+  /** The operator password required to sign in to `/admin`. */
+  password: read('ADMIN_PASSWORD'),
 } as const;
 
 /** How long (seconds) to cache external API responses at the route layer. */

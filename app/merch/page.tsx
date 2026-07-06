@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Info, Heart } from 'lucide-react';
 import type { DataSource } from '@/lib/types';
 import { fetchTapstitchProducts } from '@/lib/merch/tapstitch';
-import { fetchPrintfulProducts } from '@/lib/merch/printful';
+import { fetchPrintifyProducts } from '@/lib/merch/printify';
 import { mergeCatalogs } from '@/lib/merch/catalog';
 import { Button } from '@/components/ui/Button';
 import { ProductGrid } from '@/components/merch/ProductGrid';
@@ -21,18 +21,18 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 /**
- * Merch store. Fetches the Tapstitch + Printful catalogs on the server (same
+ * Merch store. Fetches the Tapstitch + Printify catalogs on the server (same
  * source `GET /api/merch/products` wraps), merges them, and renders a filterable
  * grid plus the persistent cart. Degrades to a sample catalog with a notice when
  * provider keys are absent.
  */
 export default async function MerchPage() {
-  const [tapstitch, printful] = await Promise.all([
+  const [tapstitch, printify] = await Promise.all([
     fetchTapstitchProducts(),
-    fetchPrintfulProducts(),
+    fetchPrintifyProducts(),
   ]);
-  const products = mergeCatalogs(tapstitch.data, printful.data);
-  const usingSample: DataSource[] = [tapstitch.source, printful.source].filter((s) => s === 'sample');
+  const products = mergeCatalogs(tapstitch.data, printify.data);
+  const usingSample: DataSource[] = [tapstitch.source, printify.source].filter((s) => s === 'sample');
 
   return (
     <>
@@ -60,7 +60,7 @@ export default async function MerchPage() {
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-flag-amber" aria-hidden />
             <span>
               Showing a sample catalog. Live products sync in automatically once the
-              Tapstitch and Printful stores are connected.
+              Tapstitch and Printify stores are connected.
             </span>
           </div>
         )}

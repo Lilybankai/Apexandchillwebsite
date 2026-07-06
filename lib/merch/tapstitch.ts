@@ -1,40 +1,50 @@
 /**
- * Tapstitch print-on-demand client for the merch store.
+ * Tapstitch merch — MANUAL curated catalog.
  *
- * Follows the data-layer pattern: env-driven, returns a typed {@link ApiResult},
- * and never throws — when `TAPSTITCH_API_KEY` is absent (or the upstream call
- * fails) it resolves to a bundled sample catalog with `source: 'sample'` so the
- * store always renders.
+ * ── WHY THIS IS A HAND-MAINTAINED FILE ───────────────────────────────────────
+ * Tapstitch does NOT offer a public product API or a Next.js integration, so
+ * (unlike Printify) products can't sync in automatically. Instead we treat
+ * Tapstitch as a manual catalog: you list each product ONCE in the
+ * {@link TAPSTITCH_CATALOG} array below and it flows through the exact same
+ * provider-agnostic {@link Product} model as everything else — so the storefront,
+ * cart and checkout need zero changes.
  *
- * ── OPERATOR: BEST INTEGRATION PATH ──────────────────────────────────────────
- * Tapstitch syncs products poorly into WordPress; this store bypasses that by
- * reading Tapstitch's storefront/products API directly and normalising into the
- * provider-agnostic {@link Product} model. To go live:
- *   1. In Tapstitch → Settings → API/Integrations, create an API key and note
- *      your store id. Put them in `.env.local` as TAPSTITCH_API_KEY /
- *      TAPSTITCH_STORE_ID.
- *   2. Verify the request path + JSON field names in {@link fetchTapstitchProducts}
- *      / {@link normaliseProduct} against your Tapstitch API docs (the mapping
- *      below is defensive but provider payloads vary).
- *   3. Product images/prices then flow from Tapstitch automatically; the sample
- *      catalog is only used while the key is unset.
- * Because normalisation is provider-agnostic, adding/removing a provider never
- * touches the UI — only this file.
+ * Fulfilment is also manual: Tapstitch can't receive an automated order push, so
+ * when a Tapstitch item is bought the Stripe webhook records the order and emails
+ * you the details (see app/api/webhooks/stripe) to key into Tapstitch by hand.
+ * You review these in the /admin dashboard.
+ *
+ * ── HOW TO ADD / EDIT A PRODUCT ──────────────────────────────────────────────
+ *   1. Add (or edit) an entry in {@link TAPSTITCH_CATALOG}. Give it a stable
+ *      `handle` (URL slug), real `images` (drop files in /public/... or use a
+ *      hosted URL), a `priceFrom`, and one `variants` entry per buyable
+ *      size/colour with its own `price`.
+ *   2. Sold out? Set that variant's `available: false` (or the whole product's
+ *      variants). Checkout re-checks this server-side and blocks out-of-stock buys.
+ *   3. That's it — no rebuild of the store UI needed. Prices are re-derived
+ *      server-side at checkout from THIS list, so they can't be tampered with.
+ *
+ * The return shape stays `ApiResult<Product[]>` for drop-in compatibility with
+ * the merge/checkout code; `source` is `'tapstitch'` when the catalog is
+ * non-empty, else `'sample'` with a note.
  *
  * @packageDocumentation
  */
 
 import type { ApiResult, Product, ProductVariant } from '@/lib/types';
-import { tapstitch as cfg, isConfigured, CACHE_TTL_SECONDS } from '@/lib/env';
 import { slugify } from '@/lib/merch/catalog';
 
-/** Standard apparel sizes used to expand a sample product's variants. */
+/** Standard apparel sizes, for the {@link apparelVariants} helper. */
 const APPAREL_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 
-/** Build apparel variants (one per size) at a flat price. */
-function apparelVariants(idBase: string, price: number): ProductVariant[] {
+/**
+ * Build one variant per apparel size at a flat price. A convenience for tees /
+ * hoodies where every size costs the same; for per-variant pricing or non-apparel
+ * options, write the `variants` array by hand instead.
+ */
+function apparelVariants(handle: string, price: number): ProductVariant[] {
   return APPAREL_SIZES.map((size) => ({
-    id: `${idBase}-${size.toLowerCase()}`,
+    id: `tapstitch:${handle}:${size.toLowerCase()}`,
     name: size,
     size,
     price,
@@ -43,24 +53,29 @@ function apparelVariants(idBase: string, price: number): ProductVariant[] {
 }
 
 /**
- * Bundled sample Tapstitch catalog (used when live credentials are absent).
- * Mirrors the real Apex & Chill items sourced by the Scout. Images use bundled
- * brand art as placeholders until the live Tapstitch feed supplies photos.
+ * ┌──────────────────────────────────────────────────────────────────────────┐
+ * │  YOUR TAPSTITCH PRODUCTS — edit this array to manage the store.           │
+ * └──────────────────────────────────────────────────────────────────────────┘
+ *
+ * These start as the Apex & Chill sample items; replace titles/prices/images
+ * with your real Tapstitch products. Each becomes a card on /merch automatically.
  */
-const SAMPLE_TAPSTITCH: Product[] = [
+export const TAPSTITCH_CATALOG: Product[] = [
   {
     id: 'tapstitch:neon-desk-mat',
     handle: 'neon-desk-mat',
     title: 'Neon Circuit Desk Mat',
     description:
       'Oversized neon desk mat with the Apex & Chill circuit artwork. Smooth surface, stitched edges — built for sim rig setups.',
-    provider: 'sample',
+    provider: 'tapstitch',
     images: ['/brand/banner.png'],
     priceFrom: 25.99,
     currency: 'GBP',
     category: 'Accessories',
     tags: ['accessories', 'desk'],
-    variants: [{ id: 'tapstitch:neon-desk-mat-xl', name: 'XL (900×400mm)', price: 25.99, available: true }],
+    variants: [
+      { id: 'tapstitch:neon-desk-mat:xl', name: 'XL (900×400mm)', price: 25.99, available: true },
+    ],
   },
   {
     id: 'tapstitch:tough-phone-case',
@@ -68,16 +83,16 @@ const SAMPLE_TAPSTITCH: Product[] = [
     title: 'Tough Phone Case',
     description:
       'Impact-resistant phone case in the Apex & Chill livery. Dual-layer protection with a matte neon finish.',
-    provider: 'sample',
+    provider: 'tapstitch',
     images: ['/brand/standings.png'],
     priceFrom: 24.13,
     currency: 'GBP',
     category: 'Accessories',
     tags: ['accessories', 'phone'],
     variants: [
-      { id: 'tapstitch:tough-phone-case-15', name: 'iPhone 15 / Pro', price: 24.13, available: true },
-      { id: 'tapstitch:tough-phone-case-14', name: 'iPhone 14 / Pro', price: 24.13, available: true },
-      { id: 'tapstitch:tough-phone-case-s24', name: 'Samsung S24', price: 24.13, available: true },
+      { id: 'tapstitch:tough-phone-case:15', name: 'iPhone 15 / Pro', price: 24.13, available: true },
+      { id: 'tapstitch:tough-phone-case:14', name: 'iPhone 14 / Pro', price: 24.13, available: true },
+      { id: 'tapstitch:tough-phone-case:s24', name: 'Samsung S24', price: 24.13, available: true },
     ],
   },
   {
@@ -86,92 +101,32 @@ const SAMPLE_TAPSTITCH: Product[] = [
     title: 'Sunfade Racing Tee',
     description:
       'Soft cotton tee with a sunfade neon print. Relaxed fit — race day or rest day.',
-    provider: 'sample',
+    provider: 'tapstitch',
     images: ['/brand/replays.png'],
     priceFrom: 25.92,
     currency: 'GBP',
     category: 'Apparel',
     tags: ['apparel', 'tee'],
-    variants: apparelVariants('tapstitch:sunfade-tee', 25.92),
+    variants: apparelVariants('sunfade-tee', 25.92),
   },
 ];
 
-/** GET against the Tapstitch API. @throws on a non-ok response. */
-async function tapstitchGet<T>(path: string): Promise<T> {
-  const url = `${cfg.baseUrl.replace(/\/$/, '')}${path}`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${cfg.apiKey}`,
-      Accept: 'application/json',
-    },
-    next: { revalidate: CACHE_TTL_SECONDS },
-  });
-  if (!res.ok) throw new Error(`Tapstitch ${path} responded ${res.status} ${res.statusText}`);
-  return (await res.json()) as T;
-}
-
-/** Defensively normalise a raw Tapstitch product into a {@link Product}. */
-function normaliseProduct(raw: Record<string, unknown>): Product {
-  const str = (v: unknown, fb = ''): string => (typeof v === 'string' ? v : fb);
-  const num = (v: unknown, fb = 0): number =>
-    typeof v === 'number' ? v : typeof v === 'string' ? Number(v) || fb : fb;
-
-  const id = str(raw.id ?? raw.product_id, crypto.randomUUID());
-  const title = str(raw.title ?? raw.name, 'Untitled product');
-  const rawVariants = Array.isArray(raw.variants) ? (raw.variants as Record<string, unknown>[]) : [];
-  const variants: ProductVariant[] = rawVariants.map((v, i) => ({
-    id: `tapstitch:${id}:${str(v.id, String(i))}`,
-    name: str(v.title ?? v.name, `Variant ${i + 1}`),
-    size: str(v.size) || undefined,
-    color: str(v.color) || undefined,
-    price: num(v.price ?? v.retail_price),
-    available: v.available !== false,
-    image: str(v.image) || undefined,
-  }));
-  const priceFrom = variants.length ? Math.min(...variants.map((v) => v.price)) : num(raw.price);
-  const images = Array.isArray(raw.images)
-    ? (raw.images as unknown[]).map((i) => String(i))
-    : [str(raw.image ?? raw.thumbnail, '/brand/banner.png')];
-
-  return {
-    id: `tapstitch:${id}`,
-    handle: slugify(title),
-    title,
-    description: str(raw.description),
-    provider: 'tapstitch',
-    images,
-    priceFrom,
-    currency: 'GBP',
-    category: str(raw.category ?? raw.type, 'Apparel'),
-    tags: Array.isArray(raw.tags) ? (raw.tags as unknown[]).map((t) => String(t)) : [],
-    variants,
-  };
-}
-
-/** The sample fallback result (shared by success + error paths). */
-function sample(error: string | null): ApiResult<Product[]> {
-  return { ok: true, source: 'sample', error, data: SAMPLE_TAPSTITCH };
-}
-
 /**
- * Fetch the Tapstitch product catalog.
+ * Return the manual Tapstitch catalog.
  *
- * @returns Live products when configured, otherwise the sample catalog. Never
- *          throws.
+ * Async + {@link ApiResult}-shaped purely to stay a drop-in match for the other
+ * providers; it does no network I/O. Never throws.
+ *
+ * @returns The curated catalog (`source: 'tapstitch'`), or an empty sample-style
+ *          result with a note when the catalog is empty.
  */
 export async function fetchTapstitchProducts(): Promise<ApiResult<Product[]>> {
-  if (!isConfigured('tapstitch')) {
-    return sample('Tapstitch not configured — showing sample catalog.');
+  // Defensive: guarantee handles are slugs even if an entry was added by hand
+  // with an odd handle, so product-detail routing stays stable.
+  const products = TAPSTITCH_CATALOG.map((p) => ({ ...p, handle: slugify(p.handle || p.title) }));
+
+  if (products.length === 0) {
+    return { ok: true, source: 'sample', error: 'Tapstitch catalog is empty.', data: [] };
   }
-  try {
-    const storePath = cfg.storeId ? `/stores/${cfg.storeId}/products` : '/products';
-    const raw = await tapstitchGet<{ products?: Record<string, unknown>[] }>(storePath);
-    const list = Array.isArray(raw.products) ? raw.products : [];
-    if (list.length === 0) return sample('Tapstitch returned no products — showing sample catalog.');
-    return { ok: true, source: 'tapstitch', error: null, data: list.map(normaliseProduct) };
-  } catch (err) {
-    return sample(
-      `Tapstitch request failed (${err instanceof Error ? err.message : 'unknown error'}) — showing sample catalog.`,
-    );
-  }
+  return { ok: true, source: 'tapstitch', error: null, data: products };
 }

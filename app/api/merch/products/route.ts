@@ -1,7 +1,7 @@
 /**
  * `GET /api/merch/products` — the unified merch catalog.
  *
- * Merges the Tapstitch and Printful product feeds into a single, deduped list
+ * Merges the Tapstitch and Printify product feeds into a single, deduped list
  * (by product handle) and reports where each provider's slice came from so the
  * UI can flag sample-vs-live. Never throws — each provider degrades to its
  * sample catalog independently.
@@ -12,7 +12,7 @@
 import { NextResponse } from 'next/server';
 import type { MerchFeed } from '@/lib/types';
 import { fetchTapstitchProducts } from '@/lib/merch/tapstitch';
-import { fetchPrintfulProducts } from '@/lib/merch/printful';
+import { fetchPrintifyProducts } from '@/lib/merch/printify';
 import { mergeCatalogs } from '@/lib/merch/catalog';
 import { CACHE_TTL_SECONDS } from '@/lib/env';
 
@@ -24,18 +24,18 @@ export const revalidate = 300;
 
 /** Handle GET requests for the merged merch catalog. */
 export async function GET(): Promise<NextResponse<MerchFeed>> {
-  const [tapstitch, printful] = await Promise.all([
+  const [tapstitch, printify] = await Promise.all([
     fetchTapstitchProducts(),
-    fetchPrintfulProducts(),
+    fetchPrintifyProducts(),
   ]);
 
-  const products = mergeCatalogs(tapstitch.data, printful.data);
-  const errors = [tapstitch.error, printful.error].filter(Boolean);
+  const products = mergeCatalogs(tapstitch.data, printify.data);
+  const errors = [tapstitch.error, printify.error].filter(Boolean);
 
   const body: MerchFeed = {
     ok: products.length > 0,
     products,
-    providers: { tapstitch: tapstitch.source, printful: printful.source },
+    providers: { tapstitch: tapstitch.source, printify: printify.source },
     error: errors.length ? errors.join(' ') : null,
   };
 

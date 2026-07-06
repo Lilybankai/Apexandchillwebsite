@@ -15,7 +15,7 @@
  *     from the client (and validated).
  *  3. FULFILMENT: on payment, `POST /api/webhooks/stripe` verifies
  *     STRIPE_WEBHOOK_SECRET and, on `checkout.session.completed`, pushes the
- *     order to Printful's Orders API. So the webhook knows which variants were
+ *     order to Printify's Orders API. So the webhook knows which variants were
  *     bought, we stash the trusted cart (variant id + quantity) in the session
  *     `metadata` here via {@link encodeCartMetadata}.
  *
@@ -24,37 +24,10 @@
 
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import type { CartLine, Product, ProductVariant } from '@/lib/types';
+import type { CartLine } from '@/lib/types';
 import { stripe as stripeEnv, isConfigured } from '@/lib/env';
-import { fetchTapstitchProducts } from '@/lib/merch/tapstitch';
-import { fetchPrintfulProducts } from '@/lib/merch/printful';
-import { mergeCatalogs } from '@/lib/merch/catalog';
+import { loadVariantIndex } from '@/lib/merch/store';
 import { encodeCartMetadata } from '@/lib/merch/cart-metadata';
-
-/** A trusted, server-side view of a variant plus its parent product. */
-interface CatalogEntry {
-  product: Product;
-  variant: ProductVariant;
-}
-
-/**
- * Build a `variantId -> {product, variant}` map from the live/merged catalog,
- * so checkout prices come from the trusted server-side source, never the client.
- */
-async function loadVariantIndex(): Promise<Map<string, CatalogEntry>> {
-  const [tapstitch, printful] = await Promise.all([
-    fetchTapstitchProducts(),
-    fetchPrintfulProducts(),
-  ]);
-  const catalog = mergeCatalogs(tapstitch.data, printful.data);
-  const index = new Map<string, CatalogEntry>();
-  for (const product of catalog) {
-    for (const variant of product.variants) {
-      index.set(variant.id, { product, variant });
-    }
-  }
-  return index;
-}
 
 interface CheckoutResponse {
   ok: boolean;

@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { fetchTapstitchProducts } from '@/lib/merch/tapstitch';
-import { fetchPrintfulProducts } from '@/lib/merch/printful';
+import { fetchPrintifyProducts } from '@/lib/merch/printify';
 import { mergeCatalogs } from '@/lib/merch/catalog';
 import { ProductDetail } from '@/components/merch/ProductDetail';
 import { ProductCard } from '@/components/merch/ProductCard';
@@ -18,11 +18,11 @@ export const revalidate = 300;
 
 /** Load and merge the full catalog (shared by params, metadata, and the page). */
 async function loadCatalog(): Promise<Product[]> {
-  const [tapstitch, printful] = await Promise.all([
+  const [tapstitch, printify] = await Promise.all([
     fetchTapstitchProducts(),
-    fetchPrintfulProducts(),
+    fetchPrintifyProducts(),
   ]);
-  return mergeCatalogs(tapstitch.data, printful.data);
+  return mergeCatalogs(tapstitch.data, printify.data);
 }
 
 /** Pre-render the known (sample/live-at-build) product pages; others render on demand. */

@@ -256,7 +256,7 @@ export async function fetchReplays(maxResults = 24): Promise<ApiResult<Replay[]>
   if (!isConfigured('youtube')) {
     const cached = await readReplaysCache();
     if (cached) {
-      return { ok: true, source: 'youtube', error: 'YouTube not configured — serving cached replays.', data: cached };
+      return { ok: true, source: 'cache', error: 'YouTube not configured — serving cached replays.', data: cached };
     }
     return sampleReplays('YouTube not configured — showing sample replays.');
   }
@@ -324,7 +324,7 @@ export async function fetchReplays(maxResults = 24): Promise<ApiResult<Replay[]>
     if (cached) {
       return {
         ok: true,
-        source: 'youtube',
+        source: 'cache',
         error: `YouTube request failed (${err instanceof Error ? err.message : 'unknown error'}) — serving cached replays.`,
         data: cached,
       };

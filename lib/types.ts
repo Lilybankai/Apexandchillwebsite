@@ -27,12 +27,18 @@ export const LEAGUE_LABELS: Record<League, string> = {
 };
 
 /**
- * Where a piece of data actually came from. `sample` means live credentials
- * were not configured (or the upstream call failed) and we fell back to bundled
- * placeholder data so the site still renders. The UI can surface this to make
- * the "waiting for live data" state honest rather than silently faking it.
+ * Where a piece of data actually came from.
+ *
+ * - `simgrid` / `simleaguepro` / `youtube` — a fresh, live upstream response.
+ * - `cache` — served from our own store (e.g. the Supabase replays cache)
+ *   because the live call was unavailable; real data, but not this-second fresh.
+ * - `sample` — live credentials were not configured (or every source failed) and
+ *   we fell back to bundled placeholder data so the site still renders.
+ *
+ * The UI can surface this to keep the "live vs cached vs waiting" state honest
+ * rather than silently faking freshness.
  */
-export type DataSource = 'simgrid' | 'simleaguepro' | 'youtube' | 'sample';
+export type DataSource = 'simgrid' | 'simleaguepro' | 'youtube' | 'cache' | 'sample';
 
 /**
  * A single driver's row in a championship standings table.

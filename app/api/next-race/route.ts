@@ -20,7 +20,11 @@ import { fetchGt7NextRace } from '@/lib/api/simleaguepro';
 import { fetchLmuNextRace } from '@/lib/api/simgrid';
 import { CACHE_TTL_SECONDS } from '@/lib/env';
 
-/** Revalidate this route's cache every {@link CACHE_TTL_SECONDS} seconds. */
+/**
+ * Revalidate this route's cache every 5 minutes. Next.js requires `revalidate`
+ * to be a STATIC literal — it cannot reference {@link CACHE_TTL_SECONDS} — so
+ * keep the two in sync manually if CACHE_TTL_SECONDS changes.
+ */
 export const revalidate = 300;
 
 type NextRaceByLeague = Partial<Record<League, ApiResult<NextRace>>>;

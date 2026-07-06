@@ -1,38 +1,41 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-/**
- * Placeholder brand mark — a stylised "A" chevron filled with the cyan→violet
- * neon gradient. Designed to sit alongside the "APEX & CHILL" wordmark. The
- * operator will supply a hi-res logo later; swap the SVG paths here in one place.
- *
- * Each instance uses a unique gradient id (via React's `useId`) so multiple
- * logos on the same page (header + footer) don't collide.
- */
-import { useId } from "react";
+/** Path to the operator-supplied logo. Swap here when a hi-res/SVG arrives. */
+const LOGO_SRC = "/brand/apex-chill-logo.jpg";
+const LOGO_INTRINSIC = 150;
 
-export function ApexChevron({ className }: { className?: string }) {
-  const gradId = useId();
+/**
+ * Apex & Chill brand mark — the real operator-supplied logo (cyan→violet "A"
+ * chevron + wordmark badge on a dark ground). Kept as a thin wrapper around
+ * `next/image` so the source can be swapped for a hi-res/SVG later without
+ * touching call sites (Header, Footer, hero lockup, etc.).
+ *
+ * The badge already ships on a dark background, so it blends onto the site's
+ * dark surfaces. Size it with a `className` height/width (e.g. `h-9 w-9`).
+ */
+export function Logo({
+  className,
+  priority = false,
+}: {
+  className?: string;
+  priority?: boolean;
+}) {
   return (
-    <svg
-      viewBox="0 0 32 32"
-      role="img"
-      aria-label="Apex & Chill Racing logo"
-      className={cn("shrink-0 drop-shadow-[0_0_10px_rgba(155,92,255,0.55)]", className)}
-    >
-      <defs>
-        <linearGradient id={gradId} x1="0" y1="32" x2="32" y2="0">
-          <stop offset="0%" stopColor="rgb(34 227 255)" />
-          <stop offset="55%" stopColor="rgb(155 92 255)" />
-          <stop offset="100%" stopColor="rgb(236 72 200)" />
-        </linearGradient>
-      </defs>
-      {/* Outer chevron */}
-      <path
-        d="M16 2 L30 30 L23.5 30 L16 14.5 L8.5 30 L2 30 Z"
-        fill={`url(#${gradId})`}
-      />
-      {/* Inner speed notch */}
-      <path d="M16 17.5 L20 26 L12 26 Z" fill="rgb(10 10 18)" />
-    </svg>
+    <Image
+      src={LOGO_SRC}
+      alt="Apex & Chill Racing League"
+      width={LOGO_INTRINSIC}
+      height={LOGO_INTRINSIC}
+      priority={priority}
+      className={cn("rounded-[6px] object-contain", className)}
+    />
   );
 }
+
+/**
+ * Backwards-compatible alias — earlier code referenced `ApexChevron`. Both
+ * render the same real logo wrapper.
+ * @deprecated Prefer {@link Logo}.
+ */
+export const ApexChevron = Logo;

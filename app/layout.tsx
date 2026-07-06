@@ -38,6 +38,10 @@ export const metadata: Metadata = {
   },
   description:
     "The home of Apex & Chill Racing — a multi-platform sim racing community running competitive GT7 and Le Mans Ultimate leagues. Clean racing, live standings, weekly replays and a thriving Discord.",
+  icons: {
+    icon: "/brand/apex-chill-logo.jpg",
+    apple: "/brand/apex-chill-logo.jpg",
+  },
   keywords: [
     "sim racing",
     "GT7 league",

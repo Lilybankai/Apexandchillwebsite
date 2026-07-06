@@ -91,18 +91,46 @@ const SAMPLE_PRINTFUL: Product[] = [
   },
 ];
 
+/** Auth + store headers shared by every Printful request. */
+function printfulHeaders(): Record<string, string> {
+  return {
+    Authorization: `Bearer ${cfg.apiKey}`,
+    Accept: 'application/json',
+    ...(cfg.storeId ? { 'X-PF-Store-Id': cfg.storeId } : {}),
+  };
+}
+
 /** GET against the Printful API. @throws on a non-ok response. */
 async function printfulGet<T>(path: string): Promise<T> {
   const url = `${cfg.baseUrl.replace(/\/$/, '')}${path}`;
   const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${cfg.apiKey}`,
-      Accept: 'application/json',
-      ...(cfg.storeId ? { 'X-PF-Store-Id': cfg.storeId } : {}),
-    },
+    headers: printfulHeaders(),
     next: { revalidate: CACHE_TTL_SECONDS },
   });
   if (!res.ok) throw new Error(`Printful ${path} responded ${res.status} ${res.statusText}`);
+  return (await res.json()) as T;
+}
+
+/** POST against the Printful API (uncached). @throws with the API error message. */
+async function printfulPost<T>(path: string, body: unknown): Promise<T> {
+  const url = `${cfg.baseUrl.replace(/\/$/, '')}${path}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { ...printfulHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    let detail = `${res.status} ${res.statusText}`;
+    try {
+      const j = (await res.json()) as { error?: { message?: string }; result?: unknown };
+      if (j?.error?.message) detail = j.error.message;
+      else if (typeof j?.result === 'string') detail = j.result;
+    } catch {
+      /* keep status-line detail */
+    }
+    throw new Error(`Printful ${path} failed: ${detail}`);
+  }
   return (await res.json()) as T;
 }
 
@@ -196,5 +224,80 @@ export async function fetchPrintfulProducts(): Promise<ApiResult<Product[]>> {
     return sample(
       `Printful request failed (${err instanceof Error ? err.message : 'unknown error'}) — showing sample catalog.`,
     );
+  }
+}
+
+/* ------------------------------------------------------------------------- *
+ * Fulfilment — push a paid Stripe order to Printful's Orders API.
+ * ------------------------------------------------------------------------- */
+
+/** Shipping recipient, shaped for the Printful Orders API. */
+export interface PrintfulRecipient {
+  name?: string;
+  address1?: string;
+  address2?: string;
+  city?: string;
+  /** ISO state/region code, e.g. `CA` (optional for many countries). */
+  state_code?: string;
+  /** ISO-3166-1 alpha-2 country code, e.g. `GB`. */
+  country_code?: string;
+  zip?: string;
+  email?: string;
+  phone?: string;
+}
+
+/** One line of a Printful order: a sync-variant id + quantity. */
+export interface PrintfulOrderItem {
+  /** Printful `sync_variant_id` (the numeric part of our `printful:<id>`). */
+  sync_variant_id: number;
+  quantity: number;
+}
+
+/** Outcome of a {@link createPrintfulOrder} call. */
+export interface PrintfulOrderResult {
+  ok: boolean;
+  /** Printful order id, when created. */
+  id?: number;
+  /** Printful order status, e.g. `draft` or `pending`. */
+  status?: string;
+  error: string | null;
+}
+
+/**
+ * Create a Printful order for a set of sync-variant lines.
+ *
+ * By default the order is created as a **draft** (`confirm=false`) so the
+ * operator reviews it in the Printful dashboard before it's charged & shipped;
+ * set `PRINTFUL_AUTO_CONFIRM=true` (or pass `confirm: true`) to fulfil
+ * automatically. Pass a stable `externalId` (we use the Stripe session id) so
+ * Printful de-duplicates retried webhook deliveries into a single order.
+ *
+ * Never throws — returns `{ ok: false, error }` on any failure.
+ */
+export async function createPrintfulOrder(
+  recipient: PrintfulRecipient,
+  items: PrintfulOrderItem[],
+  opts: { externalId?: string; confirm?: boolean } = {},
+): Promise<PrintfulOrderResult> {
+  if (!isConfigured('printful')) {
+    return { ok: false, error: 'Printful not configured — cannot create order.' };
+  }
+  if (items.length === 0) {
+    return { ok: false, error: 'No Printful items to fulfil.' };
+  }
+
+  const confirm = opts.confirm ?? cfg.autoConfirm;
+  const query = confirm ? '?confirm=true' : '';
+  const payload = {
+    ...(opts.externalId ? { external_id: opts.externalId } : {}),
+    recipient,
+    items,
+  };
+
+  try {
+    const res = await printfulPost<PrintfulEnvelope<{ id: number; status?: string }>>(`/orders${query}`, payload);
+    return { ok: true, id: res.result?.id, status: res.result?.status, error: null };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'unknown error' };
   }
 }

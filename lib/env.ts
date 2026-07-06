@@ -143,6 +143,14 @@ export const printful = {
   apiKey: read('PRINTFUL_API_KEY'),
   /** Optional Printful store id (required for account-level tokens). */
   storeId: read('PRINTFUL_STORE_ID'),
+  /**
+   * When `true`, orders pushed from the Stripe webhook are auto-confirmed
+   * (Printful charges & fulfils immediately). When `false` (default) they land
+   * as **draft** orders for the operator to review and confirm in the Printful
+   * dashboard — safer while going live. Set `PRINTFUL_AUTO_CONFIRM=true` to ship
+   * automatically.
+   */
+  autoConfirm: read('PRINTFUL_AUTO_CONFIRM') === 'true',
 } as const;
 
 /**

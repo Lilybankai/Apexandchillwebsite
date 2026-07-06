@@ -13,9 +13,11 @@
  *     ({@link loadVariantIndex}); the client-supplied price is ignored entirely,
  *     so the browser cannot tamper with what it pays. Only the quantity is taken
  *     from the client (and validated).
- *  3. FULFILMENT TODO: add `POST /api/webhooks/stripe` verifying
- *     STRIPE_WEBHOOK_SECRET, and on `checkout.session.completed` push the order
- *     to Printful/Tapstitch's Orders API so items are printed & shipped.
+ *  3. FULFILMENT: on payment, `POST /api/webhooks/stripe` verifies
+ *     STRIPE_WEBHOOK_SECRET and, on `checkout.session.completed`, pushes the
+ *     order to Printful's Orders API. So the webhook knows which variants were
+ *     bought, we stash the trusted cart (variant id + quantity) in the session
+ *     `metadata` here via {@link encodeCartMetadata}.
  *
  * @packageDocumentation
  */
@@ -27,6 +29,7 @@ import { stripe as stripeEnv, isConfigured } from '@/lib/env';
 import { fetchTapstitchProducts } from '@/lib/merch/tapstitch';
 import { fetchPrintfulProducts } from '@/lib/merch/printful';
 import { mergeCatalogs } from '@/lib/merch/catalog';
+import { encodeCartMetadata } from '@/lib/merch/cart-metadata';
 
 /** A trusted, server-side view of a variant plus its parent product. */
 interface CatalogEntry {
@@ -158,6 +161,9 @@ export async function POST(request: Request): Promise<NextResponse<CheckoutRespo
       success_url: `${origin}/merch?checkout=success`,
       cancel_url: `${origin}/merch?checkout=cancelled`,
       shipping_address_collection: { allowed_countries: ['GB', 'IE'] },
+      // Stash the trusted variant ids + quantities so the webhook
+      // (POST /api/webhooks/stripe) can push the order to the POD provider.
+      metadata: encodeCartMetadata(lines),
     });
 
     return NextResponse.json({ ok: true, url: session.url ?? undefined, error: null });

@@ -169,22 +169,36 @@ export interface ApiResult<T> {
 /**
  * Payload accepted by `POST /api/join` and persisted to Supabase.
  * Owned by the data layer so the Join page and the schema stay in sync.
+ *
+ * Supports BOTH leagues: GT7 runs on PlayStation (PSN id) and LMU on PC
+ * (gamertag), and the car-class options differ per league.
  */
 export interface JoinSubmission {
   /** Which league the driver wants to join. */
   league: League;
   /** Driver's real name or preferred name. */
   driverName: string;
+  /** Platform, e.g. `PS5`, `PC (Steam)`. */
+  platform: string;
   /** PlayStation Network id (GT7 drivers). Optional for LMU. */
   psn?: string;
-  /** Steam / gamertag (LMU / PC drivers). Optional for GT7. */
+  /** Steam name / gamertag (LMU / PC drivers). Optional for GT7. */
   gamertag?: string;
+  /** Contact email address. */
+  email: string;
+  /** Discord username/tag — the community's primary channel. */
+  discord: string;
+  /**
+   * Preferred car class. GT7: `GR.4 (Beginner)` | `GR.3 (Advanced)` | `Both`.
+   * LMU: `GT3` | `Hypercar`.
+   */
+  carClass: string;
   /** Self-described experience level. */
   experience: string;
-  /** Platform, e.g. `PS5`, `PC`. */
-  platform: string;
-  /** Contact handle — Discord tag or email. */
-  contact: string;
+  /** Input device, e.g. `Wheel` or `Controller`. */
+  inputMethod: string;
+  /** Confirms the applicant meets the eligibility/clean-racing requirements. */
+  eligibilityAck: boolean;
   /** Optional free-text message. */
   message?: string;
 }

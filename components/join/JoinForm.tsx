@@ -13,6 +13,14 @@ const PLATFORMS: Record<League, string[]> = {
   LMU: ['PC (Steam)'],
 };
 
+/** Car-class options offered per league. */
+const CAR_CLASSES: Record<League, string[]> = {
+  GT7: ['GR.4 (Beginner)', 'GR.3 (Advanced)', 'Both'],
+  LMU: ['GT3', 'Hypercar'],
+};
+
+const INPUT_METHODS = ['Wheel', 'Controller'];
+
 const EXPERIENCE_OPTIONS = [
   'New to sim racing',
   'Casual / a few leagues',
@@ -23,28 +31,39 @@ const EXPERIENCE_OPTIONS = [
 /** Discord invite for the community (fallback contact + CTA). */
 const DISCORD_URL = 'https://discord.gg/MBew2Bb2hj';
 
+/** Basic email shape check — mirrors the server rule for instant feedback. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
-/** The controlled form state. Mirrors {@link JoinSubmission} plus UI-only bits. */
+/** The controlled form state. Mirrors {@link JoinSubmission}. */
 interface FormState {
   league: League;
   driverName: string;
   platform: string;
   psn: string;
   gamertag: string;
+  email: string;
+  discord: string;
+  carClass: string;
   experience: string;
-  contact: string;
+  inputMethod: string;
+  eligibilityAck: boolean;
   message: string;
 }
 
 const INITIAL: FormState = {
   league: 'GT7',
   driverName: '',
-  platform: 'PS5',
+  platform: PLATFORMS.GT7[0],
   psn: '',
   gamertag: '',
+  email: '',
+  discord: '',
+  carClass: '',
   experience: '',
-  contact: '',
+  inputMethod: '',
+  eligibilityAck: false,
   message: '',
 };
 
@@ -52,10 +71,14 @@ const INITIAL: FormState = {
 function validateClient(form: FormState): string | null {
   if (form.driverName.trim().length < 2) return 'Please enter your driver name.';
   if (!form.platform) return 'Please select your platform.';
-  if (!form.experience) return 'Please tell us your experience level.';
   if (form.league === 'GT7' && !form.psn.trim()) return 'Please enter your PSN ID.';
   if (form.league === 'LMU' && !form.gamertag.trim()) return 'Please enter your Steam name / gamertag.';
-  if (form.contact.trim().length < 3) return 'Please add a Discord tag or email.';
+  if (!EMAIL_RE.test(form.email.trim())) return 'Please enter a valid email address.';
+  if (form.discord.trim().length < 2) return 'Please enter your Discord username.';
+  if (!form.carClass) return 'Please choose a car class.';
+  if (!form.experience) return 'Please tell us your experience level.';
+  if (!form.inputMethod) return 'Please tell us if you race on a wheel or controller.';
+  if (!form.eligibilityAck) return 'Please confirm you meet the eligibility requirements.';
   return null;
 }
 
@@ -66,9 +89,9 @@ const labelClass = 'mb-1.5 block font-mono text-xs font-semibold uppercase track
 
 /**
  * The Join the League application form. Supports BOTH the GT7 and LMU leagues:
- * choosing a league swaps the platform options and the relevant in-game ID
- * field (PSN for GT7, gamertag for LMU). Validates on the client for instant
- * feedback and again on the server via `POST /api/join`.
+ * choosing a league swaps the platform + car-class options and the relevant
+ * in-game ID field (PSN for GT7, gamertag for LMU). Validates on the client for
+ * instant feedback and again on the server via `POST /api/join`.
  */
 export function JoinForm() {
   const [form, setForm] = useState<FormState>(INITIAL);
@@ -79,9 +102,14 @@ export function JoinForm() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  /** Switch league and reset the platform to that league's default. */
+  /** Switch league and reset the league-dependent fields to sensible defaults. */
   function selectLeague(league: League) {
-    setForm((prev) => ({ ...prev, league, platform: PLATFORMS[league][0] }));
+    setForm((prev) => ({
+      ...prev,
+      league,
+      platform: PLATFORMS[league][0],
+      carClass: '',
+    }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -99,11 +127,15 @@ export function JoinForm() {
     const payload: JoinSubmission = {
       league: form.league,
       driverName: form.driverName.trim(),
+      platform: form.platform,
       psn: form.psn.trim() || undefined,
       gamertag: form.gamertag.trim() || undefined,
+      email: form.email.trim(),
+      discord: form.discord.trim(),
+      carClass: form.carClass,
       experience: form.experience,
-      platform: form.platform,
-      contact: form.contact.trim(),
+      inputMethod: form.inputMethod,
+      eligibilityAck: form.eligibilityAck,
       message: form.message.trim() || undefined,
     };
 
@@ -237,6 +269,84 @@ export function JoinForm() {
           </div>
         )}
 
+        {/* Email */}
+        <div>
+          <label className={labelClass} htmlFor="email">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            inputMode="email"
+            className={fieldClass}
+            value={form.email}
+            onChange={(e) => update('email', e.target.value)}
+            placeholder="you@example.com"
+            required
+          />
+        </div>
+
+        {/* Discord */}
+        <div>
+          <label className={labelClass} htmlFor="discord">
+            Discord username
+          </label>
+          <input
+            id="discord"
+            className={fieldClass}
+            value={form.discord}
+            onChange={(e) => update('discord', e.target.value)}
+            placeholder="e.g. apexdriver"
+            required
+          />
+        </div>
+
+        {/* Car class (league-aware) */}
+        <div>
+          <label className={labelClass} htmlFor="carClass">
+            Preferred car class
+          </label>
+          <select
+            id="carClass"
+            className={fieldClass}
+            value={form.carClass}
+            onChange={(e) => update('carClass', e.target.value)}
+            required
+          >
+            <option value="" disabled>
+              Select a class…
+            </option>
+            {CAR_CLASSES[form.league].map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Input method */}
+        <div>
+          <label className={labelClass} htmlFor="inputMethod">
+            Wheel or controller?
+          </label>
+          <select
+            id="inputMethod"
+            className={fieldClass}
+            value={form.inputMethod}
+            onChange={(e) => update('inputMethod', e.target.value)}
+            required
+          >
+            <option value="" disabled>
+              Select…
+            </option>
+            {INPUT_METHODS.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Experience */}
         <div className="sm:col-span-2">
           <label className={labelClass} htmlFor="experience">
@@ -260,21 +370,6 @@ export function JoinForm() {
           </select>
         </div>
 
-        {/* Contact */}
-        <div className="sm:col-span-2">
-          <label className={labelClass} htmlFor="contact">
-            Discord tag or email
-          </label>
-          <input
-            id="contact"
-            className={fieldClass}
-            value={form.contact}
-            onChange={(e) => update('contact', e.target.value)}
-            placeholder="How should we reach you?"
-            required
-          />
-        </div>
-
         {/* Message */}
         <div className="sm:col-span-2">
           <label className={labelClass} htmlFor="message">
@@ -287,6 +382,23 @@ export function JoinForm() {
             onChange={(e) => update('message', e.target.value)}
             placeholder="Tell us about your racing, your favourite car, or ask a question."
           />
+        </div>
+
+        {/* Eligibility acknowledgement */}
+        <div className="sm:col-span-2">
+          <label className="flex cursor-pointer items-start gap-3 text-sm text-muted">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[rgb(var(--color-accent))]"
+              checked={form.eligibilityAck}
+              onChange={(e) => update('eligibilityAck', e.target.checked)}
+              required
+            />
+            <span>
+              I&apos;m 16 or over and agree to race clean and follow the league
+              rules and stewarding decisions.
+            </span>
+          </label>
         </div>
       </div>
 

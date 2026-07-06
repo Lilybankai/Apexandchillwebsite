@@ -18,6 +18,9 @@ import { getSupabaseAdminClient } from '@/lib/supabase';
 const VALID_LEAGUES: League[] = ['GT7', 'LMU'];
 const MAX_LEN = 500;
 
+/** Basic email shape check — deliberately permissive, not RFC-exhaustive. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /** Coerce an unknown value to a trimmed, length-capped string. */
 function str(v: unknown): string {
   return typeof v === 'string' ? v.trim().slice(0, MAX_LEN) : '';
@@ -42,31 +45,49 @@ function validate(body: unknown): { data?: JoinSubmission; error?: string } {
   const platform = str(b.platform);
   if (!platform) return { error: 'Please select your platform.' };
 
+  const psn = str(b.psn);
+  const gamertag = str(b.gamertag);
+  // Require the in-game identity that matches the chosen league's platform.
+  if (league === 'GT7' && !psn) {
+    return { error: 'Please enter your PSN ID (GT7 runs on PlayStation).' };
+  }
+  if (league === 'LMU' && !gamertag) {
+    return { error: 'Please enter your Steam name / gamertag (LMU runs on PC).' };
+  }
+
+  const email = str(b.email);
+  if (!EMAIL_RE.test(email)) return { error: 'Please enter a valid email address.' };
+
+  const discord = str(b.discord);
+  if (discord.length < 2) return { error: 'Please enter your Discord username.' };
+
+  const carClass = str(b.carClass);
+  if (!carClass) return { error: 'Please choose a car class.' };
+
   const experience = str(b.experience);
   if (!experience) return { error: 'Please tell us your experience level.' };
 
-  const contact = str(b.contact);
-  if (contact.length < 3) return { error: 'Please add a Discord tag or email so we can reach you.' };
+  const inputMethod = str(b.inputMethod);
+  if (!inputMethod) return { error: 'Please tell us if you race on a wheel or controller.' };
 
-  const psn = str(b.psn);
-  const gamertag = str(b.gamertag);
-  // Need at least one in-game identity, and the right one for the league.
-  if (league === 'GT7' && !psn && !gamertag) {
-    return { error: 'Please enter your PSN ID (GT7 runs on PlayStation).' };
-  }
-  if (league === 'LMU' && !psn && !gamertag) {
-    return { error: 'Please enter your Steam name / gamertag (LMU runs on PC).' };
+  const eligibilityAck = b.eligibilityAck === true;
+  if (!eligibilityAck) {
+    return { error: 'Please confirm you meet the eligibility and clean-racing requirements.' };
   }
 
   return {
     data: {
       league,
       driverName,
+      platform,
       psn: psn || undefined,
       gamertag: gamertag || undefined,
+      email,
+      discord,
+      carClass,
       experience,
-      platform,
-      contact,
+      inputMethod,
+      eligibilityAck,
       message: str(b.message) || undefined,
     },
   };
@@ -110,11 +131,15 @@ export async function POST(request: Request): Promise<NextResponse<JoinResult>> 
       .insert({
         league: data.league,
         driver_name: data.driverName,
+        platform: data.platform,
         psn: data.psn ?? null,
         gamertag: data.gamertag ?? null,
+        email: data.email,
+        discord: data.discord,
+        car_class: data.carClass,
         experience: data.experience,
-        platform: data.platform,
-        contact: data.contact,
+        input_method: data.inputMethod,
+        eligibility_ack: data.eligibilityAck,
         message: data.message ?? null,
       })
       .select('id')

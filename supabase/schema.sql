@@ -35,17 +35,21 @@ end$$;
 --   Backs POST /api/join. One row per "Join the League" application.
 -- ----------------------------------------------------------------------------
 create table if not exists public.join_submissions (
-  id           uuid primary key default gen_random_uuid(),
-  league       league       not null,
-  driver_name  text         not null,
-  psn          text,
-  gamertag     text,
-  experience   text         not null,
-  platform     text         not null,
-  contact      text         not null,
-  message      text,
-  status       text         not null default 'new',   -- new | reviewed | accepted | declined
-  created_at   timestamptz  not null default now()
+  id              uuid primary key default gen_random_uuid(),
+  league          league       not null,
+  driver_name     text         not null,
+  platform        text         not null,
+  psn             text,
+  gamertag        text,
+  email           text         not null,
+  discord         text         not null,
+  car_class       text         not null,
+  experience      text         not null,
+  input_method    text         not null,
+  eligibility_ack boolean      not null default false,
+  message         text,
+  status          text         not null default 'new',   -- new | reviewed | accepted | declined
+  created_at      timestamptz  not null default now()
 );
 
 comment on table public.join_submissions is 'League join applications submitted via /api/join.';

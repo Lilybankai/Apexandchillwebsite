@@ -17,7 +17,14 @@ export function LatestReplays({ result }: { result: ApiResult<Replay[]> }) {
       <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-xl">
           <span className="kicker mb-3">From The Channel</span>
-          <h2 className="text-4xl font-bold text-ink sm:text-5xl">Latest Replays</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-4xl font-bold text-ink sm:text-5xl">Latest Replays</h2>
+            {result.source === "sample" && (
+              <span className="chip text-flag-amber" title="Live YouTube key not yet configured">
+                Sample data
+              </span>
+            )}
+          </div>
           <p className="mt-4 text-muted">Catch up on the most recent racing action.</p>
         </div>
         <Button href="/replays" variant="outline" size="md">

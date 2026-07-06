@@ -121,9 +121,17 @@ export async function POST(request: Request): Promise<NextResponse<CheckoutRespo
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
   for (const l of lines) {
     const entry = index.get(l.variantId);
-    if (!entry || !entry.variant.available) {
+    if (!entry) {
+      // Unknown variant id — a bad/stale request.
       return NextResponse.json(
         { ok: false, error: 'An item in your cart is no longer available. Please refresh and try again.' },
+        { status: 400 },
+      );
+    }
+    if (!entry.variant.available) {
+      // Known but out of stock — a state conflict.
+      return NextResponse.json(
+        { ok: false, error: `“${entry.product.title}” is out of stock. Please remove it and try again.` },
         { status: 409 },
       );
     }

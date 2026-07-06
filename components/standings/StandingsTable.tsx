@@ -23,7 +23,8 @@ type SortKey =
 type SortDir = 'asc' | 'desc';
 
 interface Column {
-  key: SortKey;
+  /** Sortable columns use a {@link SortKey}; `team` is a non-sortable column. */
+  key: SortKey | 'team';
   label: string;
   /** Short label used for the mobile stacked `data-label`. */
   short: string;
@@ -31,17 +32,25 @@ interface Column {
   defaultDir: SortDir;
   /** Right-align + tabular numerals for numeric columns. */
   numeric: boolean;
+  /** Whether the header exposes click-to-sort. Team has no comparable key. */
+  sortable: boolean;
 }
 
+/**
+ * Column definitions in render order. This drives the `<thead>`; the count and
+ * order MUST match the `<td>` cells rendered per row (Pos, Driver, Team, then
+ * the six numeric stats) so headers line up over their columns on desktop.
+ */
 const COLUMNS: Column[] = [
-  { key: 'position', label: 'Pos', short: 'Pos', defaultDir: 'asc', numeric: true },
-  { key: 'driver', label: 'Driver', short: 'Driver', defaultDir: 'asc', numeric: false },
-  { key: 'points', label: 'Points', short: 'Pts', defaultDir: 'desc', numeric: true },
-  { key: 'wins', label: 'Wins', short: 'Wins', defaultDir: 'desc', numeric: true },
-  { key: 'podiums', label: 'Podiums', short: 'Pod', defaultDir: 'desc', numeric: true },
-  { key: 'avgQuali', label: 'Avg Quali', short: 'Avg Q', defaultDir: 'asc', numeric: true },
-  { key: 'avgFinish', label: 'Avg Finish', short: 'Avg F', defaultDir: 'asc', numeric: true },
-  { key: 'penalties', label: 'Penalties', short: 'Pen', defaultDir: 'asc', numeric: true },
+  { key: 'position', label: 'Pos', short: 'Pos', defaultDir: 'asc', numeric: true, sortable: true },
+  { key: 'driver', label: 'Driver', short: 'Driver', defaultDir: 'asc', numeric: false, sortable: true },
+  { key: 'team', label: 'Team', short: 'Team', defaultDir: 'asc', numeric: false, sortable: false },
+  { key: 'points', label: 'Points', short: 'Pts', defaultDir: 'desc', numeric: true, sortable: true },
+  { key: 'wins', label: 'Wins', short: 'Wins', defaultDir: 'desc', numeric: true, sortable: true },
+  { key: 'podiums', label: 'Podiums', short: 'Pod', defaultDir: 'desc', numeric: true, sortable: true },
+  { key: 'avgQuali', label: 'Avg Quali', short: 'Avg Q', defaultDir: 'asc', numeric: true, sortable: true },
+  { key: 'avgFinish', label: 'Avg Finish', short: 'Avg F', defaultDir: 'asc', numeric: true, sortable: true },
+  { key: 'penalties', label: 'Penalties', short: 'Pen', defaultDir: 'asc', numeric: true, sortable: true },
 ];
 
 /** Accent colour for the top-three championship positions. */
@@ -108,10 +117,12 @@ export function StandingsTable({ rows }: StandingsTableProps) {
   }, [rows, sortKey, sortDir]);
 
   function toggleSort(col: Column) {
-    if (col.key === sortKey) {
+    if (!col.sortable) return;
+    const key = col.key as SortKey;
+    if (key === sortKey) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
-      setSortKey(col.key);
+      setSortKey(key);
       setSortDir(col.defaultDir);
     }
   }
@@ -127,10 +138,14 @@ export function StandingsTable({ rows }: StandingsTableProps) {
   return (
     <div className="overflow-hidden rounded-card glass">
       <table className="w-full border-collapse text-sm">
+        <caption className="sr-only">
+          Driver championship standings. Column headers are buttons that sort the
+          table.
+        </caption>
         <thead className="hidden md:table-header-group">
           <tr className="border-b border-line">
             {COLUMNS.map((col) => {
-              const active = col.key === sortKey;
+              const active = col.sortable && col.key === sortKey;
               return (
                 <th
                   key={col.key}
@@ -141,27 +156,31 @@ export function StandingsTable({ rows }: StandingsTableProps) {
                     col.key === 'driver' && 'min-w-[8rem]',
                   )}
                 >
-                  <button
-                    type="button"
-                    onClick={() => toggleSort(col)}
-                    className={cn(
-                      'inline-flex items-center gap-1 transition-colors hover:text-ink',
-                      col.numeric && 'flex-row-reverse',
-                      active && 'text-cyan',
-                    )}
-                    aria-label={`Sort by ${col.label}`}
-                  >
-                    {col.label}
-                    {active ? (
-                      sortDir === 'asc' ? (
-                        <ArrowUp className="h-3 w-3" />
+                  {col.sortable ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleSort(col)}
+                      className={cn(
+                        'inline-flex items-center gap-1 transition-colors hover:text-ink',
+                        col.numeric && 'flex-row-reverse',
+                        active && 'text-cyan',
+                      )}
+                      aria-label={`Sort by ${col.label}`}
+                    >
+                      {col.label}
+                      {active ? (
+                        sortDir === 'asc' ? (
+                          <ArrowUp className="h-3 w-3" />
+                        ) : (
+                          <ArrowDown className="h-3 w-3" />
+                        )
                       ) : (
-                        <ArrowDown className="h-3 w-3" />
-                      )
-                    ) : (
-                      <ChevronsUpDown className="h-3 w-3 opacity-40" />
-                    )}
-                  </button>
+                        <ChevronsUpDown className="h-3 w-3 opacity-40" />
+                      )}
+                    </button>
+                  ) : (
+                    <span>{col.label}</span>
+                  )}
                 </th>
               );
             })}

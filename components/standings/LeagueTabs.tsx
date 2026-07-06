@@ -82,7 +82,7 @@ export function LeagueTabs({ standings, initialLeague = 'GT7' }: LeagueTabsProps
           </div>
 
           {current.source === 'sample' && (
-            <div className="flex items-start gap-2 rounded-card border border-amber/30 bg-flag-amber/5 px-4 py-3 text-sm text-muted">
+            <div className="flex items-start gap-2 rounded-card border border-flag-amber/30 bg-flag-amber/5 px-4 py-3 text-sm text-muted">
               <Info className="mt-0.5 h-4 w-4 shrink-0 text-flag-amber" aria-hidden />
               <span>
                 Showing sample standings. Live {PROVIDER_LABEL[active]} data appears

@@ -58,7 +58,7 @@ export default async function ReplaysPage() {
 
       <div className="container-rail space-y-14 py-12 sm:py-16">
         {result.source === 'sample' && (
-          <div className="flex items-start gap-2 rounded-card border border-amber/30 bg-flag-amber/5 px-4 py-3 text-sm text-muted">
+          <div className="flex items-start gap-2 rounded-card border border-flag-amber/30 bg-flag-amber/5 px-4 py-3 text-sm text-muted">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-flag-amber" aria-hidden />
             <span>
               Showing sample replays. Live videos from our YouTube channel appear

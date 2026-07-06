@@ -52,3 +52,7 @@ next-env.d.ts
 /schedule-300x147.png
 /standings-300x147.png
 /download-2-150x150.jpg
+
+# loose AMC source PNGs in repo root — shipping copies live in public/brand/
+/ANDYSMANCLUB_Transparent.png
+/ITSOKAYTOTALK_Transparent.png

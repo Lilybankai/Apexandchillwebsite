@@ -56,3 +56,47 @@ export function compactNumber(n: number): string {
     maximumFractionDigits: 1,
   }).format(n);
 }
+
+/** Details needed to build a Google Calendar "add event" link for a race. */
+export interface RaceCalendarEvent {
+  round: number;
+  track: string;
+  class: string;
+  /** ISO date `YYYY-MM-DD`. */
+  date: string;
+  /** Local start time `HH:MM`. */
+  time: string;
+  lobbyOpens?: string;
+  /** Race length in hours used to compute the end time (default 3). */
+  durationHours?: number;
+}
+
+/**
+ * Build a Google Calendar "create event" URL for a race round. Mirrors the
+ * legacy WordPress `next_race_event` shortcode logic (title, +3h duration,
+ * class/lobby details, track as location). Returns `null` when date/time are
+ * missing so callers can hide the button.
+ */
+export function googleCalendarUrl(event: RaceCalendarEvent): string | null {
+  if (!event.date || !event.time) return null;
+  const start = new Date(`${event.date}T${event.time}`);
+  if (Number.isNaN(start.getTime())) return null;
+  const end = new Date(start.getTime() + (event.durationHours ?? 3) * 60 * 60 * 1000);
+
+  // Google expects a compact UTC-ish stamp: YYYYMMDDTHHMM00 (local, no tz).
+  const stamp = (d: Date) =>
+    `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(
+      d.getDate(),
+    ).padStart(2, "0")}T${String(d.getHours()).padStart(2, "0")}${String(
+      d.getMinutes(),
+    ).padStart(2, "0")}00`;
+
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `Round ${event.round}: ${event.track} — Apex & Chill Racing`,
+    dates: `${stamp(start)}/${stamp(end)}`,
+    details: `Class: ${event.class}${event.lobbyOpens ? ` | Lobby opens: ${event.lobbyOpens}` : ""}`,
+    location: event.track,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}

@@ -27,8 +27,8 @@ function read(name: string): string | undefined {
 export const simgrid = {
   /** API base URL. Defaults to SimGrid's public API host. */
   baseUrl: read('SIMGRID_API_BASE_URL') ?? 'https://www.simgrid.com/api',
-  /** Bearer token for the SimGrid API. */
-  token: read('SIMGRID_API_TOKEN'),
+  /** Bearer token/key for the SimGrid API (`SIMGRID_API_KEY`, legacy alias `SIMGRID_API_TOKEN`). */
+  token: read('SIMGRID_API_KEY') ?? read('SIMGRID_API_TOKEN'),
   /** SimGrid championship id for the current LMU season. */
   championshipId: read('SIMGRID_LMU_CHAMPIONSHIP_ID'),
 } as const;
@@ -53,12 +53,16 @@ export const simLeaguePro = {
  * @see https://developers.google.com/youtube/v3
  */
 export const youtube = {
-  /** YouTube Data API v3 key. */
+  /** YouTube Data API v3 key. This is the only value the operator must supply. */
   apiKey: read('YOUTUBE_API_KEY'),
-  /** Channel id (`UC...`) — the uploads playlist is derived from it. */
-  channelId: read('YOUTUBE_CHANNEL_ID'),
-  /** Optional explicit uploads playlist id (`UU...`) to skip a lookup. */
-  uploadsPlaylistId: read('YOUTUBE_UPLOADS_PLAYLIST_ID'),
+  /** Channel id (`UC...`). Defaults to the Apex & Chill channel. */
+  channelId: read('YOUTUBE_CHANNEL_ID') ?? 'UCu7lyaGuo3sY2wWZo42-LVw',
+  /**
+   * Playlist to pull replays from. Defaults to the curated Apex & Chill replays
+   * playlist. Any playlist id works with `playlistItems`; when unset, the
+   * channel's uploads playlist is derived from {@link channelId}.
+   */
+  uploadsPlaylistId: read('YOUTUBE_UPLOADS_PLAYLIST_ID') ?? 'PLHRp_wnmBUBcaFRSJwhWdgNvyzzUobCu0',
 } as const;
 
 /**

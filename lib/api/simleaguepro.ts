@@ -20,18 +20,26 @@ import { simLeaguePro as cfg, isConfigured, CACHE_TTL_SECONDS } from '@/lib/env'
 /** Default team accent colour when the source doesn't provide one. */
 const DEFAULT_TEAM_COLOR = '#00ff88';
 
-/** Bundled sample GT7 standings, used when live credentials are absent. */
+/**
+ * Bundled sample GT7 standings, used when live credentials are absent.
+ * Team names mirror the real Season 3 grid so the fallback looks authentic.
+ */
 const SAMPLE_GT7_STANDINGS: StandingRow[] = [
-  { position: 1, driver: 'ApexJake_87', team: 'Apex Racing', teamColor: '#00ff88', points: 212, wins: 6, podiums: 9, avgQuali: 1.8, avgFinish: 2.0, penalties: 0, class: 'Gr.3', league: 'GT7' },
-  { position: 2, driver: 'ChillRacer_GT', team: 'Chill Squad', teamColor: '#00d4ff', points: 198, wins: 4, podiums: 10, avgQuali: 2.4, avgFinish: 2.6, penalties: 3, class: 'Gr.3', league: 'GT7' },
-  { position: 3, driver: 'V10_Sombra', team: 'Nocturne GT', teamColor: '#9b59b6', points: 176, wins: 3, podiums: 7, avgQuali: 3.1, avgFinish: 3.3, penalties: 0, class: 'Gr.3', league: 'GT7' },
-  { position: 4, driver: 'DriftKing_204', team: 'Redline Collective', teamColor: '#ff4444', points: 159, wins: 2, podiums: 6, avgQuali: 3.9, avgFinish: 4.0, penalties: 6, class: 'Gr.3', league: 'GT7' },
-  { position: 5, driver: 'Nova_Mirai', team: 'Rising Sun', teamColor: '#e74c3c', points: 143, wins: 1, podiums: 5, avgQuali: 4.5, avgFinish: 4.7, penalties: 0, class: 'Gr.3', league: 'GT7' },
-  { position: 6, driver: 'PSN_Falke', team: 'Bavarian Sim Works', teamColor: '#3498db', points: 131, wins: 1, podiums: 4, avgQuali: 5.2, avgFinish: 5.1, penalties: 2, class: 'Gr.3', league: 'GT7' },
-  { position: 7, driver: 'LateBraker99', team: 'Chill Squad', teamColor: '#00d4ff', points: 112, wins: 0, podiums: 3, avgQuali: 6.0, avgFinish: 6.2, penalties: 1, class: 'Gr.3', league: 'GT7' },
-  { position: 8, driver: 'Kaido_TT', team: 'Touge Legends', teamColor: '#f5a623', points: 98, wins: 1, podiums: 2, avgQuali: 6.8, avgFinish: 6.7, penalties: 4, class: 'Gr.3', league: 'GT7' },
-  { position: 9, driver: 'Silverline_RJ', team: 'Redline Collective', teamColor: '#ff4444', points: 84, wins: 0, podiums: 2, avgQuali: 7.9, avgFinish: 7.6, penalties: 0, class: 'Gr.3', league: 'GT7' },
-  { position: 10, driver: 'GTP_Wanderer', team: 'Nocturne GT', teamColor: '#9b59b6', points: 69, wins: 0, podiums: 1, avgQuali: 8.7, avgFinish: 8.9, penalties: 2, class: 'Gr.3', league: 'GT7' },
+  { position: 1, driver: 'ApexJake_87', team: 'Apex Originals', teamColor: '#00ff88', points: 212, wins: 6, podiums: 9, avgQuali: 1.8, avgFinish: 2.0, penalties: 0, class: 'Gr.3', league: 'GT7' },
+  { position: 2, driver: 'NumptyKing', team: 'GT97 Numpty Squad', teamColor: '#00d4ff', points: 198, wins: 4, podiums: 10, avgQuali: 2.4, avgFinish: 2.6, penalties: 3, class: 'Gr.3', league: 'GT7' },
+  { position: 3, driver: 'V10_Sombra', team: 'Chemistry Racing Team', teamColor: '#9b59b6', points: 176, wins: 3, podiums: 7, avgQuali: 3.1, avgFinish: 3.3, penalties: 0, class: 'Gr.3', league: 'GT7' },
+  { position: 4, driver: 'DriftKing_204', team: 'Poorez Racing Team', teamColor: '#ff4444', points: 159, wins: 2, podiums: 6, avgQuali: 3.9, avgFinish: 4.0, penalties: 6, class: 'Gr.3', league: 'GT7' },
+  { position: 5, driver: 'Nova_Mirai', team: 'Team Papaia', teamColor: '#f5a623', points: 143, wins: 1, podiums: 5, avgQuali: 4.5, avgFinish: 4.7, penalties: 0, class: 'Gr.3', league: 'GT7' },
+  { position: 6, driver: 'PSN_Falke', team: 'Team Pane', teamColor: '#3498db', points: 131, wins: 1, podiums: 4, avgQuali: 5.2, avgFinish: 5.1, penalties: 2, class: 'Gr.3', league: 'GT7' },
+  { position: 7, driver: 'HoundDog_RJ', team: 'Racing Hounds', teamColor: '#e67e22', points: 121, wins: 1, podiums: 4, avgQuali: 5.7, avgFinish: 5.6, penalties: 1, class: 'Gr.3', league: 'GT7' },
+  { position: 8, driver: 'LateBraker99', team: 'GT97 Numpty Squad', teamColor: '#00d4ff', points: 112, wins: 0, podiums: 3, avgQuali: 6.0, avgFinish: 6.2, penalties: 1, class: 'Gr.3', league: 'GT7' },
+  { position: 9, driver: 'Kaido_TT', team: 'Apex Originals', teamColor: '#00ff88', points: 98, wins: 1, podiums: 2, avgQuali: 6.8, avgFinish: 6.7, penalties: 4, class: 'Gr.3', league: 'GT7' },
+  { position: 10, driver: 'Silverline_RJ', team: 'Poorez Racing Team', teamColor: '#ff4444', points: 84, wins: 0, podiums: 2, avgQuali: 7.9, avgFinish: 7.6, penalties: 0, class: 'Gr.3', league: 'GT7' },
+  { position: 11, driver: 'GTP_Wanderer', team: 'Chemistry Racing Team', teamColor: '#9b59b6', points: 76, wins: 0, podiums: 1, avgQuali: 8.3, avgFinish: 8.1, penalties: 3, class: 'Gr.3', league: 'GT7' },
+  { position: 12, driver: 'Momenta_Lars', team: 'Team Pane', teamColor: '#3498db', points: 69, wins: 0, podiums: 1, avgQuali: 8.7, avgFinish: 8.9, penalties: 2, class: 'Gr.3', league: 'GT7' },
+  { position: 13, driver: 'ChicaneCharlie', team: 'Racing Hounds', teamColor: '#e67e22', points: 58, wins: 0, podiums: 1, avgQuali: 9.4, avgFinish: 9.6, penalties: 0, class: 'Gr.3', league: 'GT7' },
+  { position: 14, driver: 'ApexRookie_22', team: 'Team Papaia', teamColor: '#f5a623', points: 44, wins: 0, podiums: 0, avgQuali: 10.8, avgFinish: 10.9, penalties: 5, class: 'Gr.3', league: 'GT7' },
+  { position: 15, driver: 'BackmarkerBob', team: 'Apex Originals', teamColor: '#00ff88', points: 31, wins: 0, podiums: 0, avgQuali: 12.1, avgFinish: 12.4, penalties: 1, class: 'Gr.3', league: 'GT7' },
 ];
 
 /** Bundled sample next GT7 race. */

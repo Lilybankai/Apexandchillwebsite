@@ -108,3 +108,39 @@ create policy "Public can read standings"
   using (true);
 
 -- Writes are performed with the service-role key only (no anon write policy).
+
+-- ----------------------------------------------------------------------------
+-- Table: replays_cache
+--   Best-effort cache of the YouTube replays feed, so the replays page stays
+--   fast and keeps working if the YouTube API is briefly unavailable or rate
+--   limited. Written by lib/api/youtube.ts (service-role), read publicly.
+-- ----------------------------------------------------------------------------
+create table if not exists public.replays_cache (
+  video_id     text primary key,
+  title        text        not null,
+  description  text,
+  thumbnail    text,
+  published_at timestamptz,
+  url          text,
+  view_count   int,
+  duration     text,
+  league       league,                       -- nullable; best-effort classification
+  series       text,
+  cached_at    timestamptz not null default now()
+);
+
+comment on table public.replays_cache is 'Cache of the YouTube replays feed, refreshed by the data layer.';
+
+create index if not exists replays_cache_published_at_idx
+  on public.replays_cache (published_at desc);
+
+alter table public.replays_cache enable row level security;
+
+drop policy if exists "Public can read replays cache" on public.replays_cache;
+create policy "Public can read replays cache"
+  on public.replays_cache
+  for select
+  to anon, authenticated
+  using (true);
+
+-- Cache writes/upserts use the service-role key only (no anon write policy).

@@ -11,8 +11,12 @@
 
 import type { ApiResult, League, Replay } from '@/lib/types';
 import { youtube as cfg, isConfigured, CACHE_TTL_SECONDS } from '@/lib/env';
+import { getSupabaseAdminClient } from '@/lib/supabase';
 
 const API_ROOT = 'https://www.googleapis.com/youtube/v3';
+
+/** Supabase table used as a best-effort replays cache. */
+const CACHE_TABLE = 'replays_cache';
 
 /** Bundled sample replays, used when live credentials are absent. */
 const SAMPLE_REPLAYS: Replay[] = [
@@ -179,13 +183,81 @@ function sampleReplays(error: string | null): ApiResult<Replay[]> {
 }
 
 /**
+ * Best-effort read of the replays cache from Supabase. Never throws.
+ * @returns Cached replays, or `null` when the cache is unavailable/empty.
+ */
+async function readReplaysCache(): Promise<Replay[] | null> {
+  const admin = getSupabaseAdminClient();
+  if (!admin) return null;
+  try {
+    const { data, error } = await admin
+      .from(CACHE_TABLE)
+      .select('*')
+      .order('published_at', { ascending: false });
+    if (error || !data || data.length === 0) return null;
+    return data.map((row) => ({
+      videoId: row.video_id as string,
+      title: row.title as string,
+      description: (row.description as string) ?? '',
+      thumbnail: (row.thumbnail as string) ?? '',
+      publishedAt: (row.published_at as string) ?? new Date(0).toISOString(),
+      url: (row.url as string) ?? `https://www.youtube.com/watch?v=${row.video_id}`,
+      viewCount: row.view_count == null ? undefined : Number(row.view_count),
+      duration: (row.duration as string) ?? undefined,
+      league: (row.league as League | null) ?? null,
+      series: (row.series as string | null) ?? null,
+    }));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Best-effort upsert of freshly-fetched replays into the Supabase cache.
+ * Fire-and-forget: failures are swallowed so they never break the request.
+ */
+async function writeReplaysCache(replays: Replay[]): Promise<void> {
+  const admin = getSupabaseAdminClient();
+  if (!admin) return;
+  try {
+    await admin.from(CACHE_TABLE).upsert(
+      replays.map((r) => ({
+        video_id: r.videoId,
+        title: r.title,
+        description: r.description,
+        thumbnail: r.thumbnail,
+        published_at: r.publishedAt,
+        url: r.url,
+        view_count: r.viewCount ?? null,
+        duration: r.duration ?? null,
+        league: r.league ?? null,
+        series: r.series ?? null,
+        cached_at: new Date().toISOString(),
+      })),
+      { onConflict: 'video_id' },
+    );
+  } catch {
+    // Cache writes are best-effort; ignore failures.
+  }
+}
+
+/**
  * Fetch the channel's most recent replays.
  *
+ * On a successful live fetch the result is upserted into the Supabase
+ * `replays_cache` table (best-effort). When YouTube is unconfigured or fails,
+ * the cache is consulted before falling back to bundled sample data.
+ *
  * @param maxResults - How many uploads to fetch (1–50). Defaults to 24.
- * @returns Live replays when configured, otherwise sample data. Never throws.
+ * @returns Live replays when configured, otherwise cached or sample data.
+ *          Never throws.
  */
 export async function fetchReplays(maxResults = 24): Promise<ApiResult<Replay[]>> {
   if (!isConfigured('youtube')) {
+    const cached = await readReplaysCache();
+    if (cached) {
+      return { ok: true, source: 'youtube', error: 'YouTube not configured — serving cached replays.', data: cached };
+    }
     return sampleReplays('YouTube not configured — showing sample replays.');
   }
   try {
@@ -207,7 +279,7 @@ export async function fetchReplays(maxResults = 24): Promise<ApiResult<Replay[]>
         const videoId = snip?.resourceId?.videoId;
         if (!videoId || !snip) return null;
         const title = snip.title ?? 'Untitled replay';
-        return {
+        const replay: Replay = {
           videoId,
           title,
           description: (snip.description ?? '').slice(0, 280),
@@ -216,7 +288,8 @@ export async function fetchReplays(maxResults = 24): Promise<ApiResult<Replay[]>
           url: `https://www.youtube.com/watch?v=${videoId}`,
           league: inferLeague(`${title} ${snip.description ?? ''}`),
           series: inferSeries(title),
-        } satisfies Replay;
+        };
+        return replay;
       })
       .filter((r): r is Replay => r !== null);
 
@@ -242,8 +315,20 @@ export async function fetchReplays(maxResults = 24): Promise<ApiResult<Replay[]>
       // Enrichment is best-effort; keep base replays if stats fail.
     }
 
+    // Refresh the cache in the background; don't block the response on it.
+    void writeReplaysCache(items);
+
     return { ok: true, source: 'youtube', error: null, data: items };
   } catch (err) {
+    const cached = await readReplaysCache();
+    if (cached) {
+      return {
+        ok: true,
+        source: 'youtube',
+        error: `YouTube request failed (${err instanceof Error ? err.message : 'unknown error'}) — serving cached replays.`,
+        data: cached,
+      };
+    }
     return sampleReplays(
       `YouTube request failed (${err instanceof Error ? err.message : 'unknown error'}) — showing sample replays.`,
     );

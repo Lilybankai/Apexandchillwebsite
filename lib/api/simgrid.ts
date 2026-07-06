@@ -40,15 +40,15 @@ const SAMPLE_LMU_STANDINGS: StandingRow[] = [
   { position: 10, driver: 'G. Fernández', team: 'Chill Motorsport', teamColor: '#00d4ff', points: 61, wins: 0, podiums: 1, avgQuali: 9.1, avgFinish: 9.3, penalties: 0, class: 'LMGT3', league: 'LMU' },
 ];
 
-/** Bundled sample next LMU race. */
+/** Bundled sample next LMU race (per Scout report: Round 5, Fuji, Sat 25 Jul). */
 const SAMPLE_LMU_NEXT_RACE: NextRace = {
   league: 'LMU',
-  round: 6,
-  track: 'Circuit de la Sarthe',
-  class: 'Hypercar / LMGT3',
-  date: '2026-07-19',
+  round: 5,
+  track: 'Fuji Speedway',
+  class: 'GT3 / Hypercar',
+  date: '2026-07-25',
   time: '20:00',
-  lobbyOpens: '19:40',
+  lobbyOpens: '19:00',
   source: 'sample',
 };
 

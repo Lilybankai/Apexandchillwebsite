@@ -8,10 +8,11 @@
  * ── OPERATOR: GOING LIVE ─────────────────────────────────────────────────────
  *  1. Put your Stripe keys in `.env.local`: STRIPE_SECRET_KEY (server),
  *     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY (client), STRIPE_WEBHOOK_SECRET.
- *  2. Checkout then uses Stripe-hosted Checkout (no card data touches our
- *     servers). Prices are computed server-side from the trusted sample/live
- *     catalog rather than the client-supplied price to prevent tampering — see
- *     the TODO below to swap in a catalog lookup once live provider prices flow.
+ *  2. Checkout uses Stripe-hosted Checkout (no card data touches our servers).
+ *     Every line's price/title is re-derived SERVER-SIDE from the merged catalog
+ *     ({@link loadVariantIndex}); the client-supplied price is ignored entirely,
+ *     so the browser cannot tamper with what it pays. Only the quantity is taken
+ *     from the client (and validated).
  *  3. FULFILMENT TODO: add `POST /api/webhooks/stripe` verifying
  *     STRIPE_WEBHOOK_SECRET, and on `checkout.session.completed` push the order
  *     to Printful/Tapstitch's Orders API so items are printed & shipped.
@@ -21,8 +22,36 @@
 
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import type { CartLine } from '@/lib/types';
+import type { CartLine, Product, ProductVariant } from '@/lib/types';
 import { stripe as stripeEnv, isConfigured } from '@/lib/env';
+import { fetchTapstitchProducts } from '@/lib/merch/tapstitch';
+import { fetchPrintfulProducts } from '@/lib/merch/printful';
+import { mergeCatalogs } from '@/lib/merch/catalog';
+
+/** A trusted, server-side view of a variant plus its parent product. */
+interface CatalogEntry {
+  product: Product;
+  variant: ProductVariant;
+}
+
+/**
+ * Build a `variantId -> {product, variant}` map from the live/merged catalog,
+ * so checkout prices come from the trusted server-side source, never the client.
+ */
+async function loadVariantIndex(): Promise<Map<string, CatalogEntry>> {
+  const [tapstitch, printful] = await Promise.all([
+    fetchTapstitchProducts(),
+    fetchPrintfulProducts(),
+  ]);
+  const catalog = mergeCatalogs(tapstitch.data, printful.data);
+  const index = new Map<string, CatalogEntry>();
+  for (const product of catalog) {
+    for (const variant of product.variants) {
+      index.set(variant.id, { product, variant });
+    }
+  }
+  return index;
+}
 
 interface CheckoutResponse {
   ok: boolean;
@@ -37,10 +66,12 @@ function validateLines(body: unknown): { lines?: CartLine[]; error?: string } {
   const lines = (body as { lines?: unknown }).lines;
   if (!Array.isArray(lines) || lines.length === 0) return { error: 'Your cart is empty.' };
   for (const l of lines as CartLine[]) {
-    if (!l || typeof l.variantId !== 'string' || typeof l.price !== 'number' || l.price <= 0) {
+    // Only variantId + quantity are trusted; price/title are re-derived
+    // server-side from the catalog, so they aren't validated here.
+    if (!l || typeof l.variantId !== 'string' || l.variantId.length === 0) {
       return { error: 'Your cart contains an invalid item.' };
     }
-    if (!Number.isInteger(l.quantity) || l.quantity < 1) {
+    if (!Number.isInteger(l.quantity) || l.quantity < 1 || l.quantity > 99) {
       return { error: 'Your cart contains an invalid quantity.' };
     }
   }
@@ -83,25 +114,39 @@ export async function POST(request: Request): Promise<NextResponse<CheckoutRespo
 
   const origin = originOf(request);
 
+  // Re-price every line from the trusted server-side catalog. The client-supplied
+  // price/title are IGNORED — only the quantity is honoured — so a crafted POST
+  // cannot buy an item for an arbitrary amount (price-tampering prevention).
+  const index = await loadVariantIndex();
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+  for (const l of lines) {
+    const entry = index.get(l.variantId);
+    if (!entry || !entry.variant.available) {
+      return NextResponse.json(
+        { ok: false, error: 'An item in your cart is no longer available. Please refresh and try again.' },
+        { status: 409 },
+      );
+    }
+    const { product, variant } = entry;
+    const image = variant.image ?? product.images[0];
+    lineItems.push({
+      quantity: l.quantity,
+      price_data: {
+        currency: 'gbp',
+        unit_amount: Math.round(variant.price * 100), // trusted server price
+        product_data: {
+          name: `${product.title} — ${variant.name}`,
+          images: image ? [image.startsWith('http') ? image : `${origin}${image}`] : [],
+        },
+      },
+    });
+  }
+
   try {
     const stripe = new Stripe(stripeEnv.secretKey!);
-    // NOTE: prices are taken from the (trusted server-side) sample catalog values
-    // carried on each line for now. TODO: once live provider catalogs are wired,
-    // re-price each line by looking the variant up in the catalog to fully
-    // eliminate any client-side price tampering.
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      line_items: lines.map((l) => ({
-        quantity: l.quantity,
-        price_data: {
-          currency: 'gbp',
-          unit_amount: Math.round(l.price * 100),
-          product_data: {
-            name: `${l.title} — ${l.variantName}`,
-            images: l.image ? [l.image.startsWith('http') ? l.image : `${origin}${l.image}`] : [],
-          },
-        },
-      })),
+      line_items: lineItems,
       success_url: `${origin}/merch?checkout=success`,
       cancel_url: `${origin}/merch?checkout=cancelled`,
       shipping_address_collection: { allowed_countries: ['GB', 'IE'] },

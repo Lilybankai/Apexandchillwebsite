@@ -102,13 +102,16 @@ export function JoinForm() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  /** Switch league and reset the league-dependent fields to sensible defaults. */
+  /** Switch league and reset the league-dependent fields to sensible defaults,
+   * clearing the in-game id that no longer applies (GT7 uses PSN, LMU gamertag). */
   function selectLeague(league: League) {
     setForm((prev) => ({
       ...prev,
       league,
       platform: PLATFORMS[league][0],
       carClass: '',
+      psn: league === 'GT7' ? prev.psn : '',
+      gamertag: league === 'LMU' ? prev.gamertag : '',
     }));
   }
 

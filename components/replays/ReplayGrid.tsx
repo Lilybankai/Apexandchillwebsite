@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import type { League, Replay } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,9 @@ export interface ReplayGridProps {
 export function ReplayGrid({ replays }: ReplayGridProps) {
   const [filter, setFilter] = useState<Filter>('ALL');
   const [active, setActive] = useState<Replay | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  /** The element that opened the lightbox, so focus can be restored on close. */
+  const triggerRef = useRef<HTMLElement | null>(null);
 
   const counts = useMemo(() => {
     return {
@@ -44,18 +47,62 @@ export function ReplayGrid({ replays }: ReplayGridProps) {
     [replays, filter],
   );
 
-  // Close the lightbox on Escape and lock body scroll while it's open.
+  // While the lightbox is open: lock body scroll, close on Escape, move focus
+  // into the dialog, trap Tab/Shift+Tab within it, and restore focus to the
+  // triggering card on close (WCAG 2.1.2 No Keyboard Trap / 2.4.3 Focus Order).
   useEffect(() => {
     if (!active) return;
+
+    // Remember what had focus so we can return to it when the dialog closes.
+    triggerRef.current = document.activeElement as HTMLElement | null;
+
+    const dialog = dialogRef.current;
+    const getFocusable = (): HTMLElement[] =>
+      dialog
+        ? Array.from(
+            dialog.querySelectorAll<HTMLElement>(
+              'button, iframe, a[href], input, [tabindex]:not([tabindex="-1"])',
+            ),
+          )
+        : [];
+
+    // Move focus into the dialog (first focusable, else the dialog itself).
+    (getFocusable()[0] ?? dialog)?.focus();
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setActive(null);
+      if (e.key === 'Escape') {
+        setActive(null);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const items = getFocusable();
+      if (items.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const el = document.activeElement;
+      if (e.shiftKey) {
+        if (el === first || !dialog?.contains(el)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (el === last || !dialog?.contains(el)) {
+        e.preventDefault();
+        first.focus();
+      }
     };
+
     document.addEventListener('keydown', onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
+      // Restore focus to the card that opened the lightbox.
+      triggerRef.current?.focus?.();
     };
   }, [active]);
 
@@ -111,8 +158,10 @@ export function ReplayGrid({ replays }: ReplayGridProps) {
           className="fixed inset-0 z-[120] flex items-center justify-center bg-base/90 p-4 backdrop-blur-sm animate-rise"
         >
           <div
+            ref={dialogRef}
+            tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-5xl"
+            className="relative w-full max-w-5xl focus:outline-none"
           >
             <button
               type="button"
@@ -127,7 +176,7 @@ export function ReplayGrid({ replays }: ReplayGridProps) {
                 className="h-full w-full"
                 src={`https://www.youtube-nocookie.com/embed/${active.videoId}?autoplay=1&rel=0`}
                 title={active.title}
-                allow="accelerated-hd; autoplay; encrypted-media; picture-in-picture"
+                allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
                 allowFullScreen
               />
             </div>

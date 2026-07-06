@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Play, Eye } from 'lucide-react';
 import type { Replay } from '@/lib/types';
 import { formatRaceDate } from '@/lib/utils';
@@ -31,7 +32,7 @@ export function FeaturedReplay({ replay }: FeaturedReplayProps) {
             className="h-full w-full"
             src={`https://www.youtube-nocookie.com/embed/${replay.videoId}?autoplay=1&rel=0`}
             title={replay.title}
-            allow="accelerated-hd; autoplay; encrypted-media; picture-in-picture"
+            allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
             allowFullScreen
           />
         ) : (
@@ -41,11 +42,12 @@ export function FeaturedReplay({ replay }: FeaturedReplayProps) {
             className="group absolute inset-0 h-full w-full"
             aria-label={`Play ${replay.title}`}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={replay.thumbnail}
               alt=""
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              fill
+              sizes="(max-width: 1024px) 100vw, 60vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <span className="absolute inset-0 bg-gradient-to-t from-base/85 via-base/20 to-transparent" />
             <span className="absolute inset-0 flex items-center justify-center">

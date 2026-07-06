@@ -36,9 +36,17 @@ export const LEAGUE_LABELS: Record<League, string> = {
  *   we fell back to bundled placeholder data so the site still renders.
  *
  * The UI can surface this to keep the "live vs cached vs waiting" state honest
- * rather than silently faking freshness.
+ * rather than silently faking freshness. `tapstitch` / `printful` are the
+ * print-on-demand providers behind the merch store.
  */
-export type DataSource = 'simgrid' | 'simleaguepro' | 'youtube' | 'cache' | 'sample';
+export type DataSource =
+  | 'simgrid'
+  | 'simleaguepro'
+  | 'youtube'
+  | 'cache'
+  | 'tapstitch'
+  | 'printful'
+  | 'sample';
 
 /**
  * A single driver's row in a championship standings table.
@@ -209,4 +217,96 @@ export interface JoinResult {
   /** Server-generated id of the stored row, when persisted. */
   id?: string;
   error: string | null;
+}
+
+/* ------------------------------------------------------------------------- *
+ * Merch store
+ * ------------------------------------------------------------------------- */
+
+/** Which print-on-demand provider a product came from. */
+export type MerchProvider = 'tapstitch' | 'printful' | 'sample';
+
+/**
+ * A single buyable variant of a product (a size/colour combination).
+ * Prices are in GBP minor-unit-free pounds (e.g. `25.99`).
+ */
+export interface ProductVariant {
+  /** Provider-unique variant id (used as the checkout line reference). */
+  id: string;
+  /** Human label, e.g. `M / Black`. */
+  name: string;
+  /** Size token, e.g. `M`, when applicable. */
+  size?: string;
+  /** Colour name, e.g. `Black`, when applicable. */
+  color?: string;
+  /** Price in GBP. */
+  price: number;
+  /** Whether the variant is in stock / orderable. */
+  available: boolean;
+  /** Optional variant-specific image URL. */
+  image?: string;
+}
+
+/**
+ * A merch product, normalised from a POD provider into a provider-agnostic
+ * shape the UI and cart consume.
+ */
+export interface Product {
+  /** Globally-unique id, provider-prefixed, e.g. `printful:123`. */
+  id: string;
+  /** URL slug used for the product detail route (`/merch/[handle]`). */
+  handle: string;
+  /** Product title. */
+  title: string;
+  /** Marketing description. */
+  description: string;
+  /** Which provider fulfils this product. */
+  provider: MerchProvider;
+  /** Ordered image URLs; first is the primary. */
+  images: string[];
+  /** Lowest variant price in GBP, for "from £x" display. */
+  priceFrom: number;
+  /** ISO-4217 currency code — always `GBP` for this store. */
+  currency: 'GBP';
+  /** Buyable variants. */
+  variants: ProductVariant[];
+  /** Category label, e.g. `Hoodies`, `Accessories`. */
+  category: string;
+  /** Freeform tags, e.g. `amc` for Andy's Man Club items. */
+  tags: string[];
+}
+
+/**
+ * The unified merch catalog returned by `GET /api/merch/products`, merging every
+ * POD provider into one product list with per-provider source reporting.
+ */
+export interface MerchFeed {
+  /** `true` when at least one provider (or the sample fallback) returned data. */
+  ok: boolean;
+  /** All products across providers, deduped by handle. */
+  products: Product[];
+  /** Where each provider's slice came from (`sample` when its key is absent). */
+  providers: Partial<Record<'tapstitch' | 'printful', DataSource>>;
+  /** Aggregated note when any provider fell back to sample data. */
+  error: string | null;
+}
+
+/** A line in the shopping cart (a chosen variant + quantity). */
+export interface CartLine {
+  /** The parent {@link Product.id}. */
+  productId: string;
+  /** The chosen {@link ProductVariant.id}. */
+  variantId: string;
+  /** Product title, denormalised for display without a catalog lookup. */
+  title: string;
+  /** Variant label, e.g. `M / Black`. */
+  variantName: string;
+  /** Product handle, for linking back to the detail page. */
+  handle: string;
+  /** Unit price in GBP. */
+  price: number;
+  /** Quantity ordered (>= 1). */
+  quantity: number;
+  /** Optional thumbnail URL. */
+  image?: string;
 }

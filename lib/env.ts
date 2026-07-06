@@ -87,7 +87,15 @@ export const supabase = {
  * @returns `true` when the required keys are present.
  */
 export function isConfigured(
-  integration: 'simgrid' | 'simleaguepro' | 'youtube' | 'supabase' | 'supabaseAdmin',
+  integration:
+    | 'simgrid'
+    | 'simleaguepro'
+    | 'youtube'
+    | 'supabase'
+    | 'supabaseAdmin'
+    | 'tapstitch'
+    | 'printful'
+    | 'stripe',
 ): boolean {
   switch (integration) {
     case 'simgrid':
@@ -100,10 +108,55 @@ export function isConfigured(
       return Boolean(supabase.url && supabase.anonKey);
     case 'supabaseAdmin':
       return Boolean(supabase.url && supabase.serviceRoleKey);
+    case 'tapstitch':
+      return Boolean(tapstitch.apiKey);
+    case 'printful':
+      return Boolean(printful.apiKey);
+    case 'stripe':
+      return Boolean(stripe.secretKey);
     default:
       return false;
   }
 }
+
+/**
+ * Tapstitch configuration — a print-on-demand provider for the merch store.
+ * @see https://www.tapstitch.com
+ */
+export const tapstitch = {
+  /** API base URL. */
+  baseUrl: read('TAPSTITCH_API_BASE_URL') ?? 'https://api.tapstitch.com',
+  /** API key for the Tapstitch store. */
+  apiKey: read('TAPSTITCH_API_KEY'),
+  /** Tapstitch store id. */
+  storeId: read('TAPSTITCH_STORE_ID'),
+} as const;
+
+/**
+ * Printful configuration — a print-on-demand provider for the merch store.
+ * @see https://developers.printful.com
+ */
+export const printful = {
+  /** API base URL. */
+  baseUrl: read('PRINTFUL_API_BASE_URL') ?? 'https://api.printful.com',
+  /** API key (Bearer token) for the Printful store. */
+  apiKey: read('PRINTFUL_API_KEY'),
+  /** Optional Printful store id (required for account-level tokens). */
+  storeId: read('PRINTFUL_STORE_ID'),
+} as const;
+
+/**
+ * Stripe configuration — powers merch checkout.
+ * @see https://stripe.com/docs
+ */
+export const stripe = {
+  /** Secret key — SERVER ONLY. Used to create Checkout Sessions. */
+  secretKey: read('STRIPE_SECRET_KEY'),
+  /** Publishable key — safe for the browser. */
+  publishableKey: read('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY'),
+  /** Webhook signing secret — SERVER ONLY. */
+  webhookSecret: read('STRIPE_WEBHOOK_SECRET'),
+} as const;
 
 /** How long (seconds) to cache external API responses at the route layer. */
 export const CACHE_TTL_SECONDS = 300;

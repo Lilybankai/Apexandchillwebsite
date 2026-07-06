@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import type { League, ApiResult, Schedule } from "@/lib/types";
+import { fetchGt7Schedule } from "@/lib/api/simleaguepro";
+import { fetchLmuSchedule } from "@/lib/api/simgrid";
 import { Button } from "@/components/ui/Button";
 import { ScheduleList } from "@/components/schedule/ScheduleList";
 
@@ -9,7 +12,14 @@ export const metadata: Metadata = {
     "The full race calendars for the Apex & Chill Racing GT7 and Le Mans Ultimate leagues — rounds, tracks, classes, dates and add-to-calendar links.",
 };
 
-export default function SchedulePage() {
+/** Refresh the schedule snapshot every 5 minutes (matches the data layer). */
+export const revalidate = 300;
+
+export default async function SchedulePage() {
+  // LMU is live from SimGrid; GT7 falls back to sample until its key lands.
+  const [gt7, lmu] = await Promise.all([fetchGt7Schedule(), fetchLmuSchedule()]);
+  const schedules: Partial<Record<League, ApiResult<Schedule>>> = { GT7: gt7, LMU: lmu };
+
   return (
     <div className="pb-16">
       {/* Header with brand accent */}
@@ -52,7 +62,7 @@ export default function SchedulePage() {
 
       {/* Calendars */}
       <section className="container-rail py-14">
-        <ScheduleList />
+        <ScheduleList schedules={schedules} initialLeague="LMU" />
       </section>
     </div>
   );

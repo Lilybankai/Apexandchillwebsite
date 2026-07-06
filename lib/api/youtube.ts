@@ -9,8 +9,8 @@
  * @packageDocumentation
  */
 
-import type { ApiResult, League, Replay } from '@/lib/types';
-import { youtube as cfg, isConfigured, CACHE_TTL_SECONDS } from '@/lib/env';
+import type { ApiResult, League, Replay, ReplayPlaylist } from '@/lib/types';
+import { youtube as cfg, isConfigured, CACHE_TTL_SECONDS, type YoutubePlaylistConfig } from '@/lib/env';
 import { getSupabaseAdminClient } from '@/lib/supabase';
 
 const API_ROOT = 'https://www.googleapis.com/youtube/v3';
@@ -152,6 +152,14 @@ interface VideosResponse {
   }>;
 }
 
+/** Minimal typing of the YouTube playlists response we consume (for titles). */
+interface PlaylistsResponse {
+  items?: Array<{
+    id?: string;
+    snippet?: { title?: string };
+  }>;
+}
+
 /** Call the YouTube API and parse JSON. @throws on a non-ok response. */
 async function ytGet<T>(path: string, params: Record<string, string>): Promise<T> {
   const search = new URLSearchParams({ ...params, key: cfg.apiKey ?? '' });
@@ -177,9 +185,109 @@ async function resolveUploadsPlaylistId(): Promise<string | null> {
   return data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads ?? null;
 }
 
+/**
+ * Fetch and normalise the items of a single playlist, enriched with view counts
+ * and durations. This is the shared core behind both the flat replays feed and
+ * the grouped multi-playlist view. Returns an empty array for an empty/unknown
+ * playlist; @throws only on a transport/HTTP failure of the initial call.
+ *
+ * @param playlistId - The playlist to read.
+ * @param limit - Max items to fetch (clamped to YouTube's 1–50 page size).
+ */
+async function fetchPlaylistItems(playlistId: string, limit: number): Promise<Replay[]> {
+  const max = Math.min(Math.max(limit, 1), 50);
+  const playlist = await ytGet<PlaylistItemsResponse>('/playlistItems', {
+    part: 'snippet',
+    playlistId,
+    maxResults: String(max),
+  });
+
+  const items = (playlist.items ?? [])
+    .map((item) => {
+      const snip = item.snippet;
+      const videoId = snip?.resourceId?.videoId;
+      if (!videoId || !snip) return null;
+      const title = snip.title ?? 'Untitled replay';
+      const replay: Replay = {
+        videoId,
+        title,
+        description: (snip.description ?? '').slice(0, 280),
+        thumbnail: bestThumbnail(snip.thumbnails, videoId),
+        publishedAt: snip.publishedAt ?? new Date(0).toISOString(),
+        url: `https://www.youtube.com/watch?v=${videoId}`,
+        league: inferLeague(`${title} ${snip.description ?? ''}`),
+        series: inferSeries(title),
+      };
+      return replay;
+    })
+    .filter((r): r is Replay => r !== null);
+
+  if (items.length === 0) return items;
+
+  // Enrich with view counts + durations in a single videos.list call.
+  try {
+    const stats = await ytGet<VideosResponse>('/videos', {
+      part: 'statistics,contentDetails',
+      id: items.map((r) => r.videoId).join(','),
+    });
+    const byId = new Map(
+      (stats.items ?? []).map((v) => [v.id, { views: v.statistics?.viewCount, duration: v.contentDetails?.duration }]),
+    );
+    for (const replay of items) {
+      const extra = byId.get(replay.videoId);
+      if (extra?.views !== undefined) replay.viewCount = Number(extra.views) || undefined;
+      if (extra?.duration) replay.duration = extra.duration;
+    }
+  } catch {
+    // Enrichment is best-effort; keep base replays if stats fail.
+  }
+
+  return items;
+}
+
+/**
+ * Resolve display labels for a set of configured playlists. Any playlist with an
+ * operator-supplied label keeps it; the rest are looked up in one `playlists`
+ * call and named after their YouTube title. Never throws — on failure the
+ * missing labels simply fall back to a generic heading at the call site.
+ *
+ * @returns A map of playlist id → resolved label.
+ */
+async function resolvePlaylistLabels(configs: YoutubePlaylistConfig[]): Promise<Map<string, string>> {
+  const labels = new Map<string, string>();
+  for (const c of configs) {
+    if (c.label) labels.set(c.id, c.label);
+  }
+  const missing = configs.filter((c) => !c.label).map((c) => c.id);
+  if (missing.length === 0) return labels;
+  try {
+    const data = await ytGet<PlaylistsResponse>('/playlists', {
+      part: 'snippet',
+      id: missing.join(','),
+      maxResults: String(Math.min(missing.length, 50)),
+    });
+    for (const item of data.items ?? []) {
+      if (item.id && item.snippet?.title) labels.set(item.id, item.snippet.title);
+    }
+  } catch {
+    // Best-effort; unresolved ids get a generic label at the call site.
+  }
+  return labels;
+}
+
 /** The sample fallback result (shared by success + error paths). */
 function sampleReplays(error: string | null): ApiResult<Replay[]> {
   return { ok: true, source: 'sample', error, data: SAMPLE_REPLAYS };
+}
+
+/** The sample fallback for the grouped view: sample replays as a single group. */
+function sampleGroups(error: string | null): ApiResult<ReplayPlaylist[]> {
+  return {
+    ok: true,
+    source: 'sample',
+    error,
+    data: [{ id: 'sample', label: 'Latest Replays', replays: SAMPLE_REPLAYS }],
+  };
 }
 
 /**
@@ -261,58 +369,26 @@ export async function fetchReplays(maxResults = 24): Promise<ApiResult<Replay[]>
     return sampleReplays('YouTube not configured — showing sample replays.');
   }
   try {
-    const playlistId = await resolveUploadsPlaylistId();
-    if (!playlistId) {
+    // Prefer the explicitly-configured playlists; otherwise the uploads feed.
+    const ids = cfg.playlists.length > 0 ? cfg.playlists.map((p) => p.id) : [await resolveUploadsPlaylistId()];
+    const playlistIds = ids.filter((id): id is string => Boolean(id));
+    if (playlistIds.length === 0) {
       return sampleReplays('Could not resolve YouTube uploads playlist — showing sample replays.');
     }
 
-    const limit = Math.min(Math.max(maxResults, 1), 50);
-    const playlist = await ytGet<PlaylistItemsResponse>('/playlistItems', {
-      part: 'snippet',
-      playlistId,
-      maxResults: String(limit),
-    });
-
-    const items = (playlist.items ?? [])
-      .map((item) => {
-        const snip = item.snippet;
-        const videoId = snip?.resourceId?.videoId;
-        if (!videoId || !snip) return null;
-        const title = snip.title ?? 'Untitled replay';
-        const replay: Replay = {
-          videoId,
-          title,
-          description: (snip.description ?? '').slice(0, 280),
-          thumbnail: bestThumbnail(snip.thumbnails, videoId),
-          publishedAt: snip.publishedAt ?? new Date(0).toISOString(),
-          url: `https://www.youtube.com/watch?v=${videoId}`,
-          league: inferLeague(`${title} ${snip.description ?? ''}`),
-          series: inferSeries(title),
-        };
-        return replay;
-      })
-      .filter((r): r is Replay => r !== null);
+    // Fetch every source playlist, then merge into one newest-first feed,
+    // de-duping videos that appear in more than one playlist.
+    const perPlaylist = Math.min(Math.max(maxResults, 1), 50);
+    const fetched = await Promise.all(playlistIds.map((id) => fetchPlaylistItems(id, perPlaylist)));
+    const seen = new Set<string>();
+    const items = fetched
+      .flat()
+      .filter((r) => (seen.has(r.videoId) ? false : (seen.add(r.videoId), true)))
+      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+      .slice(0, Math.max(maxResults, 1));
 
     if (items.length === 0) {
       return sampleReplays('YouTube returned no uploads — showing sample replays.');
-    }
-
-    // Enrich with view counts + durations in a single videos.list call.
-    try {
-      const stats = await ytGet<VideosResponse>('/videos', {
-        part: 'statistics,contentDetails',
-        id: items.map((r) => r.videoId).join(','),
-      });
-      const byId = new Map(
-        (stats.items ?? []).map((v) => [v.id, { views: v.statistics?.viewCount, duration: v.contentDetails?.duration }]),
-      );
-      for (const replay of items) {
-        const extra = byId.get(replay.videoId);
-        if (extra?.views !== undefined) replay.viewCount = Number(extra.views) || undefined;
-        if (extra?.duration) replay.duration = extra.duration;
-      }
-    } catch {
-      // Enrichment is best-effort; keep base replays if stats fail.
     }
 
     // Refresh the cache in the background; don't block the response on it.
@@ -330,6 +406,59 @@ export async function fetchReplays(maxResults = 24): Promise<ApiResult<Replay[]>
       };
     }
     return sampleReplays(
+      `YouTube request failed (${err instanceof Error ? err.message : 'unknown error'}) — showing sample replays.`,
+    );
+  }
+}
+
+/**
+ * Fetch replays grouped by playlist — one {@link ReplayPlaylist} per configured
+ * `YOUTUBE_PLAYLISTS` entry, in declared order. When no explicit playlists are
+ * configured, returns a single group from the uploads feed so the page still
+ * renders. Section labels come from the operator's override, else the playlist's
+ * own YouTube title. Never throws; falls back to sample data on failure.
+ *
+ * @param perPlaylist - Max replays to fetch per playlist (1–50). Defaults to 12.
+ * @returns The playlist groups, or a single sample group when unavailable.
+ */
+export async function fetchReplayGroups(perPlaylist = 12): Promise<ApiResult<ReplayPlaylist[]>> {
+  if (!isConfigured('youtube')) {
+    return sampleGroups('YouTube not configured — showing sample replays.');
+  }
+  try {
+    // Explicit playlists win; otherwise fall back to a single uploads group.
+    const configs: YoutubePlaylistConfig[] =
+      cfg.playlists.length > 0
+        ? [...cfg.playlists]
+        : await (async () => {
+            const uploads = await resolveUploadsPlaylistId();
+            return uploads ? [{ label: null, id: uploads }] : [];
+          })();
+
+    if (configs.length === 0) {
+      return sampleGroups('Could not resolve YouTube uploads playlist — showing sample replays.');
+    }
+
+    const labels = await resolvePlaylistLabels(configs);
+    const groups = await Promise.all(
+      configs.map(async (c) => ({
+        id: c.id,
+        label: c.label ?? labels.get(c.id) ?? 'Replays',
+        replays: await fetchPlaylistItems(c.id, perPlaylist),
+      })),
+    );
+
+    const nonEmpty = groups.filter((g) => g.replays.length > 0);
+    if (nonEmpty.length === 0) {
+      return sampleGroups('YouTube returned no replays — showing sample replays.');
+    }
+
+    // Refresh the flat cache (used by the API route) in the background.
+    void writeReplaysCache(nonEmpty.flatMap((g) => g.replays));
+
+    return { ok: true, source: 'youtube', error: null, data: nonEmpty };
+  } catch (err) {
+    return sampleGroups(
       `YouTube request failed (${err instanceof Error ? err.message : 'unknown error'}) — showing sample replays.`,
     );
   }

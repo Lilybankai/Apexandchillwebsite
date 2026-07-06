@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Info, Youtube } from 'lucide-react';
-import { fetchReplays } from '@/lib/api/youtube';
+import { fetchReplayGroups } from '@/lib/api/youtube';
 import { youtube } from '@/lib/env';
 import { Button } from '@/components/ui/Button';
 import { FeaturedReplay } from '@/components/replays/FeaturedReplay';
-import { ReplayGrid } from '@/components/replays/ReplayGrid';
+import { ReplayPlaylists } from '@/components/replays/ReplayPlaylists';
 
 export const metadata: Metadata = {
   title: 'Replays',
@@ -26,10 +26,17 @@ const SUBSCRIBE_URL = `https://www.youtube.com/channel/${youtube.channelId}?sub_
  * to sample replays with a notice when the YouTube key is absent.
  */
 export default async function ReplaysPage() {
-  const result = await fetchReplays(24);
-  const replays = result.data;
-  const featured = replays[0];
-  const rest = replays.slice(1);
+  const result = await fetchReplayGroups(12);
+  const groups = result.data;
+
+  // Feature the single newest replay across every playlist as the hero, and hide
+  // it from its section grid below so it never appears twice on the page.
+  const featured = groups
+    .flatMap((g) => g.replays)
+    .reduce<(typeof groups)[number]['replays'][number] | undefined>(
+      (newest, r) => (!newest || r.publishedAt.localeCompare(newest.publishedAt) > 0 ? r : newest),
+      undefined,
+    );
 
   return (
     <>
@@ -87,15 +94,12 @@ export default async function ReplaysPage() {
           </section>
         )}
 
-        {/* Filterable grid */}
-        {rest.length > 0 && (
-          <section>
-            <div className="mb-6 flex items-end justify-between gap-4">
-              <h2 className="font-display text-2xl text-ink">More Replays</h2>
-            </div>
-            <ReplayGrid replays={rest} />
-          </section>
-        )}
+        {/* Playlists. Multiple configured playlists render as switchable tabs;
+            a single feed reads as one "More Replays" grid. The featured hero is
+            filtered out so it never appears twice. */}
+        <section>
+          <ReplayPlaylists groups={groups} featuredId={featured?.videoId} />
+        </section>
 
         {/* Subscribe band */}
         <section className="relative overflow-hidden rounded-card border border-line bg-surface/50 p-8 text-center sm:p-12">

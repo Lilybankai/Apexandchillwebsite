@@ -18,6 +18,12 @@ const FILTERS: { key: Filter; label: string }[] = [
 export interface ReplayGridProps {
   /** Replays to display in the grid. */
   replays: Replay[];
+  /**
+   * Whether to show the GT7/LMU league filter chips. Defaults to `true`. Set
+   * `false` when the grid is already scoped (e.g. one playlist section) so the
+   * chips aren't redundant.
+   */
+  showFilters?: boolean;
 }
 
 /**
@@ -27,7 +33,7 @@ export interface ReplayGridProps {
  * disabled). Selecting a card opens a modal YouTube embed; the modal closes on
  * Escape, backdrop click, or the close button.
  */
-export function ReplayGrid({ replays }: ReplayGridProps) {
+export function ReplayGrid({ replays, showFilters = true }: ReplayGridProps) {
   const [filter, setFilter] = useState<Filter>('ALL');
   const [active, setActive] = useState<Replay | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -109,6 +115,7 @@ export function ReplayGrid({ replays }: ReplayGridProps) {
   return (
     <div className="space-y-8">
       {/* Filter chips */}
+      {showFilters && (
       <div className="flex flex-wrap items-center gap-2">
         {FILTERS.map(({ key, label }) => {
           const count = counts[key];
@@ -134,6 +141,7 @@ export function ReplayGrid({ replays }: ReplayGridProps) {
           );
         })}
       </div>
+      )}
 
       {/* Grid */}
       {visible.length === 0 ? (

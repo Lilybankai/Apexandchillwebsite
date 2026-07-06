@@ -96,9 +96,34 @@ export interface StandingsTableProps {
  *   stacks into a card with `data-label` captions (no horizontal scroll).
  * - The top three positions carry the signature neon accent bars.
  */
+/** Numeric stat columns rendered after Pos/Driver/Team, in order. */
+const STAT_KEYS = ['points', 'wins', 'podiums', 'avgQuali', 'avgFinish', 'penalties'] as const;
+/** Stats that are hidden when no row carries a value (e.g. live SimGrid
+ * standings expose points + penalties but not wins/podiums/averages). */
+const HIDEABLE_KEYS = ['wins', 'podiums', 'avgQuali', 'avgFinish', 'penalties'] as const;
+
 export function StandingsTable({ rows }: StandingsTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('position');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  // Drop optional numeric columns that are entirely zero so a live feed without
+  // per-race aggregates (wins/podiums/averages) shows a clean table, not zeros.
+  const hiddenKeys = useMemo(() => {
+    const hidden = new Set<string>();
+    for (const k of HIDEABLE_KEYS) {
+      if (rows.every((r) => (r[k] ?? 0) === 0)) hidden.add(k);
+    }
+    return hidden;
+  }, [rows]);
+
+  const visibleColumns = useMemo(
+    () => COLUMNS.filter((c) => !hiddenKeys.has(c.key)),
+    [hiddenKeys],
+  );
+  const visibleStatKeys = useMemo(
+    () => STAT_KEYS.filter((k) => !hiddenKeys.has(k)),
+    [hiddenKeys],
+  );
 
   const sorted = useMemo(() => {
     const copy = [...rows];
@@ -144,7 +169,7 @@ export function StandingsTable({ rows }: StandingsTableProps) {
         </caption>
         <thead className="hidden md:table-header-group">
           <tr className="border-b border-line">
-            {COLUMNS.map((col) => {
+            {visibleColumns.map((col) => {
               const active = col.sortable && col.key === sortKey;
               return (
                 <th
@@ -238,8 +263,8 @@ export function StandingsTable({ rows }: StandingsTableProps) {
                   </span>
                 </td>
 
-                {/* Numeric stats */}
-                {(['points', 'wins', 'podiums', 'avgQuali', 'avgFinish', 'penalties'] as const).map((key) => {
+                {/* Numeric stats (all-zero optional columns are hidden) */}
+                {visibleStatKeys.map((key) => {
                   const col = COLUMNS.find((c) => c.key === key)!;
                   return (
                     <td

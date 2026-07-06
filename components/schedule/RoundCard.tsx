@@ -1,35 +1,9 @@
 import { CalendarPlus, MapPin, CloudRain, CheckCircle2, Flag } from "lucide-react";
-import type { League } from "@/lib/types";
+import type { ScheduleRound } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { formatRaceDate, googleCalendarUrl } from "@/lib/utils";
 
-/**
- * A single race round in a league calendar.
- *
- * NOTE: the data layer does not yet expose a schedule endpoint, so this shape
- * is defined locally and populated from a graceful sample (see ScheduleList).
- * When Builder 2 adds a shared `Schedule`/`ScheduleRound` type + `/api/schedule`,
- * swap this import to `@/lib/types` — the fields are intentionally aligned.
- */
-export interface ScheduleRound {
-  league: League;
-  /** Round number within the season. */
-  round: number;
-  /** Circuit / track name. */
-  track: string;
-  /** Car class / category running this round. */
-  class: string;
-  /** Race date as ISO-8601 (`YYYY-MM-DD`). */
-  date: string;
-  /** Local start time, e.g. `20:00`. */
-  time?: string;
-  /** When the lobby opens, e.g. `19:45`. */
-  lobbyOpens?: string;
-  /** Whether this round runs dynamic / variable weather. */
-  variableWeather?: boolean;
-  /** Whether the round has already been run. */
-  status: "upcoming" | "completed";
-}
+export type { ScheduleRound };
 
 /**
  * A single round row/card. The soonest upcoming round is emphasised via the

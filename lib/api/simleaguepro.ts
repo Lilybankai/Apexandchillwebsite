@@ -14,7 +14,7 @@
  * @packageDocumentation
  */
 
-import type { ApiResult, NextRace, StandingRow, Standings } from '@/lib/types';
+import type { ApiResult, NextRace, Schedule, ScheduleRound, StandingRow, Standings } from '@/lib/types';
 import { simLeaguePro as cfg, isConfigured, CACHE_TTL_SECONDS } from '@/lib/env';
 
 /** Default team accent colour when the source doesn't provide one. */
@@ -40,6 +40,25 @@ const SAMPLE_GT7_STANDINGS: StandingRow[] = [
   { position: 13, driver: 'ChicaneCharlie', team: 'Racing Hounds', teamColor: '#e67e22', points: 58, wins: 0, podiums: 1, avgQuali: 9.4, avgFinish: 9.6, penalties: 0, class: 'Gr.3', league: 'GT7' },
   { position: 14, driver: 'ApexRookie_22', team: 'Team Papaia', teamColor: '#f5a623', points: 44, wins: 0, podiums: 0, avgQuali: 10.8, avgFinish: 10.9, penalties: 5, class: 'Gr.3', league: 'GT7' },
   { position: 15, driver: 'BackmarkerBob', team: 'Apex Originals', teamColor: '#00ff88', points: 31, wins: 0, podiums: 0, avgQuali: 12.1, avgFinish: 12.4, penalties: 1, class: 'Gr.3', league: 'GT7' },
+];
+
+/**
+ * Bundled sample GT7 schedule used until the Sim League Pro schedule endpoint is
+ * wired live. GT7 Season 3 (per Scout) ran on Sundays at 20:00.
+ */
+const SAMPLE_GT7_SCHEDULE: ScheduleRound[] = [
+  { league: 'GT7', round: 1, track: 'Nürburgring GP', class: 'GR.3', date: '2026-01-11', time: '20:00', status: 'completed' },
+  { league: 'GT7', round: 2, track: 'Suzuka Circuit', class: 'GR.2', date: '2026-01-18', time: '20:00', status: 'completed' },
+  { league: 'GT7', round: 3, track: 'Brands Hatch', class: 'GR.3', date: '2026-01-25', time: '20:00', variableWeather: true, status: 'completed' },
+  { league: 'GT7', round: 4, track: 'Autodromo di Monza', class: 'GR.2', date: '2026-02-01', time: '20:00', status: 'completed' },
+  { league: 'GT7', round: 5, track: 'Spa-Francorchamps', class: 'GR.3', date: '2026-02-08', time: '20:00', variableWeather: true, status: 'completed' },
+  { league: 'GT7', round: 6, track: 'Interlagos', class: 'GR.2', date: '2026-02-15', time: '20:00', status: 'completed' },
+  { league: 'GT7', round: 7, track: 'Red Bull Ring', class: 'F3500', date: '2026-02-22', time: '20:00', status: 'completed' },
+  { league: 'GT7', round: 8, track: 'Mount Panorama', class: 'GR.3', date: '2026-03-01', time: '20:00', variableWeather: true, status: 'completed' },
+  { league: 'GT7', round: 9, track: 'Autopolis', class: 'GR.2', date: '2026-03-08', time: '20:00', status: 'completed' },
+  { league: 'GT7', round: 10, track: 'Trial Mountain', class: 'GR.3', date: '2026-03-15', time: '20:00', status: 'completed' },
+  { league: 'GT7', round: 11, track: 'Yas Marina', class: 'GR.2', date: '2026-03-22', time: '20:00', status: 'completed' },
+  { league: 'GT7', round: 12, track: 'Circuit de la Sarthe', class: 'GR.3', date: '2026-03-29', time: '20:00', variableWeather: true, status: 'completed' },
 ];
 
 /** Bundled sample next GT7 race. */
@@ -204,4 +223,28 @@ export async function fetchGt7NextRace(): Promise<ApiResult<NextRace>> {
       `Sim League Pro request failed (${err instanceof Error ? err.message : 'unknown error'}) — showing sample data.`,
     );
   }
+}
+
+/**
+ * Fetch the full GT7 season schedule.
+ *
+ * Sim League Pro does not yet expose a schedule endpoint we consume, so this
+ * currently returns bundled sample rounds (clearly badged `sample` in the UI).
+ * The signature matches {@link fetchLmuSchedule} so the Schedule page treats
+ * both leagues identically; swap in a live fetch here when the endpoint lands.
+ *
+ * @returns The GT7 season calendar. Never throws.
+ */
+export async function fetchGt7Schedule(): Promise<ApiResult<Schedule>> {
+  return {
+    ok: true,
+    source: 'sample',
+    error: 'Sim League Pro schedule not yet wired — showing sample GT7 calendar.',
+    data: {
+      league: 'GT7',
+      seasonLabel: 'Season 3',
+      source: 'sample',
+      rounds: SAMPLE_GT7_SCHEDULE,
+    },
+  };
 }

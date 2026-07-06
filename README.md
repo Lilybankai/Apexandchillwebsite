@@ -89,25 +89,90 @@ template. Key primitives:
 Use `cn(...)` from `@/lib/utils` to compose classes. Import paths use the
 `@/*` alias mapped to the project root.
 
-## Environment variables
+## Setup & Integrations (operator guide)
 
-Copy `.env.example` to `.env.local` and fill in as integrations come online.
-The app degrades gracefully (sample data / skeletons) when keys are absent.
+Everything here is optional. **The site runs out-of-the-box on graceful *sample*
+data** — every integration falls back to bundled placeholder content until you
+supply credentials, and switching to live data needs **no code changes**. Each
+data section shows a "sample data" chip while it's on the fallback so the
+"waiting for live data" state stays honest.
 
-| Variable                          | Used by                    |
-| --------------------------------- | -------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`        | Supabase client            |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`   | Supabase client            |
-| `SUPABASE_SERVICE_ROLE_KEY`       | Server-side writes (join)  |
-| `SIMGRID_API_KEY`                 | LMU standings / next race  |
-| `SIMLEAGUEPRO_API_KEY`            | GT7 standings              |
-| `YOUTUBE_API_KEY`                 | Replays gallery            |
-| `TAPSTITCH_API_KEY`               | Merch (print-on-demand)    |
-| `PRINTFUL_API_KEY`                | Merch (print-on-demand)    |
-| `STRIPE_SECRET_KEY`               | Checkout                   |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Checkout (client)       |
+### 1. Create your env file
 
-> **Never commit secrets.** `.env*.local` is git-ignored.
+```bash
+cp .env.example .env.local
+```
+
+Fill in only the keys you have. `.env*.local` is git-ignored — **never commit
+secrets.**
+
+### 2. Keys grouped by system
+
+**SimGrid — LMU standings + next race**
+| Variable | Notes |
+| --- | --- |
+| `SIMGRID_API_KEY` | Primary key (SimGrid account → API/integrations). |
+| `SIMGRID_API_BASE_URL` | Defaults to `https://www.simgrid.com/api`. |
+| `SIMGRID_LMU_CHAMPIONSHIP_ID` | SimGrid championship id for the current LMU season. |
+
+**Sim League Pro — GT7 standings + next race**
+| Variable | Notes |
+| --- | --- |
+| `SIMLEAGUEPRO_API_KEY` | API key. |
+| `SIMLEAGUEPRO_API_BASE_URL` | Defaults to `https://api.simleague.pro`. |
+| `SIMLEAGUEPRO_GT7_LEAGUE_ID` | League id for the current GT7 season. |
+| `SIMLEAGUEPRO_GT7_SEASON_ID` | Optional — pins a season; defaults to active. |
+
+**YouTube Data API v3 — replays gallery**
+| Variable | Notes |
+| --- | --- |
+| `YOUTUBE_API_KEY` | The only value you must supply (Google Cloud → Credentials). |
+| `YOUTUBE_CHANNEL_ID` | Defaults to Apex & Chill's channel. |
+| `YOUTUBE_UPLOADS_PLAYLIST_ID` | Defaults to the curated replays playlist. |
+
+**Supabase — join submissions + optional cached standings**
+| Variable | Notes |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Project URL (public). |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key (public, browser-safe). |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Server-only** — never expose to the client. |
+
+**Merch — Tapstitch + Printful (print-on-demand)**
+| Variable | Notes |
+| --- | --- |
+| `TAPSTITCH_API_KEY` / `TAPSTITCH_STORE_ID` | Tapstitch store credentials. |
+| `PRINTFUL_API_KEY` / `PRINTFUL_STORE_ID` | Printful store credentials. |
+
+**Stripe — checkout**
+| Variable | Notes |
+| --- | --- |
+| `STRIPE_SECRET_KEY` | Server-side Stripe key. |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client publishable key. |
+| `STRIPE_WEBHOOK_SECRET` | Verifies incoming Stripe webhooks. |
+
+### 3. Merch integration path
+
+The store reads the **Tapstitch and Printful product APIs directly** and
+normalises both into a single provider-agnostic product/variant model — so there
+is **no WordPress import/sync step** (the pain point on the old site is gone).
+Products merge into one catalog; when keys are absent, a bundled sample catalog
+is shown instead.
+
+Checkout uses **Stripe-hosted checkout** (no card data touches this app).
+Fulfilment is wired via webhook: **TODO** — `POST /api/webhooks/stripe` should
+verify the signature with `STRIPE_WEBHOOK_SECRET` and, on
+`checkout.session.completed`, push the order to the relevant provider's Orders
+API (Tapstitch / Printful) for print-and-ship.
+
+### 4. Apply the database schema
+
+Once Supabase is configured, apply the schema (join submissions, cached
+standings, replays cache) via the Supabase SQL editor or CLI:
+
+```bash
+# e.g. with the Supabase CLI / psql against your project
+psql "$SUPABASE_DB_URL" -f supabase/schema.sql
+```
 
 ## Build notes
 

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { Trophy, Users, Radio, ShieldCheck } from 'lucide-react';
 import { JoinForm } from '@/components/join/JoinForm';
 
@@ -29,16 +30,27 @@ export default function JoinPage() {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-grid-lines bg-grid opacity-25 [mask-image:radial-gradient(70%_60%_at_50%_0%,black,transparent)]"
         />
-        <div className="container-rail relative py-16 sm:py-20">
-          <span className="kicker mb-4">Get On The Grid</span>
-          <h1 className="text-4xl font-bold text-ink sm:text-6xl">
-            Join The <span className="text-gradient">League</span>
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted">
-            Whether you race on PlayStation in GT7 or on PC in Le Mans Ultimate,
-            there&apos;s a seat for you. Apply below — no aliens required, just a
-            love for clean, close racing.
-          </p>
+        <div className="container-rail relative flex flex-col gap-10 py-16 sm:py-20 md:flex-row md:items-center md:justify-between">
+          <div>
+            <span className="kicker mb-4">Get On The Grid</span>
+            <h1 className="text-4xl font-bold text-ink sm:text-6xl">
+              Join The <span className="text-gradient">League</span>
+            </h1>
+            <p className="mt-4 max-w-2xl text-lg text-muted">
+              Whether you race on PlayStation in GT7 or on PC in Le Mans Ultimate,
+              there&apos;s a seat for you. Apply below — no aliens required, just a
+              love for clean, close racing.
+            </p>
+          </div>
+          {/* Operator-supplied brand art (300x147) — native-size section accent. */}
+          <Image
+            src="/brand/banner.png"
+            alt=""
+            width={300}
+            height={147}
+            priority
+            className="hidden shrink-0 rounded-card border border-line shadow-glow-soft md:block"
+          />
         </div>
       </section>
 

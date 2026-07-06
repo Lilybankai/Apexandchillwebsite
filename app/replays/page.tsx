@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { Info, Youtube } from 'lucide-react';
 import { fetchReplays } from '@/lib/api/youtube';
 import { youtube } from '@/lib/env';
@@ -38,21 +39,33 @@ export default async function ReplaysPage() {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-grid-lines bg-grid opacity-25 [mask-image:radial-gradient(70%_60%_at_50%_0%,black,transparent)]"
         />
-        <div className="container-rail relative py-16 sm:py-20">
-          <span className="kicker mb-4">On Demand</span>
-          <h1 className="text-4xl font-bold text-ink sm:text-6xl">
-            Race <span className="text-gradient">Replays</span>
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted">
-            Every round, every battle. Full broadcasts and highlights from both
-            leagues — relive the action or catch what you missed.
-          </p>
-          <div className="mt-8">
-            <Button href={SUBSCRIBE_URL} target="_blank" rel="noopener noreferrer" clip>
-              <Youtube className="h-5 w-5" />
-              Subscribe on YouTube
-            </Button>
+        <div className="container-rail relative flex flex-col gap-10 py-16 sm:py-20 md:flex-row md:items-center md:justify-between">
+          <div>
+            <span className="kicker mb-4">On Demand</span>
+            <h1 className="text-4xl font-bold text-ink sm:text-6xl">
+              Race <span className="text-gradient">Replays</span>
+            </h1>
+            <p className="mt-4 max-w-2xl text-lg text-muted">
+              Every round, every battle. Full broadcasts and highlights from both
+              leagues — relive the action or catch what you missed.
+            </p>
+            <div className="mt-8">
+              <Button href={SUBSCRIBE_URL} target="_blank" rel="noopener noreferrer" clip>
+                <Youtube className="h-5 w-5" />
+                Subscribe on YouTube
+              </Button>
+            </div>
           </div>
+          {/* Operator-supplied brand art (300x147) — used at native size as a
+              section accent, never stretched into a full-bleed hero. */}
+          <Image
+            src="/brand/replays.png"
+            alt=""
+            width={300}
+            height={147}
+            priority
+            className="hidden shrink-0 rounded-card border border-line shadow-glow-soft md:block"
+          />
         </div>
       </section>
 

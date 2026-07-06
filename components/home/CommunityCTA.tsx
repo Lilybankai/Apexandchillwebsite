@@ -67,7 +67,7 @@ export function CommunityCTA() {
               variant="outline"
               size="lg"
             >
-              Download Rulebook
+              Community Rules
             </Button>
           </div>
         </div>

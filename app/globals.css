@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Apex & Chill Racing — global design tokens & base styles.
+ *
+ * Brand: dark synthwave / neon motorsport. Near-black base, an electric
+ * violet→magenta gradient for primary actions, cyan for secondary neon, hot
+ * pink for highlights, and the signature racing green kept for P1 / success.
+ *
+ * Colours are stored as space-separated RGB channels so Tailwind's
+ * `<alpha-value>` syntax can apply opacity (see tailwind.config.ts). Retune the
+ * brand by editing these variables only.
+ */
+@layer base {
+  :root {
+    /* Surfaces — near-black with a cold violet cast */
+    --color-base: 10 10 18; /* #0a0a12 */
+    --color-surface: 18 18 28; /* #12121c */
+    --color-elevated: 26 26 40; /* #1a1a28 */
+    --color-line: 42 42 62; /* #2a2a3e */
+
+    /* Foreground */
+    --color-ink: 244 245 250;
+    --color-muted: 160 162 182;
+    --color-subtle: 108 110 132;
+
+    /* Brand neon */
+    --color-accent: 155 92 255; /* electric violet — primary */
+    --color-accent-2: 236 72 200; /* magenta — gradient endpoint */
+    --color-cyan: 34 227 255; /* secondary neon */
+    --color-pink: 255 71 180; /* highlight */
+    --color-success: 0 255 136; /* racing green — P1 / success */
+
+    /* Flags / team accents */
+    --color-red: 255 59 59;
+    --color-amber: 255 176 32;
+    --color-blue: 58 160 255;
+    --color-purple: 173 120 255;
+    --color-gold: 255 209 92;
+
+    --radius-card: 14px;
+
+    color-scheme: dark;
+  }
+
+  * {
+    border-color: rgb(var(--color-line));
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: rgb(var(--color-base));
+    color: rgb(var(--color-ink));
+    font-family: var(--font-body), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* subtle synthwave glow + carbon weave so flat sections never look empty */
+    background-image:
+      radial-gradient(120% 70% at 50% -10%, rgb(var(--color-accent) / 0.12), transparent 60%),
+      radial-gradient(90% 60% at 100% 0%, rgb(var(--color-cyan) / 0.06), transparent 55%),
+      repeating-linear-gradient(45deg, rgb(255 255 255 / 0.012) 0 2px, transparent 2px 5px);
+    background-attachment: fixed;
+  }
+
+  /* Display headings: condensed, uppercase, mechanical */
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display), Impact, sans-serif;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    line-height: 0.95;
+  }
+
+  ::selection {
+    background: rgb(var(--color-accent) / 0.85);
+    color: rgb(var(--color-ink));
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-cyan));
+    outline-offset: 2px;
+  }
+
+  /* Custom scrollbar to match the dark board */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--color-base));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-line));
+    border-radius: 999px;
+    border: 2px solid rgb(var(--color-base));
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-subtle));
+  }
+}
+
+@layer components {
+  /* Section wrapper: consistent max width + gutter */
+  .container-rail {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8;
+  }
+
+  /* Glassy neon panel — the default card surface treatment */
+  .glass {
+    background: linear-gradient(
+      180deg,
+      rgb(var(--color-surface) / 0.9),
+      rgb(var(--color-base) / 0.75)
+    );
+    backdrop-filter: blur(10px);
+    border: 1px solid rgb(var(--color-line) / 0.9);
+  }
+
+  /* Eyebrow / kicker label — small all-caps tag above section titles */
+  .kicker {
+    @apply inline-flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-widest text-cyan;
+  }
+  .kicker::before {
+    content: "";
+    @apply inline-block h-3 w-3 -skew-x-12 bg-gradient-to-br from-cyan to-accent;
+  }
+
+  /* Numeric data readout — the "timing board" treatment */
+  .tabular {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* Diagonal-cut chip, e.g. race position or LIVE badge */
+  .chip {
+    @apply inline-flex items-center gap-1.5 border border-line bg-elevated px-2.5 py-1 font-mono text-[0.7rem] font-semibold uppercase tracking-widest text-muted;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+
+  /* Gradient text — for accented words in headings */
+  .text-gradient {
+    @apply bg-gradient-to-r from-cyan via-accent to-accent-2 bg-clip-text text-transparent;
+  }
+
+  /* Angled panel corner (optional motorsport flourish) */
+  .clip-corner {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

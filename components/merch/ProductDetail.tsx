@@ -12,6 +12,29 @@ export interface ProductDetailProps {
   product: Product;
 }
 
+/** Approximate hex for each colourway name, for the swatch buttons. */
+const SWATCH_HEX: Record<string, string> = {
+  black: '#1b1b1b',
+  gray: '#8b8b8b',
+  grey: '#8b8b8b',
+  white: '#f4f4f5',
+  brown: '#6b4a2b',
+  coffee: '#4b3626',
+  'navy blue': '#26324f',
+  blue: '#2f5fd0',
+  purple: '#6b3fa0',
+  'gray coffee': '#7c7065',
+  'oat gray': '#d9d2c4',
+  'gray apricot': '#d7a591',
+  'dark purple': '#3b2a4d',
+  'medium green': '#4e7c58',
+};
+
+/** Swatch fill for a colour name (falls back to a neutral grey when unknown). */
+function swatchHex(name: string): string {
+  return SWATCH_HEX[name.toLowerCase()] ?? '#8b8b8b';
+}
+
 /**
  * Interactive purchase panel for a product detail page: image gallery with
  * thumbnails, variant/size selector, quantity stepper, add-to-cart with
@@ -21,25 +44,68 @@ export interface ProductDetailProps {
  */
 export function ProductDetail({ product }: ProductDetailProps) {
   const { add } = useCart();
+  // Colour-based apparel is chosen by a colour swatch + size; everything else
+  // (single-dimension products) falls back to a flat variant list.
+  const hasColours = product.variants.some((v) => Boolean(v.color));
   const firstAvailable = product.variants.find((v) => v.available) ?? product.variants[0];
-  const [variant, setVariant] = useState<ProductVariant | undefined>(firstAvailable);
+
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [custom, setCustom] = useState('');
-  const personalization = product.personalization;
-  const personalizationMissing = Boolean(personalization?.required) && custom.trim().length === 0;
   // Explicit thumbnail choice; null means "follow the selected variant".
   const [pickedImage, setPickedImage] = useState<string | null>(null);
   const [descExpanded, setDescExpanded] = useState(false);
+
+  // Colour + size selection (colour-based apparel) …
+  const [color, setColor] = useState<string | undefined>(firstAvailable?.color);
+  const [size, setSize] = useState<string | undefined>(firstAvailable?.size);
+  // … or a flat variant pick (accessories / single-dimension products).
+  const [flatVariant, setFlatVariant] = useState<ProductVariant | undefined>(firstAvailable);
+
+  const variant = hasColours
+    ? product.variants.find((v) => v.color === color && v.size === size)
+    : flatVariant;
+
+  const personalization = product.personalization;
+  const personalizationMissing = Boolean(personalization?.required) && custom.trim().length === 0;
   const isAmc = product.tags.includes('amc');
   // POD providers ship long spec-sheet descriptions; clamp them behind a toggle.
   const longDescription = product.description.length > 420;
 
+  // Distinct colours (first-seen order), each with its availability.
+  const colourOptions = hasColours
+    ? Array.from(
+        new Map(product.variants.filter((v) => v.color).map((v) => [v.color as string, v])).values(),
+      ).map((v) => ({
+        name: v.color as string,
+        available: product.variants.some((pv) => pv.color === v.color && pv.available),
+      }))
+    : [];
+  const sizeOptions = hasColours
+    ? Array.from(new Set(product.variants.map((v) => v.size).filter((s): s is string => Boolean(s))))
+    : [];
+  const sizeAvailable = (s: string) =>
+    product.variants.some((v) => v.color === color && v.size === s && v.available);
+
   const gallery = [...new Set([...(variant?.image ? [variant.image] : []), ...product.images])];
   const displayed = pickedImage ?? variant?.image ?? product.images[0];
 
+  function selectColour(c: string) {
+    setColor(c);
+    setPickedImage(null);
+    // Keep the size valid: if the current size isn't offered/available in this
+    // colour, jump to the first available size for it.
+    const forColour = product.variants.filter((v) => v.color === c);
+    if (!forColour.some((v) => v.size === size && v.available)) {
+      setSize((forColour.find((v) => v.available) ?? forColour[0])?.size);
+    }
+  }
+  function selectSize(s: string) {
+    setSize(s);
+    setPickedImage(null);
+  }
   function selectVariant(v: ProductVariant) {
-    setVariant(v);
+    setFlatVariant(v);
     setPickedImage(null);
   }
 
@@ -143,33 +209,95 @@ export function ProductDetail({ product }: ProductDetailProps) {
           </div>
         )}
 
-        {/* Variant selector */}
-        {product.variants.length > 1 && (
-          <div className="mt-7">
-            <span className="mb-2.5 block font-mono text-xs font-semibold uppercase tracking-widest text-subtle">
-              {product.category === 'Apparel' || product.category === 'Hoodies' ? 'Size' : 'Option'}
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {product.variants.map((v) => (
-                <button
-                  key={v.id}
-                  type="button"
-                  disabled={!v.available}
-                  onClick={() => selectVariant(v)}
-                  aria-pressed={v.id === variant?.id}
-                  className={cn(
-                    'min-w-[3rem] rounded-lg border px-4 py-2 font-display text-sm uppercase tracking-wide transition-all',
-                    v.id === variant?.id
-                      ? 'border-transparent bg-neon-primary text-white shadow-glow-soft'
-                      : 'border-line text-muted hover:border-accent/50 hover:text-ink',
-                    !v.available && 'cursor-not-allowed opacity-40 hover:border-line hover:text-muted',
-                  )}
-                >
-                  {v.name}
-                </button>
-              ))}
+        {/* Colour + size selectors (colour-based apparel) */}
+        {hasColours ? (
+          <>
+            <div className="mt-7">
+              <span className="mb-2.5 block font-mono text-xs font-semibold uppercase tracking-widest text-subtle">
+                Colour{color ? <span className="ml-1 text-ink">· {color}</span> : null}
+              </span>
+              <div className="flex flex-wrap gap-2.5">
+                {colourOptions.map((c) => (
+                  <button
+                    key={c.name}
+                    type="button"
+                    disabled={!c.available}
+                    onClick={() => selectColour(c.name)}
+                    aria-label={c.name}
+                    aria-pressed={c.name === color}
+                    title={c.name}
+                    className={cn(
+                      'h-9 w-9 rounded-full border transition-all',
+                      c.name === color
+                        ? 'border-transparent ring-2 ring-accent ring-offset-2 ring-offset-base'
+                        : 'border-line hover:border-accent/60',
+                      !c.available && 'cursor-not-allowed opacity-30',
+                    )}
+                    style={{ backgroundColor: swatchHex(c.name) }}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+
+            {sizeOptions.length > 0 && (
+              <div className="mt-6">
+                <span className="mb-2.5 block font-mono text-xs font-semibold uppercase tracking-widest text-subtle">
+                  Size
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {sizeOptions.map((s) => {
+                    const ok = sizeAvailable(s);
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        disabled={!ok}
+                        onClick={() => selectSize(s)}
+                        aria-pressed={s === size}
+                        className={cn(
+                          'min-w-[3rem] rounded-lg border px-4 py-2 font-display text-sm uppercase tracking-wide transition-all',
+                          s === size
+                            ? 'border-transparent bg-neon-primary text-white shadow-glow-soft'
+                            : 'border-line text-muted hover:border-accent/50 hover:text-ink',
+                          !ok && 'cursor-not-allowed opacity-40 hover:border-line hover:text-muted',
+                        )}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          product.variants.length > 1 && (
+            <div className="mt-7">
+              <span className="mb-2.5 block font-mono text-xs font-semibold uppercase tracking-widest text-subtle">
+                {product.category === 'Apparel' || product.category === 'Hoodies' ? 'Size' : 'Option'}
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {product.variants.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    disabled={!v.available}
+                    onClick={() => selectVariant(v)}
+                    aria-pressed={v.id === variant?.id}
+                    className={cn(
+                      'min-w-[3rem] rounded-lg border px-4 py-2 font-display text-sm uppercase tracking-wide transition-all',
+                      v.id === variant?.id
+                        ? 'border-transparent bg-neon-primary text-white shadow-glow-soft'
+                        : 'border-line text-muted hover:border-accent/50 hover:text-ink',
+                      !v.available && 'cursor-not-allowed opacity-40 hover:border-line hover:text-muted',
+                    )}
+                  >
+                    {v.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
         )}
 
         {/* Personalisation (e.g. number on the back) */}

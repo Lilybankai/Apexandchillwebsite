@@ -238,7 +238,9 @@ export async function fetchPrintifyProducts(): Promise<ApiResult<Product[]>> {
     return sample('Printify not configured — showing sample catalog.');
   }
   try {
-    const page = await printifyGet<PrintifyPage<PrintifyProduct>>(shopPath('/products.json?limit=100'));
+    // Printify caps this endpoint's page size at 50 (a request >50 returns 400).
+    // A single page is plenty for this store; paginate here if the catalog grows.
+    const page = await printifyGet<PrintifyPage<PrintifyProduct>>(shopPath('/products.json?limit=50'));
     const items = (page.data ?? []).filter((p) => p.visible !== false);
     if (items.length === 0) return sample('Printify returned no products — showing sample catalog.');
 

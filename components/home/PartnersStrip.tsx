@@ -38,8 +38,8 @@ export function PartnersStrip() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          {PARTNERS.map((p) => {
-            const inner = (
+          {PARTNERS.map((p) => (
+            <a key={p.name} href={p.href} target="_blank" rel="noopener noreferrer">
               <div className="flex min-w-[160px] flex-col rounded-card border border-line bg-elevated px-5 py-4 transition-colors hover:border-cyan/40">
                 <span className="font-display text-lg font-semibold uppercase tracking-wide text-ink">
                   {p.name}
@@ -48,15 +48,8 @@ export function PartnersStrip() {
                   {p.note}
                 </span>
               </div>
-            );
-            return p.href ? (
-              <a key={p.name} href={p.href} target="_blank" rel="noopener noreferrer">
-                {inner}
-              </a>
-            ) : (
-              <div key={p.name}>{inner}</div>
-            );
-          })}
+            </a>
+          ))}
         </div>
       </div>
     </section>

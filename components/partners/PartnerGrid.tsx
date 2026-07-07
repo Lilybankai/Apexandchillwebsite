@@ -27,15 +27,16 @@ const PARTNERS: Partner[] = [
     icon: Zap,
     accent: "text-cyan",
     blurb:
-      "A gaming energy and hydration brand built for focus and endurance. Sugar-free formulas designed to keep racers sharp through long stints and late-night endurance events — without the crash.",
+      "A gaming energy and hydration brand built to keep you focused for the long stints. Sugar-free, gluten-free, vegan and soy-free formulas that keep racers sharp through late-night endurance events — without the crash.",
     benefits: [
-      "Energy and hydration formulas for gamers",
-      "Sugar-free and packed with vitamins",
+      "Sugar-free, gluten-free, vegan and soy-free",
       "Built for focus through long sessions",
       "Mixes easily — no crash, no jitters",
       "Fuel for endurance race nights",
+      "10% off with code APEXANDCHILL",
     ],
-    href: "https://rogueenergy.com/",
+    href: "https://rogueenergy.com/discount/ApexandChill?ref=vsodjwaa",
+    code: "apexandchill",
   },
   {
     name: "MOZA Racing",
@@ -51,7 +52,7 @@ const PARTNERS: Partner[] = [
       "Scales from entry-level to pro setups",
       "Trusted across the sim racing community",
     ],
-    href: "https://mozaracing.com/",
+    href: "https://uk.mozaracing.com/?ref=Apexandchillracing",
   },
   {
     name: "Sim Endurance",

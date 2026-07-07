@@ -139,8 +139,12 @@ export function Footer() {
             Proudly partnered with
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <PartnerBadge href="https://mozaracing.com/" name="MOZA Racing" />
-            <PartnerBadge href="https://rogueenergy.com/" name="Rogue Energy" />
+            <PartnerBadge href="https://uk.mozaracing.com/?ref=Apexandchillracing" name="MOZA Racing" />
+            <PartnerBadge
+              href="https://rogueenergy.com/discount/ApexandChill?ref=vsodjwaa"
+              name="Rogue Energy"
+              note="Code: apexandchill"
+            />
             <PartnerBadge name="Sim Endurance" />
             <PartnerBadge href={ANDYS_MAN_CLUB_URL} name="Andy's Man Club" highlight />
             <Link

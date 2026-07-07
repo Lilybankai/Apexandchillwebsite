@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import type { League, ApiResult, Schedule } from "@/lib/types";
 import { fetchGt7Schedule } from "@/lib/api/simleaguepro";
-import { fetchLmuSchedule } from "@/lib/api/simgrid";
+import { fetchLmuSchedule, fetchThursdaySchedule } from "@/lib/api/simgrid";
+import { isThursdayConfigured } from "@/lib/leagues";
 import { Button } from "@/components/ui/Button";
 import { ScheduleList } from "@/components/schedule/ScheduleList";
 
@@ -17,8 +18,13 @@ export const revalidate = 300;
 
 export default async function SchedulePage() {
   // LMU is live from SimGrid; GT7 falls back to sample until its key lands.
-  const [gt7, lmu] = await Promise.all([fetchGt7Schedule(), fetchLmuSchedule()]);
+  const [gt7, lmu, thu] = await Promise.all([
+    fetchGt7Schedule(),
+    fetchLmuSchedule(),
+    isThursdayConfigured() ? fetchThursdaySchedule() : Promise.resolve(undefined),
+  ]);
   const schedules: Partial<Record<League, ApiResult<Schedule>>> = { GT7: gt7, LMU: lmu };
+  if (thu) schedules.THU = thu;
 
   return (
     <div className="pb-16">

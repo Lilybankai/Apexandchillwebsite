@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import type { ApiResult, League, Standings } from '@/lib/types';
 import { fetchGt7Standings } from '@/lib/api/simleaguepro';
-import { fetchLmuStandings } from '@/lib/api/simgrid';
+import { fetchLmuStandings, fetchThursdayStandings } from '@/lib/api/simgrid';
+import { isThursdayConfigured } from '@/lib/leagues';
 import { Button } from '@/components/ui/Button';
 import { LeagueTabs } from '@/components/standings/LeagueTabs';
 
@@ -24,8 +25,13 @@ export const revalidate = 300;
  * sample data, surfaced via a "sample data" chip in {@link LeagueTabs}.
  */
 export default async function StandingsPage() {
-  const [gt7, lmu] = await Promise.all([fetchGt7Standings(), fetchLmuStandings()]);
+  const [gt7, lmu, thu] = await Promise.all([
+    fetchGt7Standings(),
+    fetchLmuStandings(),
+    isThursdayConfigured() ? fetchThursdayStandings() : Promise.resolve(undefined),
+  ]);
   const standings: Partial<Record<League, ApiResult<Standings>>> = { GT7: gt7, LMU: lmu };
+  if (thu) standings.THU = thu;
 
   return (
     <>

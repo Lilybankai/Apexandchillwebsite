@@ -407,3 +407,43 @@ export function fetchLmuNextRace(): Promise<ApiResult<NextRace>> {
 export function fetchLmuSchedule(): Promise<ApiResult<Schedule>> {
   return fetchSimgridSchedule('LMU', LMU_OPTIONS);
 }
+
+/* ------------------------------------------------------------------------- *
+ * THU — "Midweek Endurance" Thursday league (also LMU on SimGrid)
+ * ------------------------------------------------------------------------- */
+
+/** Sample next Midweek Endurance race (used only if its id is set but token isn't). */
+const SAMPLE_THU_NEXT_RACE: NextRace = {
+  league: 'THU',
+  round: 1,
+  track: 'TBC',
+  class: LMU_CLASS,
+  date: '',
+  time: '',
+  lobbyOpens: '',
+  source: 'sample',
+};
+
+/** Presentation + sample config for the Thursday (Midweek Endurance) league. */
+const THU_OPTIONS: SimgridLeagueOptions = {
+  championshipId: cfg.championships.THU,
+  classLabel: LMU_CLASS,
+  sampleStandings: SAMPLE_LMU_STANDINGS.map((r) => ({ ...r, league: 'THU' })),
+  sampleNextRace: SAMPLE_THU_NEXT_RACE,
+  sampleSchedule: SAMPLE_LMU_SCHEDULE.map((r) => ({ ...r, league: 'THU' })),
+};
+
+/** Fetch the Midweek Endurance championship standings (SimGrid). Never throws. */
+export function fetchThursdayStandings(): Promise<ApiResult<Standings>> {
+  return fetchSimgridStandings('THU', THU_OPTIONS);
+}
+
+/** Fetch the next scheduled Midweek Endurance race (SimGrid). Never throws. */
+export function fetchThursdayNextRace(): Promise<ApiResult<NextRace>> {
+  return fetchSimgridNextRace('THU', THU_OPTIONS);
+}
+
+/** Fetch the full Midweek Endurance season schedule (SimGrid). Never throws. */
+export function fetchThursdaySchedule(): Promise<ApiResult<Schedule>> {
+  return fetchSimgridSchedule('THU', THU_OPTIONS);
+}

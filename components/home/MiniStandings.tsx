@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { ApiResult, League, Standings } from "@/lib/types";
-import { LEAGUE_LABELS } from "@/lib/types";
+import { LEAGUE_LABELS, LEAGUES } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 
@@ -18,16 +18,14 @@ const POSITION_COLORS = [
 
 /** Homepage standings preview with a league toggle (top 5 each). */
 export function MiniStandings({
-  gt7,
-  lmu,
+  standings,
 }: {
-  gt7: ApiResult<Standings>;
-  lmu: ApiResult<Standings>;
+  standings: Partial<Record<League, ApiResult<Standings>>>;
 }) {
-  const [active, setActive] = useState<League>("GT7");
-  const byLeague: Record<League, ApiResult<Standings>> = { GT7: gt7, LMU: lmu };
-  const current = byLeague[active];
-  const rows = current.data.rows.slice(0, 5);
+  const available = LEAGUES.filter((l) => standings[l]);
+  const [active, setActive] = useState<League>(available[0] ?? "GT7");
+  const current = standings[active];
+  const rows = current?.data.rows.slice(0, 5) ?? [];
 
   return (
     <section className="container-rail py-20">
@@ -44,7 +42,7 @@ export function MiniStandings({
           role="tablist"
           aria-label="Select league"
         >
-          {(Object.keys(byLeague) as League[]).map((lg) => (
+          {available.map((lg) => (
             <button
               key={lg}
               role="tab"
@@ -64,9 +62,9 @@ export function MiniStandings({
       <Card variant="default" className="overflow-hidden">
         <div className="flex items-center justify-between border-b border-line px-5 py-3">
           <span className="font-mono text-xs uppercase tracking-widest text-subtle">
-            {current.data.seasonLabel}
+            {current?.data.seasonLabel}
           </span>
-          {current.source === "sample" && (
+          {current?.source === "sample" && (
             <span className="chip text-flag-amber">Sample data</span>
           )}
         </div>

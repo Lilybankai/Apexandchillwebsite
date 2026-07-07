@@ -7,16 +7,22 @@ import { LEAGUES, LEAGUE_LABELS } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 
-/** Platform options offered per league (GT7 = PlayStation, LMU = PC). */
+/** Leagues that run on PC (Steam) and use a gamertag rather than a PSN ID. */
+const PC_LEAGUES: League[] = ['LMU', 'THU'];
+const isPcLeague = (league: League): boolean => PC_LEAGUES.includes(league);
+
+/** Platform options offered per league (GT7 = PlayStation, LMU/THU = PC). */
 const PLATFORMS: Record<League, string[]> = {
   GT7: ['PS5', 'PS4'],
   LMU: ['PC (Steam)'],
+  THU: ['PC (Steam)'],
 };
 
 /** Car-class options offered per league. */
 const CAR_CLASSES: Record<League, string[]> = {
   GT7: ['GR.4 (Beginner)', 'GR.3 (Advanced)', 'Both'],
   LMU: ['GT3', 'Hypercar'],
+  THU: ['GT3', 'Hypercar'],
 };
 
 const INPUT_METHODS = ['Wheel', 'Controller'];
@@ -72,7 +78,7 @@ function validateClient(form: FormState): string | null {
   if (form.driverName.trim().length < 2) return 'Please enter your driver name.';
   if (!form.platform) return 'Please select your platform.';
   if (form.league === 'GT7' && !form.psn.trim()) return 'Please enter your PSN ID.';
-  if (form.league === 'LMU' && !form.gamertag.trim()) return 'Please enter your Steam name / gamertag.';
+  if (isPcLeague(form.league) && !form.gamertag.trim()) return 'Please enter your Steam name / gamertag.';
   if (!EMAIL_RE.test(form.email.trim())) return 'Please enter a valid email address.';
   if (form.discord.trim().length < 2) return 'Please enter your Discord username.';
   if (!form.carClass) return 'Please choose a car class.';
@@ -93,7 +99,7 @@ const labelClass = 'mb-1.5 block font-mono text-xs font-semibold uppercase track
  * in-game ID field (PSN for GT7, gamertag for LMU). Validates on the client for
  * instant feedback and again on the server via `POST /api/join`.
  */
-export function JoinForm() {
+export function JoinForm({ leagues = LEAGUES }: { leagues?: readonly League[] }) {
   const [form, setForm] = useState<FormState>(INITIAL);
   const [status, setStatus] = useState<Status>('idle');
   const [message, setMessage] = useState<string | null>(null);
@@ -111,7 +117,7 @@ export function JoinForm() {
       platform: PLATFORMS[league][0],
       carClass: '',
       psn: league === 'GT7' ? prev.psn : '',
-      gamertag: league === 'LMU' ? prev.gamertag : '',
+      gamertag: isPcLeague(league) ? prev.gamertag : '',
     }));
   }
 
@@ -189,7 +195,7 @@ export function JoinForm() {
       <fieldset className="mb-6">
         <legend className={labelClass}>Which league?</legend>
         <div className="inline-flex rounded-card border border-line bg-base/60 p-1">
-          {LEAGUES.map((league) => (
+          {leagues.map((league) => (
             <button
               key={league}
               type="button"
@@ -433,8 +439,8 @@ export function JoinForm() {
         </Button>
       </div>
       <p className="mt-4 font-mono text-xs text-subtle">
-        Both leagues welcome. GT7 runs on PlayStation, LMU on PC. We&apos;ll get
-        you set up in Discord after you apply.
+        All leagues welcome. GT7 runs on PlayStation; our Le Mans Ultimate leagues
+        run on PC. We&apos;ll get you set up in Discord after you apply.
       </p>
     </form>
   );

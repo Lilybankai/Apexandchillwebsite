@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Trophy, Users, Radio, ShieldCheck } from 'lucide-react';
 import { JoinForm } from '@/components/join/JoinForm';
+import { activeLeagues } from '@/lib/leagues';
 
 export const metadata: Metadata = {
   title: 'Join the League',
@@ -76,7 +77,7 @@ export default function JoinPage() {
 
         {/* Form */}
         <div>
-          <JoinForm />
+          <JoinForm leagues={activeLeagues()} />
         </div>
       </section>
     </>

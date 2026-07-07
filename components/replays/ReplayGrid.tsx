@@ -41,11 +41,11 @@ export function ReplayGrid({ replays, showFilters = true }: ReplayGridProps) {
   const triggerRef = useRef<HTMLElement | null>(null);
 
   const counts = useMemo(() => {
-    return {
-      ALL: replays.length,
-      GT7: replays.filter((r) => r.league === 'GT7').length,
-      LMU: replays.filter((r) => r.league === 'LMU').length,
-    } satisfies Record<Filter, number>;
+    const c: Record<Filter, number> = { ALL: replays.length, GT7: 0, LMU: 0, THU: 0 };
+    for (const r of replays) {
+      if (r.league) c[r.league] += 1;
+    }
+    return c;
   }, [replays]);
 
   const visible = useMemo(

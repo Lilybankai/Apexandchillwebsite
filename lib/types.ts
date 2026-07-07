@@ -10,20 +10,25 @@
  */
 
 /**
- * The two racing leagues Apex & Chill runs.
+ * The racing leagues Apex & Chill runs.
  *
  * - `GT7`  — Gran Turismo 7 league. Standings & schedule come from Sim League Pro.
- * - `LMU`  — Le Mans Ultimate league. Standings & schedule come from SimGrid.
+ * - `LMU`  — Le Mans Ultimate (Sunday) league. Standings & schedule come from SimGrid.
+ * - `THU`  — Midweek Endurance (Thursday) league, also Le Mans Ultimate on SimGrid.
+ *
+ * `THU` is only surfaced in the UI when its championship id is configured — see
+ * `activeLeagues` in {@link module:lib/leagues}.
  */
-export type League = 'GT7' | 'LMU';
+export type League = 'GT7' | 'LMU' | 'THU';
 
 /** All known leagues, in the order they should be presented in the UI. */
-export const LEAGUES: readonly League[] = ['GT7', 'LMU'] as const;
+export const LEAGUES: readonly League[] = ['GT7', 'LMU', 'THU'] as const;
 
 /** Human-friendly display names for each league. */
 export const LEAGUE_LABELS: Record<League, string> = {
   GT7: 'GT7 League',
   LMU: 'LMU League',
+  THU: 'Midweek Endurance',
 };
 
 /**

@@ -108,12 +108,26 @@ secrets.**
 
 ### 2. Keys grouped by system
 
-**SimGrid — LMU standings + next race**
+**SimGrid (GridOS) — LMU + Midweek Endurance standings, schedule + next race**
 | Variable | Notes |
 | --- | --- |
-| `SIMGRID_API_KEY` | Primary key (SimGrid account → API/integrations). |
-| `SIMGRID_API_BASE_URL` | Defaults to `https://www.simgrid.com/api`. |
-| `SIMGRID_LMU_CHAMPIONSHIP_ID` | SimGrid championship id for the current LMU season. |
+| `SIMGRID_API_KEY` | API token — thesimgrid.com → **My Communities ▸ Developers ▸ API token**. |
+| `SIMGRID_API_BASE_URL` | Defaults to `https://www.thesimgrid.com/api/v1`. |
+| `SIMGRID_LMU_CHAMPIONSHIP_ID` | Championship id for the LMU (Sunday) season. It's the number in the championship URL, e.g. `thesimgrid.com/championships/24215` → `24215`. |
+| `SIMGRID_THURSDAY_CHAMPIONSHIP_ID` | Championship id for the **Midweek Endurance** (Thursday) league. Leave blank to hide that league entirely. |
+
+> **Adding the Thursday (Midweek Endurance) league:** it's a config-only step —
+> paste the Thursday championship's numeric id into `SIMGRID_THURSDAY_CHAMPIONSHIP_ID`
+> in `.env.local` and redeploy. The league then appears automatically across the
+> Standings tabs, the Schedule toggle, the homepage (mini-standings + next-race
+> banner), and the Join form, pulling live from the same SimGrid API. Until the id
+> is set the league is hidden — nothing shows as empty or "sample".
+>
+> **Adding *any* further SimGrid league:** add a new id env var, expose it in
+> `lib/env.ts` (`simgrid.championships`), add the league to the `League` union +
+> `LEAGUE_LABELS` in `lib/types.ts`, register it in `activeLeagues()`
+> (`lib/leagues.ts`), and add a thin wrapper in `lib/api/simgrid.ts` (copy the
+> `fetchThursday*` trio). Everything else is already league-generic.
 
 **Sim League Pro — GT7 standings + next race**
 | Variable | Notes |

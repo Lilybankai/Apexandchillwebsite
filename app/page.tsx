@@ -1,6 +1,12 @@
-import type { ApiResult, League, NextRace } from "@/lib/types";
+import type { ApiResult, League, NextRace, Standings } from "@/lib/types";
 import { fetchGt7Standings, fetchGt7NextRace } from "@/lib/api/simleaguepro";
-import { fetchLmuStandings, fetchLmuNextRace } from "@/lib/api/simgrid";
+import {
+  fetchLmuStandings,
+  fetchLmuNextRace,
+  fetchThursdayStandings,
+  fetchThursdayNextRace,
+} from "@/lib/api/simgrid";
+import { isThursdayConfigured } from "@/lib/leagues";
 import { fetchReplays } from "@/lib/api/youtube";
 import { Marquee } from "@/components/ui/Marquee";
 import { Hero } from "@/components/home/Hero";
@@ -51,18 +57,30 @@ function soonest(
 export default async function HomePage() {
   // Fetch everything the homepage needs in parallel. Every call returns an
   // ApiResult that degrades to bundled sample data, so this never throws.
-  const [gt7Next, lmuNext, gt7Standings, lmuStandings, replays] = await Promise.all([
-    fetchGt7NextRace(),
-    fetchLmuNextRace(),
-    fetchGt7Standings(),
-    fetchLmuStandings(),
-    fetchReplays(6),
-  ]);
+  const thuActive = isThursdayConfigured();
+  const [gt7Next, lmuNext, thuNext, gt7Standings, lmuStandings, thuStandings, replays] =
+    await Promise.all([
+      fetchGt7NextRace(),
+      fetchLmuNextRace(),
+      thuActive ? fetchThursdayNextRace() : Promise.resolve(undefined),
+      fetchGt7Standings(),
+      fetchLmuStandings(),
+      thuActive ? fetchThursdayStandings() : Promise.resolve(undefined),
+      fetchReplays(6),
+    ]);
 
-  const nextRace = soonest([
+  const nextRaceEntries: { league: League; result: ApiResult<NextRace> }[] = [
     { league: "GT7", result: gt7Next },
     { league: "LMU", result: lmuNext },
-  ]);
+  ];
+  if (thuNext) nextRaceEntries.push({ league: "THU", result: thuNext });
+  const nextRace = soonest(nextRaceEntries);
+
+  const miniStandings: Partial<Record<League, ApiResult<Standings>>> = {
+    GT7: gt7Standings,
+    LMU: lmuStandings,
+  };
+  if (thuStandings) miniStandings.THU = thuStandings;
 
   return (
     <>
@@ -70,7 +88,7 @@ export default async function HomePage() {
       <Marquee />
       <NextRaceCard primary={nextRace} />
       <SeriesCovered />
-      <MiniStandings gt7={gt7Standings} lmu={lmuStandings} />
+      <MiniStandings standings={miniStandings} />
       <LatestReplays result={replays} />
       <AndysManClub />
       <PartnersStrip />

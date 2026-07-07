@@ -11,6 +11,7 @@ import { StandingsTable } from './StandingsTable';
 const PROVIDER_LABEL: Record<League, string> = {
   GT7: 'Sim League Pro',
   LMU: 'SimGrid',
+  THU: 'SimGrid',
 };
 
 export interface LeagueTabsProps {

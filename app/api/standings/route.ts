@@ -20,7 +20,8 @@
 import { NextResponse } from 'next/server';
 import type { ApiResult, League, Standings } from '@/lib/types';
 import { fetchGt7Standings } from '@/lib/api/simleaguepro';
-import { fetchLmuStandings } from '@/lib/api/simgrid';
+import { fetchLmuStandings, fetchThursdayStandings } from '@/lib/api/simgrid';
+import { isThursdayConfigured } from '@/lib/leagues';
 import { CACHE_TTL_SECONDS } from '@/lib/env';
 
 /**
@@ -40,17 +41,21 @@ type StandingsByLeague = Partial<Record<League, ApiResult<Standings>>>;
 export async function GET(request: Request): Promise<NextResponse<StandingsByLeague>> {
   const league = new URL(request.url).searchParams.get('league')?.toUpperCase();
 
-  const wantGt7 = league !== 'LMU';
-  const wantLmu = league !== 'GT7';
+  // When a specific league is requested, only fetch that one; otherwise all.
+  const wantGt7 = !league || league === 'GT7';
+  const wantLmu = !league || league === 'LMU';
+  const wantThu = (!league || league === 'THU') && isThursdayConfigured();
 
-  const [gt7, lmu] = await Promise.all([
+  const [gt7, lmu, thu] = await Promise.all([
     wantGt7 ? fetchGt7Standings() : Promise.resolve(undefined),
     wantLmu ? fetchLmuStandings() : Promise.resolve(undefined),
+    wantThu ? fetchThursdayStandings() : Promise.resolve(undefined),
   ]);
 
   const body: StandingsByLeague = {};
   if (gt7) body.GT7 = gt7;
   if (lmu) body.LMU = lmu;
+  if (thu) body.THU = thu;
 
   return NextResponse.json(body, {
     headers: {

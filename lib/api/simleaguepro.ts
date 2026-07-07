@@ -1,15 +1,19 @@
 /**
  * Sim League Pro API client — the data source for the **GT7** (Gran Turismo 7)
- * league: full championship standings and the next scheduled race.
+ * league: full championship standings, the season schedule, and the next
+ * scheduled race.
  *
- * Env-driven ({@link module:lib/env}). When the API key / league id are absent,
- * or the upstream call fails, functions resolve to a well-shaped
- * {@link ApiResult} carrying bundled sample data with `source: 'sample'`.
+ * The whole league (metadata + `league_results[]` + `races[]` with per-race
+ * `race_results[]`) comes from a single public endpoint:
  *
- * NOTE FOR OPERATOR: verify the request paths and JSON field names against your
- * Sim League Pro account docs. The normaliser is defensive, so a mismatch
- * degrades to sample data rather than crashing — adjust
- * {@link normaliseStandingRow} / endpoint paths if your payload differs.
+ * ```
+ * GET https://simleaguepro.com/api/v1/leagues/{leagueId}.json?include_results=true
+ * ```
+ *
+ * No auth is required — only the league UUID (`SIMLEAGUEPRO_GT7_LEAGUE_ID`, the
+ * id in the league URL). When the league id is absent or the upstream call
+ * fails, functions resolve to a well-shaped {@link ApiResult} carrying bundled
+ * sample data with `source: 'sample'`.
  *
  * @packageDocumentation
  */
@@ -19,6 +23,55 @@ import { simLeaguePro as cfg, isConfigured, CACHE_TTL_SECONDS } from '@/lib/env'
 
 /** Default team accent colour when the source doesn't provide one. */
 const DEFAULT_TEAM_COLOR = '#00ff88';
+
+/** Format an ISO timestamp as `{ date: 'YYYY-MM-DD', time: 'HH:mm' }` in UK time. */
+const LONDON_DATE = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/London',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+const LONDON_TIME = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Europe/London',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+});
+function splitLondon(iso: string | undefined): { date: string; time: string } {
+  if (!iso) return { date: '', time: '' };
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return { date: '', time: '' };
+  return { date: LONDON_DATE.format(d), time: LONDON_TIME.format(d) };
+}
+
+/** Minimal shapes of the Sim League Pro league payload we consume. */
+interface SlpResult {
+  username?: string;
+  position?: number;
+  points?: number;
+  penalty_points?: number;
+  car?: string;
+  constructor?: string;
+  vehicle_class?: string;
+  wins?: number;
+  podiums?: number;
+  reserve?: boolean;
+}
+interface SlpRace {
+  race_number?: number;
+  track?: string;
+  start_datetime?: string;
+  race_info?: string;
+  race_results?: unknown[];
+}
+interface SlpLeague {
+  name?: string;
+  season?: number;
+  game?: string;
+  vehicle_classes?: string[];
+  league_results?: SlpResult[];
+  races?: SlpRace[];
+}
 
 /**
  * Bundled sample GT7 standings, used when live credentials are absent.
@@ -73,55 +126,93 @@ const SAMPLE_GT7_NEXT_RACE: NextRace = {
   source: 'sample',
 };
 
+const num = (v: unknown, fallback = 0): number =>
+  typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) || fallback : fallback;
+const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
+
 /**
- * Perform a GET against the Sim League Pro API with auth + Next.js caching.
- * @throws When the response is not ok, so the caller can fall back.
+ * Fetch the whole GT7 league (metadata + `league_results[]` + `races[]`) from
+ * the public Sim League Pro endpoint, with Next.js caching. One call powers
+ * standings, schedule and next-race.
+ * @throws When not configured or the response is not ok, so callers can fall back.
  */
-async function slpGet<T>(path: string): Promise<T> {
-  const url = `${cfg.baseUrl.replace(/\/$/, '')}${path}`;
+async function fetchLeague(): Promise<SlpLeague> {
+  if (!cfg.leagueId) throw new Error('SIMLEAGUEPRO_GT7_LEAGUE_ID is not set');
+  const url = `${cfg.baseUrl.replace(/\/$/, '')}/leagues/${cfg.leagueId}.json?include_results=true`;
   const res = await fetch(url, {
     headers: {
-      Authorization: `Bearer ${cfg.apiKey}`,
-      'X-Api-Key': cfg.apiKey ?? '',
       Accept: 'application/json',
+      // The endpoint is public; only send a key if the operator set one.
+      ...(cfg.apiKey ? { Authorization: `Bearer ${cfg.apiKey}` } : {}),
     },
     next: { revalidate: CACHE_TTL_SECONDS },
   });
   if (!res.ok) {
-    throw new Error(`Sim League Pro ${path} responded ${res.status} ${res.statusText}`);
+    throw new Error(`Sim League Pro league responded ${res.status} ${res.statusText}`);
   }
-  return (await res.json()) as T;
+  return (await res.json()) as SlpLeague;
 }
 
-/** Build the standings path, optionally scoped to a specific season. */
-function standingsPath(): string {
-  const base = `/leagues/${cfg.leagueId}/standings`;
-  return cfg.seasonId ? `${base}?season=${cfg.seasonId}` : base;
+/** `Season N` label from the league payload. */
+function seasonLabelOf(league: SlpLeague): string {
+  return `Season ${typeof league.season === 'number' ? league.season : 3}`;
 }
 
-/**
- * Normalise one raw Sim League Pro entry into a {@link StandingRow}. Defensive
- * to field-name variance; unknown numeric fields default to 0.
- */
-function normaliseStandingRow(raw: Record<string, unknown>, index: number): StandingRow {
-  const num = (v: unknown, fallback = 0): number =>
-    typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) || fallback : fallback;
-  const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
+/** Car-class label for a race — its own `race_info`, else the league classes. */
+function classOf(league: SlpLeague, race: SlpRace): string {
+  return (
+    str(race.race_info) ||
+    (Array.isArray(league.vehicle_classes) ? league.vehicle_classes.join(' / ') : '') ||
+    'Gr.3'
+  );
+}
 
-  return {
-    position: num(raw.position ?? raw.rank, index + 1),
-    driver: str(raw.driver_name ?? raw.driver ?? raw.psn ?? raw.name, 'Unknown Driver'),
-    team: str(raw.team_name ?? raw.team, ''),
-    teamColor: str(raw.team_color ?? raw.teamColor, DEFAULT_TEAM_COLOR) || DEFAULT_TEAM_COLOR,
-    points: num(raw.points ?? raw.total_points),
-    wins: num(raw.wins),
-    podiums: num(raw.podiums),
-    avgQuali: num(raw.avg_quali ?? raw.average_qualifying),
-    avgFinish: num(raw.avg_finish ?? raw.average_finish),
-    penalties: num(raw.penalties ?? raw.penalty_points),
-    class: str(raw.class ?? raw.category, 'Gr.3'),
-    league: 'GT7',
-  };
+/** Map `league_results[]` into standings rows (drops reserves, sorts by position). */
+function mapStandingRows(league: SlpLeague): StandingRow[] {
+  const results = Array.isArray(league.league_results) ? league.league_results : [];
+  return results
+    .filter((r) => r && !r.reserve && str(r.username).trim() !== '')
+    .map(
+      (r): StandingRow => ({
+        position: num(r.position),
+        driver: str(r.username, 'Unknown Driver'),
+        // No team concept — surface the constructor / car instead.
+        team: str(r.constructor || r.car),
+        teamColor: DEFAULT_TEAM_COLOR,
+        points: num(r.points),
+        wins: num(r.wins),
+        podiums: num(r.podiums),
+        avgQuali: 0,
+        avgFinish: 0,
+        penalties: num(r.penalty_points),
+        class: str(r.vehicle_class),
+        league: 'GT7',
+      }),
+    )
+    .sort((a, b) => a.position - b.position);
+}
+
+/** Map `races[]` into schedule rounds (chronological; results/past ⇒ completed). */
+function mapRounds(league: SlpLeague): ScheduleRound[] {
+  const races = Array.isArray(league.races) ? league.races : [];
+  const now = Date.now();
+  return races
+    .map((r) => ({ r, ts: new Date(r.start_datetime ?? 0).getTime() }))
+    .sort((a, b) => a.ts - b.ts)
+    .map(({ r, ts }): ScheduleRound => {
+      const { date, time } = splitLondon(r.start_datetime);
+      const hasResults = Array.isArray(r.race_results) && r.race_results.length > 0;
+      const past = Number.isFinite(ts) && ts < now;
+      return {
+        league: 'GT7',
+        round: num(r.race_number),
+        track: str(r.track, 'TBC'),
+        class: classOf(league, r),
+        date,
+        time: time || undefined,
+        status: hasResults || past ? 'completed' : 'upcoming',
+      };
+    });
 }
 
 /** Shape of the sample fallback result (shared by success + error paths). */
@@ -151,13 +242,12 @@ export async function fetchGt7Standings(): Promise<ApiResult<Standings>> {
     return sampleStandings('Sim League Pro not configured — showing sample GT7 standings.');
   }
   try {
-    const raw = await slpGet<{ standings?: Record<string, unknown>[]; season?: number }>(standingsPath());
-    const entries = Array.isArray(raw.standings) ? raw.standings : [];
-    if (entries.length === 0) {
+    const league = await fetchLeague();
+    const rows = mapStandingRows(league);
+    if (rows.length === 0) {
       return sampleStandings('Sim League Pro returned no GT7 standings — showing sample data.');
     }
-    const rows = entries.map(normaliseStandingRow);
-    const season = typeof raw.season === 'number' ? raw.season : 3;
+    const season = typeof league.season === 'number' ? league.season : 3;
     return {
       ok: true,
       source: 'simleaguepro',
@@ -165,7 +255,7 @@ export async function fetchGt7Standings(): Promise<ApiResult<Standings>> {
       data: {
         league: 'GT7',
         season,
-        seasonLabel: `Season ${season}`,
+        seasonLabel: seasonLabelOf(league),
         source: 'simleaguepro',
         updatedAt: new Date().toISOString(),
         rows,
@@ -195,26 +285,32 @@ export async function fetchGt7NextRace(): Promise<ApiResult<NextRace>> {
     return sample('Sim League Pro not configured — showing sample GT7 next race.');
   }
   try {
-    const raw = await slpGet<{ races?: Record<string, unknown>[] }>(
-      `/leagues/${cfg.leagueId}/races?status=upcoming&limit=1`,
-    );
-    const next = Array.isArray(raw.races) ? raw.races[0] : undefined;
-    if (!next) return sample('No upcoming GT7 race from Sim League Pro — showing sample data.');
-
-    const str = (v: unknown, fb = ''): string => (typeof v === 'string' ? v : fb);
-    const num = (v: unknown, fb = 0): number => (typeof v === 'number' ? v : Number(v) || fb);
+    const league = await fetchLeague();
+    // The soonest round that hasn't run yet (upcoming status = future + no results).
+    const next = mapRounds(league)
+      .filter((r) => r.status === 'upcoming')
+      .sort(
+        (a, b) =>
+          new Date(`${a.date}T${a.time || '00:00'}`).getTime() -
+          new Date(`${b.date}T${b.time || '00:00'}`).getTime(),
+      )[0];
+    if (!next) {
+      // Season complete / nothing upcoming — honest sample so the banner can
+      // prefer a live league with a real upcoming race instead.
+      return sample('No upcoming GT7 race (season may be complete) — showing sample data.');
+    }
     return {
       ok: true,
       source: 'simleaguepro',
       error: null,
       data: {
         league: 'GT7',
-        round: num(next.round ?? next.round_number),
-        track: str(next.track ?? next.track_name, 'TBC'),
-        class: str(next.class ?? next.category, 'Gr.3'),
-        date: str(next.date ?? next.race_date),
-        time: str(next.time ?? next.race_time),
-        lobbyOpens: str(next.lobby_opens ?? next.lobbyOpens),
+        round: next.round,
+        track: next.track,
+        class: next.class,
+        date: next.date,
+        time: next.time ?? '',
+        lobbyOpens: '',
         source: 'simleaguepro',
       },
     };
@@ -226,25 +322,36 @@ export async function fetchGt7NextRace(): Promise<ApiResult<NextRace>> {
 }
 
 /**
- * Fetch the full GT7 season schedule.
+ * Fetch the full GT7 season schedule from the league's `races[]`.
  *
- * Sim League Pro does not yet expose a schedule endpoint we consume, so this
- * currently returns bundled sample rounds (clearly badged `sample` in the UI).
- * The signature matches {@link fetchLmuSchedule} so the Schedule page treats
- * both leagues identically; swap in a live fetch here when the endpoint lands.
- *
- * @returns The GT7 season calendar. Never throws.
+ * @returns Live schedule when configured, otherwise sample data. Never throws.
  */
 export async function fetchGt7Schedule(): Promise<ApiResult<Schedule>> {
-  return {
+  const sample = (error: string | null): ApiResult<Schedule> => ({
     ok: true,
     source: 'sample',
-    error: 'Sim League Pro schedule not yet wired — showing sample GT7 calendar.',
-    data: {
-      league: 'GT7',
-      seasonLabel: 'Season 3',
-      source: 'sample',
-      rounds: SAMPLE_GT7_SCHEDULE,
-    },
-  };
+    error,
+    data: { league: 'GT7', seasonLabel: 'Season 3', source: 'sample', rounds: SAMPLE_GT7_SCHEDULE },
+  });
+
+  if (!isConfigured('simleaguepro')) {
+    return sample('Sim League Pro not configured — showing sample GT7 calendar.');
+  }
+  try {
+    const league = await fetchLeague();
+    const rounds = mapRounds(league);
+    if (rounds.length === 0) {
+      return sample('Sim League Pro returned no GT7 races — showing sample data.');
+    }
+    return {
+      ok: true,
+      source: 'simleaguepro',
+      error: null,
+      data: { league: 'GT7', seasonLabel: seasonLabelOf(league), source: 'simleaguepro', rounds },
+    };
+  } catch (err) {
+    return sample(
+      `Sim League Pro request failed (${err instanceof Error ? err.message : 'unknown error'}) — showing sample data.`,
+    );
+  }
 }

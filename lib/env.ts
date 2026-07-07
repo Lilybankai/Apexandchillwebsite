@@ -48,9 +48,9 @@ export const simgrid = {
  * @see https://simleague.pro
  */
 export const simLeaguePro = {
-  /** API base URL. */
-  baseUrl: read('SIMLEAGUEPRO_API_BASE_URL') ?? 'https://api.simleague.pro',
-  /** API key for Sim League Pro. */
+  /** Public GridOS-style API base URL. */
+  baseUrl: read('SIMLEAGUEPRO_API_BASE_URL') ?? 'https://simleaguepro.com/api/v1',
+  /** Optional API key (the league endpoint is public, so usually unset). */
   apiKey: read('SIMLEAGUEPRO_API_KEY'),
   /** Sim League Pro league id for the current GT7 season. */
   leagueId: read('SIMLEAGUEPRO_GT7_LEAGUE_ID'),
@@ -183,7 +183,8 @@ export function isConfigured(
     case 'simgrid':
       return Boolean(simgrid.token && simgrid.championshipId);
     case 'simleaguepro':
-      return Boolean(simLeaguePro.apiKey && simLeaguePro.leagueId);
+      // The league endpoint is public — only the league id is required.
+      return Boolean(simLeaguePro.leagueId);
     case 'youtube':
       return Boolean(youtube.apiKey && (youtube.channelId || youtube.uploadsPlaylistId));
     case 'supabase':

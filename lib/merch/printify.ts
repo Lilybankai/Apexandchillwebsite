@@ -183,6 +183,20 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+/**
+ * Infer a storefront category from the title/tags — Printify's catalog endpoint
+ * has no category field, and everything defaulting to "Apparel" mislabels
+ * accessories (desk mats, phone cases) in the store filters.
+ */
+function inferCategory(title: string, tags: string[]): string {
+  const haystack = `${title} ${tags.join(' ')}`.toLowerCase();
+  if (/hoodie|sweatshirt|jumper/.test(haystack)) return 'Hoodies';
+  if (/\bmat\b|mousepad|mouse pad|deskmat|case|sticker|\bcap\b|\bhat\b|beanie|bag|poster|mug|bottle|towel|keyring|lanyard/.test(haystack)) {
+    return 'Accessories';
+  }
+  return 'Apparel';
+}
+
 /** Pick the image URL for a specific variant, else the product's default/first. */
 function imageForVariant(images: PrintifyImage[], variantId: number): string | undefined {
   const match = images.find((img) => img.variant_ids?.includes(variantId));
@@ -216,7 +230,7 @@ function normaliseProduct(p: PrintifyProduct): Product {
     images: primaryImages.length ? primaryImages : ['/brand/about.png'],
     priceFrom,
     currency: 'GBP',
-    category: 'Apparel',
+    category: inferCategory(title, p.tags ?? []),
     tags: /andy'?s man club|amc|itsokaytotalk/i.test(title) ? ['amc', 'charity'] : [],
     variants,
   };

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { fetchTapstitchProducts } from '@/lib/merch/tapstitch';
 import { fetchPrintifyProducts } from '@/lib/merch/printify';
@@ -65,20 +65,36 @@ export default async function ProductPage({
   return (
     <>
       <div className="container-rail py-10 sm:py-14">
-        <Link
-          href="/merch"
-          className="mb-8 inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:text-cyan"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to store
-        </Link>
+        <nav aria-label="Breadcrumb" className="mb-8">
+          <Link
+            href="/merch"
+            className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:text-cyan"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Store
+            <span aria-hidden className="text-subtle">/</span>
+            <span className="text-subtle">{product.category}</span>
+          </Link>
+        </nav>
 
         <ProductDetail product={product} />
 
         {related.length > 0 && (
-          <section className="mt-16">
-            <h2 className="mb-6 font-display text-2xl text-ink">More From The Store</h2>
-            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+          <section className="mt-20 border-t border-line pt-12">
+            <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <span className="kicker mb-2">Keep Browsing</span>
+                <h2 className="font-display text-3xl text-ink">More From The Store</h2>
+              </div>
+              <Link
+                href="/merch"
+                className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-cyan transition-colors hover:text-ink"
+              >
+                View all
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
               {related.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

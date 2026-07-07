@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Info, Heart } from 'lucide-react';
+import { Info, HeartHandshake, Shirt, Truck, ShieldCheck } from 'lucide-react';
 import type { DataSource } from '@/lib/types';
 import { fetchTapstitchProducts } from '@/lib/merch/tapstitch';
 import { fetchPrintifyProducts } from '@/lib/merch/printify';
@@ -42,15 +42,38 @@ export default async function MerchPage() {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-grid-lines bg-grid opacity-25 [mask-image:radial-gradient(70%_60%_at_50%_0%,black,transparent)]"
         />
-        <div className="container-rail relative py-16 sm:py-20">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-32 left-1/3 h-[380px] w-[620px] -translate-x-1/2 rounded-full bg-accent/20 blur-[120px]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-[-8%] top-10 h-[280px] w-[280px] rounded-full bg-cyan/10 blur-[100px]"
+        />
+        <div className="container-rail relative py-16 sm:py-24">
           <span className="kicker mb-4">Official Store</span>
-          <h1 className="text-4xl font-bold text-ink sm:text-6xl">
-            Apex &amp; Chill <span className="text-gradient">Merch</span>
+          <h1 className="text-5xl font-bold text-ink sm:text-7xl">
+            Wear The <span className="text-gradient">Livery</span>
           </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted">
-            Wear the livery. Hoodies, tees and accessories printed on demand — plus
-            our exclusive Andy&apos;s Man Club charity range.
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
+            Official Apex &amp; Chill hoodies, tees and accessories — plus our
+            exclusive Andy&apos;s Man Club charity range. Every piece printed on
+            demand, just for you.
           </p>
+          <ul className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-[0.7rem] uppercase tracking-widest text-muted">
+            <li className="flex items-center gap-2">
+              <Shirt className="h-4 w-4 text-cyan" aria-hidden />
+              Print on demand
+            </li>
+            <li className="flex items-center gap-2">
+              <Truck className="h-4 w-4 text-cyan" aria-hidden />
+              UK &amp; Ireland shipping
+            </li>
+            <li className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-cyan" aria-hidden />
+              Secure Stripe checkout
+            </li>
+          </ul>
         </div>
       </section>
 
@@ -66,19 +89,33 @@ export default async function MerchPage() {
         )}
 
         {/* Andy's Man Club feature band */}
-        <section className="relative overflow-hidden rounded-card border border-pink/20 bg-pink/5 p-6 sm:p-8">
-          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <Heart className="mt-1 h-6 w-6 shrink-0 text-pink" />
+        <section className="relative overflow-hidden rounded-card border border-pink/30 shadow-glow-soft">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-br from-accent/10 via-base to-pink/10"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-pink/20 blur-[80px]"
+          />
+          <div className="relative flex flex-col items-start gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+            <div className="flex items-start gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-card border border-pink/40 bg-pink/10">
+                <HeartHandshake className="h-5 w-5 text-pink" aria-hidden />
+              </span>
               <div>
-                <h2 className="font-display text-xl text-ink">Andy&apos;s Man Club Range</h2>
-                <p className="mt-1 max-w-xl text-sm text-muted">
-                  Our exclusive charity collection supports men&apos;s mental health.
-                  A share of every sale goes to Andy&apos;s Man Club. #ITSOKAYTOTALK
+                <span className="font-mono text-[0.65rem] font-semibold uppercase tracking-widest text-pink">
+                  Racing for a reason
+                </span>
+                <h2 className="mt-1 font-display text-2xl text-ink">Andy&apos;s Man Club Range</h2>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+                  Our exclusive charity collection supports men&apos;s mental health —
+                  a share of every sale goes to Andy&apos;s Man Club.{' '}
+                  <span className="font-semibold text-pink">#ITSOKAYTOTALK</span>
                 </p>
               </div>
             </div>
-            <Button href="/partners" variant="outline">
+            <Button href="/partners" variant="outline" className="shrink-0">
               Our Partnership
             </Button>
           </div>

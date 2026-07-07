@@ -5,7 +5,7 @@ import { AndysManClubFeature } from "@/components/partners/AndysManClubFeature";
 export const metadata: Metadata = {
   title: "Partners",
   description:
-    "The brands and partners behind Apex & Chill Racing — including Thrustmaster, Sim Endurance, and our exclusive mental-health charity partner, Andy's Man Club.",
+    "The brands and partners behind Apex & Chill Racing — including MOZA Racing, Rogue Energy, Sim Endurance, and our exclusive mental-health charity partner, Andy's Man Club.",
 };
 
 export default function PartnersPage() {
@@ -51,7 +51,7 @@ export default function PartnersPage() {
         <div className="flex flex-col items-center gap-4 rounded-card border border-line bg-surface/50 p-10 text-center">
           <h2 className="text-3xl font-bold text-ink">Partner With Apex &amp; Chill</h2>
           <p className="max-w-xl text-muted">
-            A growing, engaged multi-platform sim racing community — 50+ drivers across 12 countries,
+            A growing, engaged multi-platform sim racing community — 200+ drivers across 12 countries,
             weekly broadcasts and an active Discord. If your brand fits, we&apos;d love to talk.
           </p>
           <a

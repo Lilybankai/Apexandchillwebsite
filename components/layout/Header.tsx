@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { href: "/standings", label: "Standings" },
   { href: "/replays", label: "Replays" },
   { href: "/schedule", label: "Schedule" },
+  { href: "/lmu-special-events", label: "LMU Events" },
   { href: "/about", label: "About" },
   { href: "/merch", label: "Merch" },
 ] as const;

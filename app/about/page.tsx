@@ -7,19 +7,18 @@ import { Card } from "@/components/ui/Card";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "The story of Apex & Chill Racing — a multi-platform sim racing community founded in 2023, now 50+ drivers strong across 12 countries, racing competitive GT7 and Le Mans Ultimate leagues.",
+    "The story of Apex & Chill Racing — a multi-platform sim racing community founded in 2025, now 200+ drivers strong across 12 countries, racing competitive GT7 and Le Mans Ultimate leagues.",
 };
 
 const DISCORD_URL = "https://discord.gg/MBew2Bb2hj";
 const YOUTUBE_URL = "https://youtube.com/channel/UCu7lyaGuo3sY2wWZo42-LVw";
 
 const STATS = [
-  { v: "2023", l: "Founded" },
-  { v: "50+", l: "Drivers" },
+  { v: "2025", l: "Founded" },
+  { v: "200+", l: "Drivers" },
   { v: "12", l: "Countries" },
   { v: "5", l: "Seasons" },
   { v: "100+", l: "Races Run" },
-  { v: "99.2%", l: "Incident-Free" },
 ];
 
 const VALUES = [
@@ -61,7 +60,7 @@ export default function AboutPage() {
             <span className="text-gradient">We&apos;re A Community.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-muted">
-            Apex &amp; Chill Racing started in 2023 with a simple idea: competitive sim racing
+            Apex &amp; Chill Racing started in 2025 with a simple idea: competitive sim racing
             doesn&apos;t have to mean toxic lobbies and dirty driving. Build a place where drivers
             take racing seriously but keep it welcoming — and the community will follow.
           </p>
@@ -73,9 +72,8 @@ export default function AboutPage() {
         <div className="space-y-4 text-muted">
           <p>
             What began as a handful of friends looking for clean races has grown into a genuine
-            multi-platform community — <span className="text-ink">50+ drivers across 12 countries</span>,
-            five seasons deep, with over 100 races run and a{" "}
-            <span className="text-ink">99.2% incident-free record</span> we&apos;re fiercely proud of.
+            multi-platform community — <span className="text-ink">200+ drivers across 12 countries</span>,
+            five seasons deep, with over 100 races run that we&apos;re fiercely proud of.
           </p>
           <p>
             Today we run two flagship championships: a Gran Turismo 7 league on PlayStation and a Le
@@ -101,14 +99,14 @@ export default function AboutPage() {
             />
           </div>
           <div className="border-t border-line p-4 text-center font-mono text-[0.65rem] uppercase tracking-widest text-subtle">
-            Apex &amp; Chill Racing · Est. 2023
+            Apex &amp; Chill Racing · Est. 2025
           </div>
         </Card>
       </section>
 
       {/* Stat band */}
       <section className="border-y border-line bg-surface/40">
-        <div className="container-rail grid grid-cols-2 gap-px py-10 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="container-rail grid grid-cols-2 gap-px py-10 sm:grid-cols-3 lg:grid-cols-5">
           {STATS.map((s) => (
             <div key={s.l} className="px-3 text-center">
               <div className="tabular text-3xl font-bold text-gradient">{s.v}</div>

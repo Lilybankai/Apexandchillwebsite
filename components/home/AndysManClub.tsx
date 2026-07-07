@@ -2,7 +2,8 @@ import Image from "next/image";
 import { HeartHandshake, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
-const ANDYS_MAN_CLUB_URL = "https://andysmanclub.co.uk/";
+const JUSTGIVING_URL =
+  "https://www.justgiving.com/page/apexandchillracing?utm_medium=FA&utm_source=CL";
 
 /**
  * Prominent, site-wide feature for Apex & Chill's exclusive mental-health
@@ -56,8 +57,8 @@ export function AndysManClub() {
               </li>
             </ul>
             <div className="mt-8">
-              <Button href={ANDYS_MAN_CLUB_URL} target="_blank" rel="noopener noreferrer" size="lg">
-                Find Support
+              <Button href={JUSTGIVING_URL} target="_blank" rel="noopener noreferrer" size="lg">
+                Donate
                 <ArrowRight size={18} />
               </Button>
             </div>

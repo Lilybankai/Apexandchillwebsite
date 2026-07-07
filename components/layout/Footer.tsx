@@ -8,21 +8,20 @@ const YOUTUBE_URL = "https://youtube.com/channel/UCu7lyaGuo3sY2wWZo42-LVw";
 const TWITCH_URL = "#"; // TBC — operator to supply Twitch channel
 const CONTACT_EMAIL = "apexandchillracing@outlook.com";
 const ANDYS_MAN_CLUB_URL = "https://andysmanclub.co.uk/";
-const THRUSTMASTER_URL = "https://www.thrustmaster.com/";
 
 /** Community stats surfaced across the site (source: Scout report). */
 const COMMUNITY_STATS = [
-  { value: "2023", label: "Founded" },
-  { value: "50+", label: "Drivers · 12 Countries" },
+  { value: "2025", label: "Founded" },
+  { value: "200+", label: "Drivers · 12 Countries" },
   { value: "5", label: "Seasons" },
   { value: "100+", label: "Races" },
-  { value: "99.2%", label: "Incident-Free" },
 ] as const;
 
 const FOOTER_NAV = {
   Racing: [
     { href: "/standings", label: "Standings" },
     { href: "/schedule", label: "Schedule" },
+    { href: "/lmu-special-events", label: "LMU Special Events" },
     { href: "/replays", label: "Replays" },
   ],
   League: [
@@ -71,7 +70,7 @@ export function Footer() {
 
       {/* Community stat bar */}
       <div className="border-b border-line">
-        <div className="container-rail grid grid-cols-2 gap-px py-8 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="container-rail grid grid-cols-2 gap-px py-8 sm:grid-cols-4">
           {COMMUNITY_STATS.map((stat) => (
             <div key={stat.label} className="px-2 text-center">
               <div className="tabular text-3xl font-bold text-gradient">{stat.value}</div>
@@ -140,7 +139,8 @@ export function Footer() {
             Proudly partnered with
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <PartnerBadge href={THRUSTMASTER_URL} name="Thrustmaster" note="Code: APEXANDCHILLRACING" />
+            <PartnerBadge href="https://mozaracing.com/" name="MOZA Racing" />
+            <PartnerBadge href="https://rogueenergy.com/" name="Rogue Energy" />
             <PartnerBadge name="Sim Endurance" />
             <PartnerBadge href={ANDYS_MAN_CLUB_URL} name="Andy's Man Club" highlight />
             <Link

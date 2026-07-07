@@ -1,4 +1,4 @@
-import { Check, ExternalLink, Gauge, Radio, Plus } from "lucide-react";
+import { Check, ExternalLink, Zap, Gauge, Radio, Plus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -22,21 +22,36 @@ interface Partner {
  */
 const PARTNERS: Partner[] = [
   {
-    name: "Thrustmaster",
-    category: "Sim Racing Hardware",
-    icon: Gauge,
+    name: "Rogue Energy",
+    category: "Gaming Energy & Hydration",
+    icon: Zap,
     accent: "text-cyan",
     blurb:
-      "A leading manufacturer of racing hardware for PC and console. Their wheels, pedals and accessories are built for precision and consistency — helping casual and competitive racers get more out of every session.",
+      "A gaming energy and hydration brand built for focus and endurance. Sugar-free formulas designed to keep racers sharp through long stints and late-night endurance events — without the crash.",
     benefits: [
-      "Racing wheels, pedals and sim accessories",
-      "Compatible with PC and major consoles",
-      "Precision control and force-feedback systems",
-      "Built for casual and competitive racers",
+      "Energy and hydration formulas for gamers",
+      "Sugar-free and packed with vitamins",
+      "Built for focus through long sessions",
+      "Mixes easily — no crash, no jitters",
+      "Fuel for endurance race nights",
+    ],
+    href: "https://rogueenergy.com/",
+  },
+  {
+    name: "MOZA Racing",
+    category: "Sim Racing Hardware",
+    icon: Gauge,
+    accent: "text-accent",
+    blurb:
+      "A leading sim racing hardware brand building direct-drive wheelbases, wheels, pedals and cockpits. Engineered for precision force feedback and durability — hardware that keeps up with everyone from newcomers to endurance racers.",
+    benefits: [
+      "Direct-drive wheelbases and racing wheels",
+      "Load-cell pedals and sim accessories",
+      "Precision force feedback for real feel",
+      "Scales from entry-level to pro setups",
       "Trusted across the sim racing community",
     ],
-    href: "https://www.thrustmaster.com/",
-    code: "APEXANDCHILLRACING",
+    href: "https://mozaracing.com/",
   },
   {
     name: "Sim Endurance",
@@ -59,7 +74,7 @@ const PARTNERS: Partner[] = [
 ];
 
 /** Number of clearly-marked "coming soon" placeholder slots. */
-const PLACEHOLDER_SLOTS = 2;
+const PLACEHOLDER_SLOTS = 1;
 
 /** Grid of confirmed partners plus placeholder slots for pending partners. */
 export function PartnerGrid() {

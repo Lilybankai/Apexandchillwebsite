@@ -67,10 +67,10 @@ export function Hero() {
         {/* Quick stats */}
         <dl className="mt-14 grid max-w-2xl grid-cols-2 gap-px overflow-hidden rounded-card border border-line bg-line/60 sm:grid-cols-4">
           {[
-            { v: "50+", l: "Drivers" },
+            { v: "200+", l: "Drivers" },
             { v: "12", l: "Countries" },
             { v: "5", l: "Seasons" },
-            { v: "99.2%", l: "Clean Races" },
+            { v: "100+", l: "Races" },
           ].map((s) => (
             <div key={s.l} className="bg-base/80 px-5 py-4">
               <dt className="tabular text-2xl font-bold text-ink">{s.v}</dt>

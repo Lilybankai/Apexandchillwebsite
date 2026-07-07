@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const PERKS = [
   { icon: Trophy, title: 'Real Championships', body: 'Full seasons across GT7 and LMU with live standings, points and title fights.' },
   { icon: Radio, title: 'Broadcast Every Round', body: 'Your races streamed and replayed on our YouTube channel — get your moment.' },
-  { icon: ShieldCheck, title: 'Clean & Stewarded', body: 'Consistent rules and stewarding keep the racing fair and 99% incident-free.' },
+  { icon: ShieldCheck, title: 'Clean & Stewarded', body: 'Consistent rules and stewarding keep the racing fair, wheel-to-wheel and respectful.' },
   { icon: Users, title: 'A Community That Chills', body: 'A thriving Discord of drivers who take racing seriously and each other lightly.' },
 ];
 

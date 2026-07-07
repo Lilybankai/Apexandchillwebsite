@@ -4,7 +4,7 @@ const DEFAULT_ITEMS = [
   "Multi-Platform Racing",
   "Gr.2 & Gr.3 Classes",
   "High-Stakes Events",
-  "50+ Drivers",
+  "200+ Drivers",
   "Global Community",
 ];
 

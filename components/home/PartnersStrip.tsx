@@ -2,14 +2,19 @@ import Link from "next/link";
 
 const PARTNERS = [
   {
-    name: "Thrustmaster",
-    note: "Affiliate · Code APEXANDCHILLRACING",
-    href: "https://www.thrustmaster.com/",
+    name: "MOZA Racing",
+    note: "Affiliate · Direct-drive hardware",
+    href: "https://uk.mozaracing.com/?ref=Apexandchillracing",
+  },
+  {
+    name: "Rogue Energy",
+    note: "Affiliate · Code apexandchill (10% off)",
+    href: "https://rogueenergy.com/discount/ApexandChill?ref=vsodjwaa",
   },
   {
     name: "Sim Endurance",
     note: "Race strategy & telemetry",
-    href: undefined,
+    href: "https://simendurance.com/",
   },
 ] as const;
 

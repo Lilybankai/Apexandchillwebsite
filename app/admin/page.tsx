@@ -68,6 +68,11 @@ function OrderCard({ order }: { order: MerchOrder }) {
           <li key={`${l.variantId}-${i}`} className="flex items-center justify-between gap-4">
             <span className="text-ink">
               {l.title} <span className="text-muted">— {l.variantName}</span>
+              {l.custom && (
+                <span className="ml-2 rounded bg-accent/15 px-1.5 py-0.5 font-mono text-xs text-accent">
+                  No. {l.custom}
+                </span>
+              )}
               <span className="ml-2 text-xs capitalize text-subtle">[{l.provider}]</span>
             </span>
             <span className="shrink-0 font-mono text-muted">

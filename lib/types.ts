@@ -307,6 +307,23 @@ export interface ProductVariant {
 }
 
 /**
+ * Optional buyer personalisation for a product — e.g. a race number printed on
+ * the garment. When present, the product page shows an input the buyer fills in,
+ * and the value rides along the cart line all the way to the fulfilment
+ * email/admin so the operator knows what to print.
+ */
+export interface ProductPersonalization {
+  /** Field label shown on the product page, e.g. `Number`. */
+  label: string;
+  /** Whether the buyer must fill it in before the item can be added to cart. */
+  required: boolean;
+  /** Max characters accepted. */
+  maxLength?: number;
+  /** Placeholder / helper hint shown in the input. */
+  placeholder?: string;
+}
+
+/**
  * A merch product, normalised from a POD provider into a provider-agnostic
  * shape the UI and cart consume.
  */
@@ -333,6 +350,8 @@ export interface Product {
   category: string;
   /** Freeform tags, e.g. `amc` for Andy's Man Club items. */
   tags: string[];
+  /** Optional buyer personalisation (e.g. a number printed on the back). */
+  personalization?: ProductPersonalization;
 }
 
 /**
@@ -368,4 +387,6 @@ export interface CartLine {
   quantity: number;
   /** Optional thumbnail URL. */
   image?: string;
+  /** Buyer personalisation value (e.g. their chosen number), when the product asks for it. */
+  custom?: string;
 }

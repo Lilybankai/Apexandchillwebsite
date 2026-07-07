@@ -25,6 +25,9 @@ export function ProductDetail({ product }: ProductDetailProps) {
   const [variant, setVariant] = useState<ProductVariant | undefined>(firstAvailable);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [custom, setCustom] = useState('');
+  const personalization = product.personalization;
+  const personalizationMissing = Boolean(personalization?.required) && custom.trim().length === 0;
   // Explicit thumbnail choice; null means "follow the selected variant".
   const [pickedImage, setPickedImage] = useState<string | null>(null);
   const [descExpanded, setDescExpanded] = useState(false);
@@ -42,7 +45,9 @@ export function ProductDetail({ product }: ProductDetailProps) {
 
   function handleAdd() {
     if (!variant) return;
-    add(product, variant, qty);
+    const value = custom.trim();
+    if (personalization?.required && !value) return;
+    add(product, variant, qty, value || undefined);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2000);
   }
@@ -167,6 +172,35 @@ export function ProductDetail({ product }: ProductDetailProps) {
           </div>
         )}
 
+        {/* Personalisation (e.g. number on the back) */}
+        {personalization && (
+          <div className="mt-7">
+            <label
+              htmlFor="product-personalization"
+              className="mb-2.5 block font-mono text-xs font-semibold uppercase tracking-widest text-subtle"
+            >
+              {personalization.label}
+              {personalization.required && <span className="text-accent"> *</span>}
+            </label>
+            <input
+              id="product-personalization"
+              type="text"
+              inputMode="numeric"
+              value={custom}
+              maxLength={personalization.maxLength ?? 32}
+              onChange={(e) => setCustom(e.target.value)}
+              placeholder={personalization.placeholder}
+              aria-required={personalization.required}
+              className="w-full max-w-[12rem] rounded-lg border border-line bg-surface/60 px-4 py-2.5 font-display text-lg tracking-wide text-ink outline-none transition-colors focus:border-accent"
+            />
+            {personalizationMissing && (
+              <p className="mt-1.5 font-mono text-[0.65rem] uppercase tracking-widest text-subtle">
+                Enter your {personalization.label.toLowerCase()} to add to cart
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Quantity + add */}
         <div className="mt-7 flex flex-wrap items-center gap-4">
           <div className="inline-flex items-center rounded-lg border border-line bg-surface/60">
@@ -193,7 +227,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
             size="lg"
             clip
             onClick={handleAdd}
-            disabled={!variant?.available}
+            disabled={!variant?.available || personalizationMissing}
             className="flex-1 sm:flex-none sm:min-w-[14rem]"
           >
             {added ? (

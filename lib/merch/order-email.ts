@@ -43,7 +43,9 @@ function renderHtml(order: MerchOrder): string {
     .map(
       (l) => `
       <tr>
-        <td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(l.title)} — ${esc(l.variantName)}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(l.title)} — ${esc(l.variantName)}${
+          l.custom ? ` <strong>(No. ${esc(l.custom)})</strong>` : ''
+        }</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center">${l.quantity}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right">${gbp(Math.round(l.unitPrice * 100))}</td>
         <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;text-transform:capitalize">${esc(l.provider)}</td>
@@ -84,7 +86,10 @@ function renderHtml(order: MerchOrder): string {
 /** Plain-text fallback body. */
 function renderText(order: MerchOrder): string {
   const lines = order.lines
-    .map((l) => `- ${l.title} — ${l.variantName} ×${l.quantity} @ ${gbp(Math.round(l.unitPrice * 100))} [${l.provider}]`)
+    .map(
+      (l) =>
+        `- ${l.title} — ${l.variantName}${l.custom ? ` (No. ${l.custom})` : ''} ×${l.quantity} @ ${gbp(Math.round(l.unitPrice * 100))} [${l.provider}]`,
+    )
     .join('\n');
   return [
     `New merch order — ${gbp(order.amountTotalPence)}`,

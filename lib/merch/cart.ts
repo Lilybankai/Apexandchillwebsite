@@ -22,6 +22,15 @@ const STORAGE_KEY = 'apexchill.cart.v1';
 /** Fired on the window whenever the cart changes, so subscribers refresh. */
 const CART_EVENT = 'apexchill:cart';
 
+/**
+ * Stable identity for a cart line. Includes the personalisation value so the
+ * same variant bought with two different numbers (e.g. hoodie #5 and #7) stays
+ * as two distinct lines rather than merging.
+ */
+export function lineKey(line: Pick<CartLine, 'variantId' | 'custom'>): string {
+  return `${line.variantId}::${line.custom ?? ''}`;
+}
+
 /** Total number of items in the cart (sum of quantities). */
 export function cartCount(lines: CartLine[]): number {
   return lines.reduce((n, l) => n + l.quantity, 0);
@@ -61,9 +70,15 @@ function writeCart(lines: CartLine[]): void {
  * Add a product variant to the cart (or increment its quantity if already
  * present). Returns the updated cart.
  */
-export function addToCart(product: Product, variant: ProductVariant, quantity = 1): CartLine[] {
+export function addToCart(
+  product: Product,
+  variant: ProductVariant,
+  quantity = 1,
+  custom?: string,
+): CartLine[] {
   const lines = readCart();
-  const existing = lines.find((l) => l.variantId === variant.id);
+  const key = lineKey({ variantId: variant.id, custom });
+  const existing = lines.find((l) => lineKey(l) === key);
   if (existing) {
     existing.quantity += quantity;
   } else {
@@ -76,6 +91,7 @@ export function addToCart(product: Product, variant: ProductVariant, quantity = 
       price: variant.price,
       quantity,
       image: variant.image ?? product.images[0],
+      ...(custom ? { custom } : {}),
     });
   }
   writeCart(lines);
@@ -83,12 +99,12 @@ export function addToCart(product: Product, variant: ProductVariant, quantity = 
 }
 
 /** Set the quantity of a line (removing it when quantity <= 0). Returns the cart. */
-export function setQuantity(variantId: string, quantity: number): CartLine[] {
+export function setQuantity(key: string, quantity: number): CartLine[] {
   let lines = readCart();
   if (quantity <= 0) {
-    lines = lines.filter((l) => l.variantId !== variantId);
+    lines = lines.filter((l) => lineKey(l) !== key);
   } else {
-    const line = lines.find((l) => l.variantId === variantId);
+    const line = lines.find((l) => lineKey(l) === key);
     if (line) line.quantity = quantity;
   }
   writeCart(lines);
@@ -96,8 +112,8 @@ export function setQuantity(variantId: string, quantity: number): CartLine[] {
 }
 
 /** Remove a line from the cart. Returns the updated cart. */
-export function removeFromCart(variantId: string): CartLine[] {
-  const lines = readCart().filter((l) => l.variantId !== variantId);
+export function removeFromCart(key: string): CartLine[] {
+  const lines = readCart().filter((l) => lineKey(l) !== key);
   writeCart(lines);
   return lines;
 }
@@ -130,14 +146,14 @@ export function useCart() {
     };
   }, []);
 
-  const add = useCallback((product: Product, variant: ProductVariant, qty = 1) => {
-    setLines(addToCart(product, variant, qty));
+  const add = useCallback((product: Product, variant: ProductVariant, qty = 1, custom?: string) => {
+    setLines(addToCart(product, variant, qty, custom));
   }, []);
-  const update = useCallback((variantId: string, qty: number) => {
-    setLines(setQuantity(variantId, qty));
+  const update = useCallback((key: string, qty: number) => {
+    setLines(setQuantity(key, qty));
   }, []);
-  const remove = useCallback((variantId: string) => {
-    setLines(removeFromCart(variantId));
+  const remove = useCallback((key: string) => {
+    setLines(removeFromCart(key));
   }, []);
   const clear = useCallback(() => {
     clearCart();

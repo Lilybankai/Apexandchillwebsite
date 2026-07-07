@@ -38,6 +38,8 @@ export interface MerchOrderLine {
   unitPrice: number;
   /** Which provider fulfils this line. */
   provider: MerchProvider;
+  /** Buyer personalisation value (e.g. their chosen number), when present. */
+  custom?: string;
 }
 
 /** Input to {@link recordOrder} — the webhook's view of a paid checkout. */

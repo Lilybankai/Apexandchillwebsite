@@ -50,6 +50,13 @@ function validateLines(body: unknown): { lines?: CartLine[]; error?: string } {
     if (!Number.isInteger(l.quantity) || l.quantity < 1 || l.quantity > 99) {
       return { error: 'Your cart contains an invalid quantity.' };
     }
+    // Personalisation is free buyer text; type-check and clamp it here. Whether
+    // it's *required* is enforced below against the trusted catalog.
+    if (l.custom !== undefined) {
+      if (typeof l.custom !== 'string') return { error: 'Your cart contains an invalid item.' };
+      l.custom = l.custom.trim().slice(0, 32);
+      if (l.custom.length === 0) delete l.custom;
+    }
   }
   return { lines: lines as CartLine[] };
 }
@@ -112,6 +119,19 @@ export async function POST(request: Request): Promise<NextResponse<CheckoutRespo
       );
     }
     const { product, variant } = entry;
+
+    // Enforce required personalisation against the trusted catalog — a crafted
+    // POST can't skip the "number on the back" the product mandates.
+    if (product.personalization?.required && !l.custom) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `“${product.title}” needs your ${product.personalization.label.toLowerCase()}. Please refresh and re-add it.`,
+        },
+        { status: 400 },
+      );
+    }
+
     const image = variant.image ?? product.images[0];
     lineItems.push({
       quantity: l.quantity,
@@ -120,6 +140,10 @@ export async function POST(request: Request): Promise<NextResponse<CheckoutRespo
         unit_amount: Math.round(variant.price * 100), // trusted server price
         product_data: {
           name: `${product.title} — ${variant.name}`,
+          // Surface the buyer's personalisation on the Stripe line item too.
+          ...(l.custom
+            ? { description: `${product.personalization?.label ?? 'Custom'}: ${l.custom}` }
+            : {}),
           images: image ? [image.startsWith('http') ? image : `${origin}${image}`] : [],
         },
       },

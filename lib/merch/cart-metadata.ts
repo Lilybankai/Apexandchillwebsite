@@ -14,10 +14,12 @@
  * @packageDocumentation
  */
 
-/** A single cart entry we trust server-side (variant id + quantity). */
+/** A single cart entry we trust server-side (variant id + quantity + optional personalisation). */
 export interface CartMetadataLine {
   variantId: string;
   quantity: number;
+  /** Buyer personalisation value (e.g. their chosen number), when present. */
+  custom?: string;
 }
 
 const CHUNK_KEY = 'cart';
@@ -32,7 +34,9 @@ const CHUNK_SIZE = 400;
  * @returns Metadata keys `cart0…cartN` plus `cart_chunks`.
  */
 export function encodeCartMetadata(lines: CartMetadataLine[]): Record<string, string> {
-  const json = JSON.stringify(lines.map((l) => ({ v: l.variantId, q: l.quantity })));
+  const json = JSON.stringify(
+    lines.map((l) => (l.custom ? { v: l.variantId, q: l.quantity, c: l.custom } : { v: l.variantId, q: l.quantity })),
+  );
   const meta: Record<string, string> = {};
   let index = 0;
   for (let i = 0; i < json.length; i += CHUNK_SIZE) {
@@ -66,9 +70,11 @@ export function decodeCartMetadata(metadata: Record<string, string> | null | und
     if (!Array.isArray(parsed)) return [];
     const lines: CartMetadataLine[] = [];
     for (const raw of parsed) {
-      const entry = raw as { v?: unknown; q?: unknown };
+      const entry = raw as { v?: unknown; q?: unknown; c?: unknown };
       if (typeof entry.v === 'string' && entry.v.length > 0 && Number.isInteger(entry.q) && (entry.q as number) > 0) {
-        lines.push({ variantId: entry.v, quantity: entry.q as number });
+        const line: CartMetadataLine = { variantId: entry.v, quantity: entry.q as number };
+        if (typeof entry.c === 'string' && entry.c.length > 0) line.custom = entry.c;
+        lines.push(line);
       }
     }
     return lines;

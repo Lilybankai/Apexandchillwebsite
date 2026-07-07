@@ -40,7 +40,10 @@ function variantHint(product: Product): string | null {
  */
 export function ProductCard({ product }: ProductCardProps) {
   const { add } = useCart();
-  const singleVariant = product.variants.length === 1 ? product.variants[0] : null;
+  // A required personalisation (e.g. a number) must be entered on the detail
+  // page, so such products never expose the one-tap quick-add.
+  const singleVariant =
+    product.variants.length === 1 && !product.personalization?.required ? product.variants[0] : null;
   const isAmc = product.tags.includes('amc');
   const hint = variantHint(product);
   const hoverImage = product.images[1];

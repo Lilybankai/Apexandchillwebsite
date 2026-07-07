@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingBag, X, Plus, Minus, Trash2, Loader2, CheckCircle2 } from 'lucide-react';
 import type { CartLine } from '@/lib/types';
-import { formatGBP, useCart } from '@/lib/merch/cart';
+import { formatGBP, lineKey, useCart } from '@/lib/merch/cart';
 
 type CheckoutState = 'idle' | 'loading' | 'error';
 
@@ -181,7 +181,7 @@ export function Cart() {
               ) : (
                 <ul className="space-y-4">
                   {lines.map((line) => (
-                    <CartRow key={line.variantId} line={line} onUpdate={update} onRemove={remove} />
+                    <CartRow key={lineKey(line)} line={line} onUpdate={update} onRemove={remove} />
                   ))}
                 </ul>
               )}
@@ -233,9 +233,10 @@ function CartRow({
   onRemove,
 }: {
   line: CartLine;
-  onUpdate: (variantId: string, qty: number) => void;
-  onRemove: (variantId: string) => void;
+  onUpdate: (key: string, qty: number) => void;
+  onRemove: (key: string) => void;
 }) {
+  const key = lineKey(line);
   return (
     <li className="flex gap-3">
       <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-line bg-elevated">
@@ -248,11 +249,14 @@ function CartRow({
           {line.title}
         </Link>
         <span className="font-mono text-xs text-subtle">{line.variantName}</span>
+        {line.custom && (
+          <span className="font-mono text-xs text-accent">No. {line.custom}</span>
+        )}
         <div className="mt-auto flex items-center justify-between">
           <div className="inline-flex items-center rounded-lg border border-line">
             <button
               type="button"
-              onClick={() => onUpdate(line.variantId, line.quantity - 1)}
+              onClick={() => onUpdate(key, line.quantity - 1)}
               aria-label="Decrease quantity"
               className="flex h-8 w-8 items-center justify-center text-muted hover:text-ink"
             >
@@ -261,7 +265,7 @@ function CartRow({
             <span className="tabular w-8 text-center text-sm text-ink">{line.quantity}</span>
             <button
               type="button"
-              onClick={() => onUpdate(line.variantId, line.quantity + 1)}
+              onClick={() => onUpdate(key, line.quantity + 1)}
               aria-label="Increase quantity"
               className="flex h-8 w-8 items-center justify-center text-muted hover:text-ink"
             >
@@ -273,7 +277,7 @@ function CartRow({
           </span>
           <button
             type="button"
-            onClick={() => onRemove(line.variantId)}
+            onClick={() => onRemove(key)}
             aria-label={`Remove ${line.title}`}
             className="text-subtle transition-colors hover:text-flag-red"
           >

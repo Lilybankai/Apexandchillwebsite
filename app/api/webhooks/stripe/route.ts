@@ -168,6 +168,7 @@ async function fulfilSession(session: Stripe.Checkout.Session): Promise<void> {
       variantName: entry?.variant.name ?? '—',
       unitPrice: entry?.variant.price ?? 0,
       provider: entry?.product.provider ?? 'sample',
+      ...(line.custom ? { custom: line.custom } : {}),
     });
 
     const item = parsePrintifyItem(line.variantId, line.quantity);

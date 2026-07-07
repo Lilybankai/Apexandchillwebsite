@@ -34,80 +34,92 @@
 import type { ApiResult, Product, ProductVariant } from '@/lib/types';
 import { slugify } from '@/lib/merch/catalog';
 
-/** Standard apparel sizes, for the {@link apparelVariants} helper. */
-const APPAREL_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
+/** Build a Tapstitch product-mockup URL from its asset id. */
+const tsImg = (id: string): string =>
+  `https://files.tapstitch.com/hugepod/material/custom_printing/${id}.png?x-oss-process=style/hugepod-product-webp`;
+
+/** A colourway with its front/back mockup asset ids. */
+interface Colourway {
+  color: string;
+  /** Front mockup asset id (used as the variant thumbnail). */
+  front: string;
+  /** Back mockup asset id. */
+  back: string;
+}
 
 /**
- * Build one variant per apparel size at a flat price. A convenience for tees /
- * hoodies where every size costs the same; for per-variant pricing or non-apparel
- * options, write the `variants` array by hand instead.
+ * Build one buyable variant per colour×size combo at a flat price — each carries
+ * both `size` and `color` so the operator knows the exact SKU to fulfil, and the
+ * colour's front mockup as its thumbnail. Use for apparel offered in several
+ * colours; for size-only items write the `variants` array by hand.
  */
-function apparelVariants(handle: string, price: number): ProductVariant[] {
-  return APPAREL_SIZES.map((size) => ({
-    id: `tapstitch:${handle}:${size.toLowerCase()}`,
-    name: size,
-    size,
-    price,
-    available: true,
-  }));
+function colourSizeVariants(
+  handle: string,
+  price: number,
+  colours: Colourway[],
+  sizes: string[],
+): ProductVariant[] {
+  const variants: ProductVariant[] = [];
+  for (const c of colours) {
+    for (const size of sizes) {
+      variants.push({
+        id: `tapstitch:${handle}:${slugify(c.color)}-${size.toLowerCase()}`,
+        name: `${c.color} / ${size}`,
+        size,
+        color: c.color,
+        price,
+        available: true,
+        image: tsImg(c.front),
+      });
+    }
+  }
+  return variants;
 }
+
+/** Gather every colourway's front then back mockup into one product gallery. */
+function galleryOf(colours: Colourway[]): string[] {
+  return colours.flatMap((c) => [tsImg(c.front), tsImg(c.back)]);
+}
+
+/** Sizes offered on the fleece hoodies. */
+const HOODIE_SIZES = ['S', 'M', 'L', 'XL', '2XL'];
+
+/** Andy's Man Club Oversize Fleeced Hoodie colourways (front/back mockups). */
+const AMC_HOODIE_COLOURS: Colourway[] = [
+  { color: 'Black', front: '7dfa6155981842e184c057dcd3b88450', back: '1f68aaaa82f44183b3dfda20988be69f' },
+  { color: 'Gray', front: '78305b0fc9f4413591636cd16893dca4', back: 'bfcb831246b4409f9ec47c6f8019a9d4' },
+  { color: 'Brown', front: 'e58866ab87554fce8c79017a9ec8bac1', back: '1bc67fb59363492eb9a09ebfa0229c60' },
+  { color: 'Coffee', front: 'b66010c52eab4f48ae5b741044a42dd6', back: '05419372ccbd46109aabca7503c10adf' },
+  { color: 'Navy Blue', front: 'b263868a2b3540b9aaf5b9918d6312d6', back: 'd8d8c5fc75b3452388361100f6dd5c8f' },
+];
 
 /**
  * ┌──────────────────────────────────────────────────────────────────────────┐
  * │  YOUR TAPSTITCH PRODUCTS — edit this array to manage the store.           │
  * └──────────────────────────────────────────────────────────────────────────┘
  *
- * These start as the Apex & Chill sample items; replace titles/prices/images
- * with your real Tapstitch products. Each becomes a card on /merch automatically.
+ * Products are added here as the operator supplies real artwork + prices. Each
+ * becomes a card on /merch automatically.
  */
 export const TAPSTITCH_CATALOG: Product[] = [
   {
-    id: 'tapstitch:neon-desk-mat',
-    handle: 'neon-desk-mat',
-    title: 'Neon Circuit Desk Mat',
+    id: 'tapstitch:andys-man-club-oversize-fleeced-hoodie',
+    handle: 'andys-man-club-oversize-fleeced-hoodie',
+    title: "Andy's Man Club Oversize Fleeced Hoodie",
     description:
-      'Oversized neon desk mat with the Apex & Chill circuit artwork. Smooth surface, stitched edges — built for sim rig setups.',
+      "The official Andy's Man Club oversize fleeced hoodie — a heavyweight, relaxed fit with the Andy's Man Club design printed across the front, back and left sleeve. A share of every sale supports men's mental health. It's okay to talk. #ITSOKAYTOTALK",
     provider: 'tapstitch',
-    images: ['/brand/banner.png'],
-    priceFrom: 25.99,
+    images: galleryOf(AMC_HOODIE_COLOURS),
+    priceFrom: 18.22,
     currency: 'GBP',
-    category: 'Accessories',
-    tags: ['accessories', 'desk'],
-    variants: [
-      { id: 'tapstitch:neon-desk-mat:xl', name: 'XL (900×400mm)', price: 25.99, available: true },
-    ],
-  },
-  {
-    id: 'tapstitch:tough-phone-case',
-    handle: 'tough-phone-case',
-    title: 'Tough Phone Case',
-    description:
-      'Impact-resistant phone case in the Apex & Chill livery. Dual-layer protection with a matte neon finish.',
-    provider: 'tapstitch',
-    images: ['/brand/standings.png'],
-    priceFrom: 24.13,
-    currency: 'GBP',
-    category: 'Accessories',
-    tags: ['accessories', 'phone'],
-    variants: [
-      { id: 'tapstitch:tough-phone-case:15', name: 'iPhone 15 / Pro', price: 24.13, available: true },
-      { id: 'tapstitch:tough-phone-case:14', name: 'iPhone 14 / Pro', price: 24.13, available: true },
-      { id: 'tapstitch:tough-phone-case:s24', name: 'Samsung S24', price: 24.13, available: true },
-    ],
-  },
-  {
-    id: 'tapstitch:sunfade-tee',
-    handle: 'sunfade-tee',
-    title: 'Sunfade Racing Tee',
-    description:
-      'Soft cotton tee with a sunfade neon print. Relaxed fit — race day or rest day.',
-    provider: 'tapstitch',
-    images: ['/brand/replays.png'],
-    priceFrom: 25.92,
-    currency: 'GBP',
-    category: 'Apparel',
-    tags: ['apparel', 'tee'],
-    variants: apparelVariants('sunfade-tee', 25.92),
+    category: 'Hoodies',
+    tags: ['apparel', 'hoodie', 'amc'],
+    variants: colourSizeVariants(
+      'andys-man-club-oversize-fleeced-hoodie',
+      18.22,
+      AMC_HOODIE_COLOURS,
+      HOODIE_SIZES,
+    ),
   },
 ];
 

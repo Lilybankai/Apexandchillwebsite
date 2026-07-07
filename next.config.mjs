@@ -9,6 +9,7 @@ const nextConfig = {
       { protocol: "https", hostname: "yt3.ggpht.com" },
       // Print-on-demand product imagery
       { protocol: "https", hostname: "**.cdn.tapstitch.com" },
+      { protocol: "https", hostname: "files.tapstitch.com" },
       { protocol: "https", hostname: "images.printify.com" },
       { protocol: "https", hostname: "images-api.printify.com" },
       { protocol: "https", hostname: "**.printify.com" },

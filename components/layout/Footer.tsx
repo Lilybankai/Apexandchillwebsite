@@ -145,7 +145,7 @@ export function Footer() {
               name="Rogue Energy"
               note="Code: apexandchill"
             />
-            <PartnerBadge name="Sim Endurance" />
+            <PartnerBadge href="https://simendurance.com/" name="Sim Endurance" />
             <PartnerBadge href={ANDYS_MAN_CLUB_URL} name="Andy's Man Club" highlight />
             <Link
               href="/partners"

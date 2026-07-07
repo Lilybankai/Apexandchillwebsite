@@ -68,9 +68,7 @@ const PARTNERS: Partner[] = [
       "Lap-time tracking and performance insights",
       "Team management and shared setups",
     ],
-    // href intentionally omitted until the operator confirms the official
-    // Sim Endurance URL — the card renders without a (possibly 404) Visit CTA.
-    href: undefined,
+    href: "https://simendurance.com/",
   },
 ];
 

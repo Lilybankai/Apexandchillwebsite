@@ -85,6 +85,27 @@ once formats stabilise, F1 25 UDP capture in Relay, live timing (with AC
 collision events auto-drafting incident reports), OSS parser/adapter package on
 GitHub, GT7 OCR-assisted entry.
 
+## Cross-document reconciliation (review outcomes)
+
+Review surfaced three inconsistencies across the pack; this section is the
+authoritative resolution:
+
+1. **Server-provisioning phase** — 01 placed AC/ACC server provisioning in
+   Phase 3 while 03's build order and 04 suggested Phase 2. **Resolved: Phase 3.**
+   Phase 2's Apex Relay already delivers hands-off results automation on
+   self-hosted servers; provisioning is acceleration, not a prerequisite (01
+   §4.10's own design principle), and it is the only roadmap item carrying real
+   infrastructure cost. Pull it forward only if Phase 2 adoption demands it.
+2. **LMU server integration** — 01's "as their APIs mature" framing is
+   superseded by 03's finding: LMU provisioning is **strategically blocked**
+   (servers exist only inside RaceControl, which is SimGrid-powered, with no
+   public API and no incentive to grant one). LMU scope is results-XML
+   ingestion + championship automation, permanently unless that landscape
+   changes.
+3. **Agent naming** — "Apex Relay" (03) is the canonical name for the
+   companion uploader/capture agent; 04's "companion uploader agent" refers to
+   the same component.
+
 ## Success criteria (from 01 §7)
 
 - Organiser reaches a published league page with open sign-ups in **< 5 minutes**.

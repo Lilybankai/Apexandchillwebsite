@@ -76,6 +76,11 @@ happens in Discord threads; outcomes are re-keyed into results by hand.
   **Opinionated defaults everywhere** — an organiser reaches a publishable league page
   in under 5 minutes, then deepens configuration later.
 - Public league page: branding, description, rules, schedule, standings, sign-up CTA.
+- **One-click league import from SimGrid / Sim League Pro** (MVP candidate): both
+  platforms expose readable league/championship data and working clients for both
+  already live in this repo (`lib/api/simgrid.ts`, `lib/api/simleaguepro.ts`) — the
+  wizard pre-fills the league, season, schedule, drivers and standings so switching
+  costs an organiser minutes, not a season.
 - Roles per league: owner, admin, steward, broadcaster/commentator (read + embed).
 - "Powered by Apex & Chill Racing" on public pages (removable on a paid tier, if we
   ever charge).
@@ -154,6 +159,12 @@ happens in Discord threads; outcomes are re-keyed into results by hand.
   `ServerAdapter`): ACC and AC first (documented dedicated servers + results JSON and
   existing open-source server-manager APIs), AC EVO and LMU as their ecosystems open
   up, F1 25 via a UDP capture companion app (Phase 3).
+- **Proven pattern to copy (per Scout recon):** ACC has no hosted REST API — SimGrid
+  solves this with the "SimGrid App", a local agent keyed by an API key that reads
+  scheduled events, auto-boots the server at start time and auto-uploads the results
+  file. Our adapter design should follow the same local-agent + API-key shape, with
+  the results push landing on a signature-verified, idempotent ingest endpoint
+  (mirroring the existing Stripe webhook handler in `app/api/webhooks/stripe/`).
 - Design principle: the platform must be fully useful with **zero** server
   integration (manual + upload paths), so integration is acceleration, not a
   prerequisite.
@@ -178,6 +189,7 @@ happens in Discord threads; outcomes are re-keyed into results by hand.
 - Penalty points ledger (manual award)
 - Apex & Chill branding; our own leagues migrated as flagship tenants
 - League directory (basic finder: sim/platform/region filters)
+- One-click league import from SimGrid / Sim League Pro (§4.1 — clients already in repo)
 
 ### Phase 2 — "trust and automation"
 - Incident reports + steward queue + verdict workflow + auto-applied outcomes
@@ -231,3 +243,6 @@ happens in Discord threads; outcomes are re-keyed into results by hand.
 4. **Name** — "Apex League Manager" used as a working title throughout.
 5. **GT7 scope** — no API exists; is first-class manual tooling for GT7 a launch
    requirement given our flagship GT7 league? (Assumed yes in MVP.)
+6. **Competitor UX walkthrough** — both sites block automated fetches, so
+   screen-by-screen organiser-dashboard detail is missing; a human/browser session
+   on SimGrid + Sim League Pro would sharpen the "< 5-minute setup" benchmark.

@@ -79,6 +79,7 @@ app/
           rounds/page.tsx               # Round CRUD: track, date, session format, (Phase 2: server spool-up)
           results/page.tsx              # Ingestion: upload/paste server JSON, review parse, apply
         stewards/page.tsx               # Incident queue: review reports, issue penalties
+        import/page.tsx                 # One-click league import from SimGrid / Sim League Pro (§3.5)
   paddock/
     page.tsx                            # Signed-in driver home: my leagues, my entries, my penalties
     profile/page.tsx                    # Driver profile: gamertags, Discord, availability (driver-finder)
@@ -144,12 +145,18 @@ Today the site has **no end-user auth**: just the single-password `/admin` gate
   league page carries "Powered by Apex & Chill Racing" with links back to
   merch/partners/Discord: the promotion loop the product exists for.
 - Reuse `components/ui` (Button, Card, Marquee) and the Tailwind theme so the
-  product looks native on day one.
+  product looks native on day one — and the feature components that already
+  exist for Apex & Chill's own championships (`StandingsTable`, `LeagueTabs`,
+  `RoundCard`/`ScheduleList`, `NextRaceCard`, `JoinForm`) are the starting
+  point for the league-generic versions rather than new builds.
 
 ### 3.3 Stripe
 
 - MVP is free; billing is Phase 2 (premium league tier: custom branding, more
-  seasons, server automation). When it lands it reuses the existing wiring:
+  seasons, server automation). Competitor pricing anchors the tier at
+  **$5.99–7.99/mo** (SimGrid Grid Pass / Partner — see
+  `02-competitor-analysis.md`), which means Stripe **subscriptions**, not
+  one-off Checkout. When it lands it reuses the existing wiring:
   `stripe` config in `lib/env.ts`, Checkout Session creation modelled on
   `app/api/checkout/route.ts`, and the **existing** webhook endpoint
   `app/api/webhooks/stripe/route.ts` switching on new event types
@@ -165,6 +172,22 @@ Today the site has **no end-user auth**: just the single-password `/admin` gate
 - `lib/api/simgrid.ts` / `simleaguepro.ts` remain the read-side for current
   seasons; new shared domain types extend `lib/types.ts` (single-package rule:
   shared types live in the shared module, not duplicated per feature).
+- **Hot files — single-owner, coordinate before touching** during the build
+  phase: `lib/types.ts`, `lib/env.ts`, `lib/leagues.ts`, `supabase/schema.sql`,
+  `components/layout/Header.tsx`, and `.env.example` (which has a history of
+  live secrets being pasted in — audit before every commit that touches it).
+
+### 3.5 League import — the switching-cost killer
+
+Both competitors expose **public, unauthenticated league data**, and this repo
+already has working clients for both (`lib/api/simgrid.ts`,
+`lib/api/simleaguepro.ts`). `manage/import` reuses them as a one-click wizard:
+paste a SimGrid championship / Sim League Pro league URL → we pull seasons,
+calendar, entry list, standings and per-race results → preview → write into the
+tables in `05-data-model.sql` (imported drivers land unclaimed in `drivers`,
+ready to be claimed on first sign-in). This turns "migrating my league" — the
+single biggest reason organisers stay put — into minutes, and it is nearly free
+to build because the data models are already mapped in `lib/api/*`.
 
 ---
 
@@ -194,9 +217,13 @@ this section is the pipeline they plug into.
 
 1. **Receive & store raw.** `POST /api/ingest/results` accepts the sim's
    native results file, authenticated as an organiser session **or** a per-league
-   agent token (HMAC, revocable). The raw payload is written verbatim to
-   `result_ingestions` *before* any parsing — immutable audit trail, free
-   re-processing when a parser improves, and no data loss on parser bugs.
+   agent token (scoped, revocable, HMAC-signed). The endpoint is architecturally
+   the existing Stripe webhook (`app/api/webhooks/stripe/route.ts`): verify the
+   signature, then **idempotent upsert** — the same file POSTed twice (agent
+   retries) lands as one ingestion, exactly as `stripe_session_id` dedupes
+   `merch_orders`. The raw payload is written verbatim to `result_ingestions`
+   *before* any parsing — immutable audit trail, free re-processing when a
+   parser improves, and no data loss on parser bugs.
 2. **Parse.** A per-sim adapter (`lib/league-manager/ingest/<sim>.ts`)
    implements one interface: `parse(raw) → NormalisedSession` (session type,
    track, laps, per-driver classification, best laps, DNF/DSQ flags). Adapters

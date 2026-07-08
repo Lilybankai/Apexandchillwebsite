@@ -105,7 +105,7 @@ Self-hosting exists and Kunos culture is automation-friendly. Recommendation: de
 
 ### Dedicated server & hosting — captive to RaceControl
 - LMU (1.0 released 22 July 2025) is built on the **rFactor 2 engine (isiMotor 2.5)**. Multiplayer runs through Motorsport Games' **RaceControl** platform.
-- **There is no public self-hosted dedicated server tool.** Private racing uses **Hosted Servers**: created from racecontrol.gg, run on RaceControl infrastructure, rented **by the minute** (from ~€0.38/hr, free Lite account can create) ([official Hosted Servers page](https://lemansultimate.com/hosted-servers/), [guide](https://guide.lemansultimate.com/hc/en-gb/articles/13211353947407-What-are-Hosted-Servers)).
+- **There is no public self-hosted dedicated server tool.** Private racing uses **Hosted Servers**: created from racecontrol.gg, run on RaceControl infrastructure, billed **per hour in server credits** (from ~€0.38/hr, free Lite account can create) ([official Hosted Servers page](https://lemansultimate.com/hosted-servers/), [guide](https://guide.lemansultimate.com/hc/en-gb/articles/13211353947407-What-are-Hosted-Servers)).
 - ⚠️ Strategic note: **RaceControl.gg for LMU is powered by SimGrid** ([announcement](https://pits.thesimgrid.com/announcements/your-brand-new-racecontrol-gg-for-le-mans-ultimate-powered-by-simgrid/)) — our competitor effectively owns LMU server provisioning. Don't plan on API-provisioning LMU servers; there is no public API and no incentive for them to grant one.
 
 ### Results output

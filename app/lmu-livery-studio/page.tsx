@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import {
   ArrowRight,
   BookOpen,
@@ -205,14 +204,18 @@ export default function LmuLiveryStudioPage() {
             )}
           </ul>
 
-          {/* Editor preview */}
+          {/* Editor preview — autoplaying promo. Muted + playsInline are required
+              for autoplay; the screenshot is the poster for an instant first paint. */}
           <div className="relative mt-12 overflow-hidden rounded-card border border-line shadow-glow-soft">
-            <Image
-              src="/lmu-livery-studio.png"
-              alt="The LMU Livery Studio editor — designing an Aston Martin Vantage GT3 livery for Le Mans Ultimate"
-              width={1913}
-              height={944}
-              priority
+            <video
+              src="/lmu-livery-studio-promo.mp4"
+              poster="/lmu-livery-studio.png"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label="A walkthrough of the LMU Livery Studio editor designing a Le Mans Ultimate livery"
               className="w-full"
             />
           </div>

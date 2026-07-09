@@ -25,11 +25,13 @@ import { Card } from "@/components/ui/Card";
  * ── OPERATOR: THE LIVE LINKS ─────────────────────────────────────────────────
  * These two buttons are the whole point of the page.
  *   • STUDIO_URL        — the hosted LMU Livery Studio web tool (opens the editor)
- *   • COMPANION_APP_URL — the installer, served from /public (spaces URL-encoded).
- *     To ship a new build, drop the .exe in /public and update this filename.
+ *   • COMPANION_APP_URL — the installer, hosted as a GitHub Release asset (keeps
+ *     the big binary out of the app repo). To ship a new build, upload the new
+ *     .exe to a GitHub Release and point this at its asset URL.
  */
 const STUDIO_URL = "https://lmuliverystudio.com/";
-const COMPANION_APP_URL = "/LMU%20Livery%20Installer%20Setup%200.1.0.exe";
+const COMPANION_APP_URL =
+  "https://github.com/Lilybankai/Apexandchillwebsite/releases/download/livery-installer-v0.1.0/LMU.Livery.Installer.Setup.0.1.0.exe";
 /** Clean filename the browser saves the download as. */
 const COMPANION_APP_FILENAME = "LMU Livery Installer Setup 0.1.0.exe";
 

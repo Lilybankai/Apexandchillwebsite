@@ -1,20 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ApexChevron } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 
+/** A leaf link, or a parent with a dropdown of `children`. */
+type NavItem = {
+  href: string;
+  label: string;
+  children?: readonly { href: string; label: string; description?: string }[];
+};
+
 /** Primary navigation. Order confirmed by Scout report. */
-const NAV_LINKS = [
+const NAV_LINKS: readonly NavItem[] = [
   { href: "/", label: "Home" },
   { href: "/standings", label: "Standings" },
   { href: "/replays", label: "Replays" },
   { href: "/schedule", label: "Schedule" },
   { href: "/lmu-special-events", label: "LMU Events" },
+  {
+    href: "/apps",
+    label: "Apps",
+    children: [
+      {
+        href: "/lmu-livery-studio",
+        label: "LMU Livery Studio",
+        description: "Free Le Mans Ultimate livery creator + installer",
+      },
+    ],
+  },
   { href: "/about", label: "About" },
   { href: "/merch", label: "Merch" },
 ] as const;
@@ -25,6 +43,8 @@ export function Header() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Solidify the bar once the user scrolls off the hero.
   useEffect(() => {
@@ -34,10 +54,30 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close the mobile drawer whenever the route changes.
+  // Close the mobile drawer + any open dropdown whenever the route changes.
   useEffect(() => {
     setMenuOpen(false);
+    setOpenDropdown(null);
   }, [pathname]);
+
+  // Close the desktop dropdown on outside click or Escape.
+  useEffect(() => {
+    if (!openDropdown) return;
+    const onPointer = (e: PointerEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpenDropdown(null);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenDropdown(null);
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [openDropdown]);
 
   // Prevent background scroll while the mobile drawer is open.
   useEffect(() => {
@@ -49,6 +89,12 @@ export function Header() {
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  /** A parent is "active" when the current route matches any of its children. */
+  const isItemActive = (item: NavItem) =>
+    item.children
+      ? item.children.some((c) => isActive(c.href))
+      : isActive(item.href);
 
   return (
     <header
@@ -73,21 +119,89 @@ export function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "relative px-3 py-2 font-display text-sm font-medium uppercase tracking-wide transition-colors",
-                isActive(link.href) ? "text-accent" : "text-muted hover:text-ink",
-              )}
-            >
-              {link.label}
-              {isActive(link.href) && (
-                <span className="absolute inset-x-3 -bottom-px h-0.5 bg-accent" />
-              )}
-            </Link>
-          ))}
+          {NAV_LINKS.map((link) =>
+            link.children ? (
+              <div
+                key={link.href}
+                ref={dropdownRef}
+                className="relative"
+                onMouseEnter={() => setOpenDropdown(link.label)}
+                onMouseLeave={() => setOpenDropdown(null)}
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenDropdown((cur) => (cur === link.label ? null : link.label))
+                  }
+                  className={cn(
+                    "relative inline-flex items-center gap-1 px-3 py-2 font-display text-sm font-medium uppercase tracking-wide transition-colors",
+                    isItemActive(link) ? "text-accent" : "text-muted hover:text-ink",
+                  )}
+                  aria-haspopup="true"
+                  aria-expanded={openDropdown === link.label}
+                >
+                  {link.label}
+                  <ChevronDown
+                    size={14}
+                    className={cn(
+                      "transition-transform",
+                      openDropdown === link.label && "rotate-180",
+                    )}
+                  />
+                  {isItemActive(link) && (
+                    <span className="absolute inset-x-3 -bottom-px h-0.5 bg-accent" />
+                  )}
+                </button>
+
+                <div
+                  className={cn(
+                    "absolute right-0 top-full z-50 w-72 pt-2 transition-all duration-150",
+                    openDropdown === link.label
+                      ? "visible opacity-100"
+                      : "pointer-events-none invisible -translate-y-1 opacity-0",
+                  )}
+                >
+                  <div className="glass overflow-hidden rounded-card p-1.5 shadow-glow-soft">
+                    {link.children.map((child) => (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        className={cn(
+                          "block rounded-[10px] px-3 py-2.5 transition-colors",
+                          isActive(child.href)
+                            ? "bg-elevated text-accent"
+                            : "text-muted hover:bg-elevated hover:text-ink",
+                        )}
+                      >
+                        <span className="font-display text-sm font-medium uppercase tracking-wide">
+                          {child.label}
+                        </span>
+                        {child.description && (
+                          <span className="mt-0.5 block text-xs normal-case tracking-normal text-subtle">
+                            {child.description}
+                          </span>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "relative px-3 py-2 font-display text-sm font-medium uppercase tracking-wide transition-colors",
+                  isActive(link.href) ? "text-accent" : "text-muted hover:text-ink",
+                )}
+              >
+                {link.label}
+                {isActive(link.href) && (
+                  <span className="absolute inset-x-3 -bottom-px h-0.5 bg-accent" />
+                )}
+              </Link>
+            ),
+          )}
         </nav>
 
         {/* Persistent CTAs (desktop) */}
@@ -122,20 +236,42 @@ export function Header() {
         )}
       >
         <nav className="container-rail flex flex-col gap-1 py-4" aria-label="Mobile">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "border-l-2 px-4 py-3 font-display text-lg uppercase tracking-wide transition-colors",
-                isActive(link.href)
-                  ? "border-accent bg-elevated text-accent"
-                  : "border-transparent text-muted hover:text-ink",
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {NAV_LINKS.map((link) =>
+            link.children ? (
+              <div key={link.href}>
+                <span className="block border-l-2 border-transparent px-4 pb-1 pt-3 font-display text-lg uppercase tracking-wide text-subtle">
+                  {link.label}
+                </span>
+                {link.children.map((child) => (
+                  <Link
+                    key={child.href}
+                    href={child.href}
+                    className={cn(
+                      "block border-l-2 px-4 py-3 pl-7 font-display text-base uppercase tracking-wide transition-colors",
+                      isActive(child.href)
+                        ? "border-accent bg-elevated text-accent"
+                        : "border-transparent text-muted hover:text-ink",
+                    )}
+                  >
+                    {child.label}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "border-l-2 px-4 py-3 font-display text-lg uppercase tracking-wide transition-colors",
+                  isActive(link.href)
+                    ? "border-accent bg-elevated text-accent"
+                    : "border-transparent text-muted hover:text-ink",
+                )}
+              >
+                {link.label}
+              </Link>
+            ),
+          )}
           <div className="mt-3 grid grid-cols-2 gap-2">
             <Button href={DISCORD_URL} target="_blank" rel="noopener noreferrer" variant="outline" size="md">
               Join Discord

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Oswald, Barlow, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { Analytics } from "@/components/analytics/Analytics";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -104,7 +104,7 @@ export default function RootLayout({
         <Header />
         <main id="main">{children}</main>
         <Footer />
-        <GoogleAnalytics />
+        <Analytics />
       </body>
     </html>
   );

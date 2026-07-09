@@ -158,6 +158,16 @@ export async function POST(request: Request): Promise<NextResponse<CheckoutRespo
       success_url: `${origin}/merch?checkout=success`,
       cancel_url: `${origin}/merch?checkout=cancelled`,
       shipping_address_collection: { allowed_countries: ['GB', 'IE'] },
+      // Flat-rate £4.99 delivery on every order, regardless of basket size.
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: { amount: 499, currency: 'gbp' },
+            display_name: 'Standard shipping',
+          },
+        },
+      ],
       // Stash the trusted variant ids + quantities so the webhook
       // (POST /api/webhooks/stripe) can push the order to the POD provider.
       metadata: encodeCartMetadata(lines),

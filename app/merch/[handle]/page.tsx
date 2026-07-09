@@ -38,10 +38,19 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { handle } = await params;
   const product = (await loadCatalog()).find((p) => p.handle === handle);
-  if (!product) return { title: 'Product not found' };
+  if (!product) return { title: 'Product not found', robots: { index: false } };
+  const description = product.description || `${product.title} — official Apex & Chill Racing merch.`;
+  const image = product.images[0];
   return {
     title: product.title,
-    description: product.description || `${product.title} — official Apex & Chill Racing merch.`,
+    description,
+    alternates: { canonical: `/merch/${product.handle}` },
+    openGraph: {
+      title: product.title,
+      description,
+      url: `/merch/${product.handle}`,
+      ...(image ? { images: [image] } : {}),
+    },
   };
 }
 

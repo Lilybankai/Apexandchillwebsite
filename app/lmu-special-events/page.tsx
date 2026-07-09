@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 
 export const metadata: Metadata = {
   title: "LMU Special Events Calendar",
+  alternates: { canonical: "/lmu-special-events" },
   description:
     "The full Le Mans Ultimate (LMU) Special Events calendar — from the 6 Hours of Le Mans to the 24 Hours of Le Mans, with Hypercar, WEC LMP2, ELMS LMP2, LMP3 and LMGT3 classes. Special events run Friday, Saturday and Sunday.",
   keywords: [

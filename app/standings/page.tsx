@@ -8,6 +8,7 @@ import { LeagueTabs } from '@/components/standings/LeagueTabs';
 
 export const metadata: Metadata = {
   title: 'Standings',
+  alternates: { canonical: '/standings' },
   description:
     'Live driver championship standings for the Apex & Chill GT7 (Sim League Pro) and LMU (SimGrid) leagues — points, wins, podiums and more.',
 };

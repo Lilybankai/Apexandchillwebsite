@@ -6,6 +6,7 @@ import { activeLeagues } from '@/lib/leagues';
 
 export const metadata: Metadata = {
   title: 'Join the League',
+  alternates: { canonical: '/join' },
   description:
     'Race with Apex & Chill. Apply to join our competitive GT7 (PlayStation) or Le Mans Ultimate (PC) sim racing leagues — clean racing, real community.',
 };

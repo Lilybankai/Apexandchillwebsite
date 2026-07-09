@@ -9,6 +9,7 @@ import { ScheduleList } from "@/components/schedule/ScheduleList";
 
 export const metadata: Metadata = {
   title: "Schedule",
+  alternates: { canonical: "/schedule" },
   description:
     "The full race calendars for the Apex & Chill Racing GT7 and Le Mans Ultimate leagues — rounds, tracks, classes, dates and add-to-calendar links.",
 };

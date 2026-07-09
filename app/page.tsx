@@ -17,6 +17,13 @@ import { LatestReplays } from "@/components/home/LatestReplays";
 import { PartnersStrip } from "@/components/home/PartnersStrip";
 import { AndysManClub } from "@/components/home/AndysManClub";
 import { CommunityCTA } from "@/components/home/CommunityCTA";
+import type { Metadata } from "next";
+
+// Home uses the site-default title/description from the root layout; it only
+// needs its own canonical so it isn't left to inherit or infer one.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 // Standings/next-race snapshots refresh in the background; keep the homepage
 // statically rendered and revalidated so it's fast but not stale.

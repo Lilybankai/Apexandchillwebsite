@@ -10,6 +10,7 @@ import { Cart } from '@/components/merch/Cart';
 
 export const metadata: Metadata = {
   title: 'Merch',
+  alternates: { canonical: '/merch' },
   description:
     'Official Apex & Chill Racing merch — hoodies, tees, accessories and the exclusive Andy’s Man Club charity range. Print-on-demand, shipped to the UK & Ireland.',
 };

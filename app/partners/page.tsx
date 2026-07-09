@@ -4,6 +4,7 @@ import { AndysManClubFeature } from "@/components/partners/AndysManClubFeature";
 
 export const metadata: Metadata = {
   title: "Partners",
+  alternates: { canonical: "/partners" },
   description:
     "The brands and partners behind Apex & Chill Racing — including MOZA Racing, Rogue Energy, Sim Endurance, and our exclusive mental-health charity partner, Andy's Man Club.",
 };

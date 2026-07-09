@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 
 export const metadata: Metadata = {
   title: "About",
+  alternates: { canonical: "/about" },
   description:
     "The story of Apex & Chill Racing — a multi-platform sim racing community founded in 2025, now 200+ drivers strong across 12 countries, racing competitive GT7 and Le Mans Ultimate leagues.",
 };

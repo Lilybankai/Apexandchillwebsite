@@ -9,6 +9,7 @@ import { ReplayPlaylists } from '@/components/replays/ReplayPlaylists';
 
 export const metadata: Metadata = {
   title: 'Replays',
+  alternates: { canonical: '/replays' },
   description:
     'Watch every Apex & Chill GT7 and Le Mans Ultimate race replay — full broadcasts, highlights and season reviews, straight from our YouTube channel.',
 };

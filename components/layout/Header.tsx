@@ -231,7 +231,7 @@ export function Header() {
       <div
         id="mobile-nav"
         className={cn(
-          "lg:hidden fixed inset-x-0 top-16 z-40 origin-top border-b border-line bg-base/98 backdrop-blur-md transition-all duration-200",
+          "lg:hidden fixed inset-x-0 top-16 z-40 origin-top border-b border-line bg-base shadow-2xl transition-all duration-200",
           menuOpen ? "visible opacity-100" : "pointer-events-none invisible -translate-y-2 opacity-0",
         )}
       >
@@ -239,7 +239,7 @@ export function Header() {
           {NAV_LINKS.map((link) =>
             link.children ? (
               <div key={link.href}>
-                <span className="block border-l-2 border-transparent px-4 pb-1 pt-3 font-display text-lg uppercase tracking-wide text-subtle">
+                <span className="block border-l-2 border-transparent px-4 pb-1 pt-3 font-display text-sm uppercase tracking-widest text-muted">
                   {link.label}
                 </span>
                 {link.children.map((child) => (

@@ -7,9 +7,10 @@ import {
   fetchThursdayNextRace,
 } from "@/lib/api/simgrid";
 import { isThursdayConfigured } from "@/lib/leagues";
-import { fetchReplays } from "@/lib/api/youtube";
+import { fetchReplays, fetchLiveStreams } from "@/lib/api/youtube";
 import { Marquee } from "@/components/ui/Marquee";
 import { Hero } from "@/components/home/Hero";
+import { LiveStreamSection } from "@/components/live/LiveStreamSection";
 import { NextRaceCard } from "@/components/home/NextRaceCard";
 import { SeriesCovered } from "@/components/home/SeriesCovered";
 import { MiniStandings } from "@/components/home/MiniStandings";
@@ -65,7 +66,7 @@ export default async function HomePage() {
   // Fetch everything the homepage needs in parallel. Every call returns an
   // ApiResult that degrades to bundled sample data, so this never throws.
   const thuActive = isThursdayConfigured();
-  const [gt7Next, lmuNext, thuNext, gt7Standings, lmuStandings, thuStandings, replays] =
+  const [gt7Next, lmuNext, thuNext, gt7Standings, lmuStandings, thuStandings, replays, live] =
     await Promise.all([
       fetchGt7NextRace(),
       fetchLmuNextRace(),
@@ -74,6 +75,7 @@ export default async function HomePage() {
       fetchLmuStandings(),
       thuActive ? fetchThursdayStandings() : Promise.resolve(undefined),
       fetchReplays(6),
+      fetchLiveStreams(),
     ]);
 
   const nextRaceEntries: { league: League; result: ApiResult<NextRace> }[] = [
@@ -93,6 +95,7 @@ export default async function HomePage() {
     <>
       <Hero />
       <Marquee />
+      <LiveStreamSection initial={live} variant="home" />
       <NextRaceCard primary={nextRace} />
       <SeriesCovered />
       <MiniStandings standings={miniStandings} />

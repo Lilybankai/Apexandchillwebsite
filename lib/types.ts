@@ -211,6 +211,52 @@ export interface ReplayPlaylist {
 }
 
 /**
+ * A live or scheduled ("upcoming") YouTube broadcast for the channel, normalised
+ * from the YouTube Data API v3. Powers the "Live Now / Upcoming Streams" section
+ * so the site can surface a stream the moment it goes live and count down to the
+ * next scheduled one.
+ */
+export interface LiveStream {
+  /** YouTube video id (the `v=` parameter). */
+  videoId: string;
+  /** Broadcast title. */
+  title: string;
+  /** Short description snippet (may be truncated). */
+  description: string;
+  /** Best available thumbnail URL. */
+  thumbnail: string;
+  /** Canonical watch URL. */
+  url: string;
+  /** Privacy-enhanced (`youtube-nocookie.com`) embed URL for an inline player. */
+  embedUrl: string;
+  /**
+   * `live` — broadcasting right now; `upcoming` — scheduled but not yet started.
+   * Ended streams become ordinary videos and are surfaced as replays instead.
+   */
+  status: 'live' | 'upcoming';
+  /** ISO-8601 scheduled start time, for an `upcoming` stream (when known). */
+  scheduledStartTime?: string;
+  /** ISO-8601 actual start time, for a `live` stream (when known). */
+  actualStartTime?: string;
+  /** Current concurrent viewers, when the stream is live and public. */
+  concurrentViewers?: number;
+  /** Best-effort league classification from the title/description, else `null`. */
+  league?: League | null;
+}
+
+/**
+ * The channel's current broadcast state — everything live right now plus every
+ * scheduled upcoming stream. Returned (wrapped in an {@link ApiResult}) by the
+ * live-streams data layer and `GET /api/live`.
+ */
+export interface LiveStreams {
+  /** Streams broadcasting right now, longest-running first. */
+  live: LiveStream[];
+  /** Scheduled streams that haven't started, soonest first. */
+  upcoming: LiveStream[];
+}
+
+/**
  * Generic envelope every data-layer function and API route returns.
  *
  * Using a discriminated-style envelope (rather than throwing) lets UI code

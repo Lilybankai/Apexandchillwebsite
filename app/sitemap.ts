@@ -8,6 +8,7 @@ export const revalidate = 3600;
 /** Public, indexable routes with crawl hints. `/admin` + `/api` are excluded. */
 const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"]; priority: number }[] = [
   { path: "/", changeFrequency: "daily", priority: 1 },
+  { path: "/live", changeFrequency: "always", priority: 0.8 },
   { path: "/standings", changeFrequency: "daily", priority: 0.9 },
   { path: "/lmu-livery-studio", changeFrequency: "monthly", priority: 0.9 },
   { path: "/merch", changeFrequency: "weekly", priority: 0.8 },

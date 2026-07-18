@@ -284,3 +284,12 @@ export const admin = {
 
 /** How long (seconds) to cache external API responses at the route layer. */
 export const CACHE_TTL_SECONDS = 300;
+
+/**
+ * Shorter cache window (seconds) for the live-stream state, so a broadcast going
+ * live (or ending) is reflected on the site within about a minute rather than
+ * the five used for slower-moving data. Kept small on purpose — the underlying
+ * YouTube calls are cheap (uploads + a single `videos.list`), so a 60s refresh
+ * stays comfortably inside the Data API's default daily quota.
+ */
+export const LIVE_CACHE_TTL_SECONDS = 60;

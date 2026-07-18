@@ -9,8 +9,14 @@
  * @packageDocumentation
  */
 
-import type { ApiResult, League, Replay, ReplayPlaylist } from '@/lib/types';
-import { youtube as cfg, isConfigured, CACHE_TTL_SECONDS, type YoutubePlaylistConfig } from '@/lib/env';
+import type { ApiResult, League, LiveStream, LiveStreams, Replay, ReplayPlaylist } from '@/lib/types';
+import {
+  youtube as cfg,
+  isConfigured,
+  CACHE_TTL_SECONDS,
+  LIVE_CACHE_TTL_SECONDS,
+  type YoutubePlaylistConfig,
+} from '@/lib/env';
 import { getSupabaseAdminClient } from '@/lib/supabase';
 
 const API_ROOT = 'https://www.googleapis.com/youtube/v3';
@@ -160,11 +166,21 @@ interface PlaylistsResponse {
   }>;
 }
 
-/** Call the YouTube API and parse JSON. @throws on a non-ok response. */
-async function ytGet<T>(path: string, params: Record<string, string>): Promise<T> {
+/**
+ * Call the YouTube API and parse JSON. @throws on a non-ok response.
+ *
+ * @param revalidate - Cache window (seconds) for this request. Defaults to the
+ *   shared {@link CACHE_TTL_SECONDS}; the live-stream calls pass the shorter
+ *   {@link LIVE_CACHE_TTL_SECONDS} so a broadcast going live shows up promptly.
+ */
+async function ytGet<T>(
+  path: string,
+  params: Record<string, string>,
+  revalidate: number = CACHE_TTL_SECONDS,
+): Promise<T> {
   const search = new URLSearchParams({ ...params, key: cfg.apiKey ?? '' });
   const res = await fetch(`${API_ROOT}${path}?${search.toString()}`, {
-    next: { revalidate: CACHE_TTL_SECONDS },
+    next: { revalidate },
   });
   if (!res.ok) {
     throw new Error(`YouTube ${path} responded ${res.status} ${res.statusText}`);
@@ -460,6 +476,127 @@ export async function fetchReplayGroups(perPlaylist = 12): Promise<ApiResult<Rep
   } catch (err) {
     return sampleGroups(
       `YouTube request failed (${err instanceof Error ? err.message : 'unknown error'}) — showing sample replays.`,
+    );
+  }
+}
+
+/* ------------------------------------------------------------------------- *
+ * Live + upcoming streams
+ * ------------------------------------------------------------------------- */
+
+/** How many recent uploads to scan for a live/upcoming broadcast. */
+const LIVE_SCAN_LIMIT = 20;
+
+/** Privacy-enhanced embed host, matching the site's cookie-consent posture. */
+const NOCOOKIE_EMBED = 'https://www.youtube-nocookie.com/embed';
+
+/** Minimal typing of the videos.list response used for live detection. */
+interface LiveVideosResponse {
+  items?: Array<{
+    id?: string;
+    snippet?: {
+      title?: string;
+      description?: string;
+      thumbnails?: Record<string, { url?: string }>;
+      /** `live` | `upcoming` | `none`. */
+      liveBroadcastContent?: string;
+    };
+    liveStreamingDetails?: {
+      scheduledStartTime?: string;
+      actualStartTime?: string;
+      actualEndTime?: string;
+      concurrentViewers?: string;
+    };
+  }>;
+}
+
+/** An empty live result, tagged with the given source + note. */
+function emptyLive(source: 'sample' | 'youtube' | 'cache', error: string | null): ApiResult<LiveStreams> {
+  return { ok: true, source, error, data: { live: [], upcoming: [] } };
+}
+
+/**
+ * Fetch the channel's current broadcast state — everything live right now plus
+ * every scheduled upcoming stream.
+ *
+ * Detection is deliberately cheap: we scan the channel's most recent uploads
+ * (where scheduled/live broadcasts already appear) and read each video's
+ * `liveBroadcastContent` flag via a single `videos.list` call. That's ~2 quota
+ * units per refresh — orders of magnitude cheaper than `search.list`
+ * (`eventType=live`, 100 units) — so the 60s cache window stays well inside the
+ * Data API's default daily quota. Ended broadcasts revert to `none` and are
+ * surfaced through the replays gallery instead.
+ *
+ * Never throws: an unconfigured key or any upstream failure resolves to an empty
+ * live/upcoming result so the section simply renders nothing (or its "no streams
+ * right now" state) rather than breaking the page.
+ *
+ * @returns Live + upcoming streams, or an empty result when unavailable.
+ */
+export async function fetchLiveStreams(): Promise<ApiResult<LiveStreams>> {
+  if (!isConfigured('youtube')) {
+    return emptyLive('sample', 'YouTube not configured — live streams appear here once the channel feed is connected.');
+  }
+  try {
+    // Broadcasts show up in the channel's uploads feed, so scan that. Fall back
+    // to the first configured replay playlist only if uploads can't be resolved.
+    const scanPlaylist = (await resolveUploadsPlaylistId()) ?? cfg.playlists[0]?.id ?? null;
+    if (!scanPlaylist) {
+      return emptyLive('youtube', 'Could not resolve a YouTube playlist to scan for live streams.');
+    }
+
+    const playlist = await ytGet<PlaylistItemsResponse>(
+      '/playlistItems',
+      { part: 'snippet', playlistId: scanPlaylist, maxResults: String(LIVE_SCAN_LIMIT) },
+      LIVE_CACHE_TTL_SECONDS,
+    );
+    const ids = (playlist.items ?? [])
+      .map((item) => item.snippet?.resourceId?.videoId)
+      .filter((id): id is string => Boolean(id));
+    if (ids.length === 0) return emptyLive('youtube', null);
+
+    const videos = await ytGet<LiveVideosResponse>(
+      '/videos',
+      { part: 'snippet,liveStreamingDetails', id: ids.join(',') },
+      LIVE_CACHE_TTL_SECONDS,
+    );
+
+    const live: LiveStream[] = [];
+    const upcoming: LiveStream[] = [];
+    for (const v of videos.items ?? []) {
+      const state = v.snippet?.liveBroadcastContent;
+      if (state !== 'live' && state !== 'upcoming') continue;
+      const videoId = v.id;
+      const snip = v.snippet;
+      if (!videoId || !snip) continue;
+      const title = snip.title ?? 'Live broadcast';
+      const details = v.liveStreamingDetails;
+      const stream: LiveStream = {
+        videoId,
+        title,
+        description: (snip.description ?? '').slice(0, 280),
+        thumbnail: bestThumbnail(snip.thumbnails, videoId),
+        url: `https://www.youtube.com/watch?v=${videoId}`,
+        embedUrl: `${NOCOOKIE_EMBED}/${videoId}`,
+        status: state,
+        scheduledStartTime: details?.scheduledStartTime,
+        actualStartTime: details?.actualStartTime,
+        concurrentViewers:
+          details?.concurrentViewers != null ? Number(details.concurrentViewers) || undefined : undefined,
+        league: inferLeague(`${title} ${snip.description ?? ''}`),
+      };
+      (state === 'live' ? live : upcoming).push(stream);
+    }
+
+    // Live: longest-running first. Upcoming: soonest scheduled first.
+    live.sort((a, b) => (a.actualStartTime ?? '').localeCompare(b.actualStartTime ?? ''));
+    upcoming.sort((a, b) => (a.scheduledStartTime ?? '').localeCompare(b.scheduledStartTime ?? ''));
+
+    return { ok: true, source: 'youtube', error: null, data: { live, upcoming } };
+  } catch (err) {
+    return emptyLive(
+      'youtube',
+      `YouTube live request failed (${err instanceof Error ? err.message : 'unknown error'}).`,
     );
   }
 }

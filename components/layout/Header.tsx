@@ -18,6 +18,7 @@ type NavItem = {
 /** Primary navigation. Order confirmed by Scout report. */
 const NAV_LINKS: readonly NavItem[] = [
   { href: "/", label: "Home" },
+  { href: "/live", label: "Live" },
   { href: "/standings", label: "Standings" },
   { href: "/replays", label: "Replays" },
   { href: "/schedule", label: "Schedule" },

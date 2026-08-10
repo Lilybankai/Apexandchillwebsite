@@ -37,9 +37,9 @@ const COMPANION_APP_FILENAME = "LMU Livery Installer Setup 0.1.0.exe";
 const DISCORD_URL = "https://discord.gg/MBew2Bb2hj";
 
 export const metadata: Metadata = {
-  title: "LMU Livery Studio — Free Le Mans Ultimate Livery Creator",
+  title: "LMU Livery Studio — Free Hypercar, LMP2, LMP3 & GT3 Livery Creator",
   description:
-    "Create high-quality Le Mans Ultimate liveries in your browser — no GIMP or Photoshop needed. Add images, textures, patterns, shapes and text, export a 4K TGA, and let the free companion installer app drop it straight into your game. Supports every GT3 car in LMU.",
+    "Create high-quality Le Mans Ultimate liveries in your browser — no GIMP or Photoshop needed. Add images, textures, patterns, shapes and text, export a 4K TGA, and let the free companion installer app drop it straight into your game. Supports Hypercar, LMP2, LMP3 and LMGT3 cars in LMU.",
   keywords: [
     "LMU liveries",
     "LMU livery creator",
@@ -52,7 +52,11 @@ export const metadata: Metadata = {
     "LMU livery maker",
     "LMU livery installer",
     "how to install LMU liveries",
+    "LMU Hypercar liveries",
+    "LMU LMP2 liveries",
+    "LMU LMP3 liveries",
     "LMU GT3 liveries",
+    "LMU LMGT3 liveries",
   ],
   alternates: {
     canonical: "/lmu-livery-studio",
@@ -60,16 +64,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "/lmu-livery-studio",
-    title: "LMU Livery Studio — Free Le Mans Ultimate Livery Creator",
+    title: "LMU Livery Studio — Free Hypercar, LMP2, LMP3 & GT3 Livery Creator",
     description:
-      "Design pro-quality Le Mans Ultimate liveries in your browser — no Photoshop needed — then auto-install them into the game with the free companion app.",
+      "Design pro-quality Le Mans Ultimate liveries for Hypercar, LMP2, LMP3 and LMGT3 cars in your browser — no Photoshop needed — then auto-install them into the game with the free companion app.",
     images: [{ url: "/lmu-livery-studio.png", width: 1913, height: 944, alt: "LMU Livery Studio editor" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LMU Livery Studio — Free Le Mans Ultimate Livery Creator",
+    title: "LMU Livery Studio — Free Hypercar, LMP2, LMP3 & GT3 Livery Creator",
     description:
-      "Design pro-quality LMU liveries in your browser, then auto-install them with the free companion app. Supports every GT3 car in Le Mans Ultimate.",
+      "Design pro-quality LMU liveries in your browser, then auto-install them with the free companion app. Supports Hypercar, LMP2, LMP3 and LMGT3 cars in Le Mans Ultimate.",
     images: ["/lmu-livery-studio.png"],
   },
 };
@@ -120,7 +124,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Which cars are supported?",
-    a: "The Studio currently supports every GT3 car enabled in Le Mans Ultimate, so you can build a livery for the full LMGT3 grid.",
+    a: "The Studio supports every class enabled in Le Mans Ultimate — Hypercar (LMH/LMDh), LMP2, LMP3 and LMGT3 — so you can build a livery for any car on the grid, from the top-class prototypes down to the GT3 field.",
   },
   {
     q: "Is the LMU Livery Studio free?",
@@ -146,7 +150,7 @@ export default function LmuLiveryStudioPage() {
     applicationCategory: "DesignApplication",
     operatingSystem: "Web",
     description:
-      "A free browser-based livery creator for Le Mans Ultimate. Add images, textures, patterns, shapes and text, export a 4K TGA, and auto-install with the companion app.",
+      "A free browser-based livery creator for Le Mans Ultimate, supporting Hypercar, LMP2, LMP3 and LMGT3 cars. Add images, textures, patterns, shapes and text, export a 4K TGA, and auto-install with the companion app.",
     offers: { "@type": "Offer", price: "0", priceCurrency: "GBP" },
   };
 
@@ -177,9 +181,10 @@ export default function LmuLiveryStudioPage() {
             LMU <span className="text-gradient">Livery Studio</span>
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-muted">
-            Design pro-quality <strong className="text-ink">Le Mans Ultimate liveries</strong> right
-            in your browser — no GIMP, no Photoshop, no experience needed. Build it, export a 4K TGA,
-            and let our companion app drop it straight into the game for you.
+            Design pro-quality <strong className="text-ink">Le Mans Ultimate liveries</strong> for{" "}
+            <strong className="text-ink">Hypercar, LMP2, LMP3 and LMGT3</strong> cars right in your
+            browser — no GIMP, no Photoshop, no experience needed. Build it, export a 4K TGA, and let
+            our companion app drop it straight into the game for you.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -194,7 +199,7 @@ export default function LmuLiveryStudioPage() {
           </div>
 
           <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
-            {["No Photoshop required", "4K TGA export", "Auto-install companion app", "Every LMU GT3 car"].map(
+            {["No Photoshop required", "4K TGA export", "Auto-install companion app", "Hypercar, LMP2, LMP3 & GT3"].map(
               (point) => (
                 <li key={point} className="inline-flex items-center gap-2">
                   <CheckCircle2 size={15} className="text-success" />
@@ -243,16 +248,17 @@ export default function LmuLiveryStudioPage() {
           <Card variant="glow" className="p-8">
             <div className="flex items-center gap-3">
               <Gauge className="text-cyan" size={22} />
-              <h3 className="text-2xl font-bold text-ink">Built for LMGT3</h3>
+              <h3 className="text-2xl font-bold text-ink">Every class covered</h3>
             </div>
             <p className="mt-4 text-muted">
-              The Studio supports <strong className="text-ink">every GT3 car currently enabled in
-              Le Mans Ultimate</strong> — so whichever machine you race in the LMGT3 class, you can
-              give it a livery that's unmistakably yours.
+              The Studio supports <strong className="text-ink">every class enabled in Le Mans
+              Ultimate — Hypercar, LMP2, LMP3 and LMGT3</strong> — so whichever machine you race,
+              from top-class prototypes to the GT3 grid, you can give it a livery that's unmistakably
+              yours.
             </p>
             <div className="mt-6 inline-flex items-center gap-2 rounded-card border border-line bg-surface/60 px-4 py-2 text-sm text-muted">
               <Car size={16} className="text-accent" />
-              Full LMU GT3 grid supported
+              Hypercar, LMP2, LMP3 &amp; LMGT3 supported
             </div>
           </Card>
         </div>

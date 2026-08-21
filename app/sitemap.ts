@@ -10,6 +10,7 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: "/", changeFrequency: "daily", priority: 1 },
   { path: "/live", changeFrequency: "always", priority: 0.8 },
   { path: "/standings", changeFrequency: "daily", priority: 0.9 },
+  { path: "/apex-overlay-system", changeFrequency: "monthly", priority: 0.9 },
   { path: "/lmu-livery-studio", changeFrequency: "monthly", priority: 0.9 },
   { path: "/merch", changeFrequency: "weekly", priority: 0.8 },
   { path: "/schedule", changeFrequency: "weekly", priority: 0.8 },

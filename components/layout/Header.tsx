@@ -28,6 +28,11 @@ const NAV_LINKS: readonly NavItem[] = [
     label: "Apps",
     children: [
       {
+        href: "/apex-overlay-system",
+        label: "Apex AIO System",
+        description: "LMU overlays, voice race engineer + setups",
+      },
+      {
         href: "/lmu-livery-studio",
         label: "LMU Livery Studio",
         description: "Free Le Mans Ultimate livery creator + installer",

@@ -30,9 +30,9 @@ import { Card } from "@/components/ui/Card";
  */
 const STUDIO_URL = "https://lmuliverystudio.com/";
 const COMPANION_APP_URL =
-  "https://github.com/Lilybankai/Apexandchillwebsite/releases/download/livery-installer-v0.1.0/LMU.Livery.Installer.Setup.0.1.0.exe";
+  "https://github.com/Lilybankai/Apexandchillwebsite/releases/download/livery-installer-v0.2.0/LMU.Livery.Installer.Setup.0.2.0.exe";
 /** Clean filename the browser saves the download as. */
-const COMPANION_APP_FILENAME = "LMU Livery Installer Setup 0.1.0.exe";
+const COMPANION_APP_FILENAME = "LMU Livery Installer Setup 0.2.0.exe";
 
 const DISCORD_URL = "https://discord.gg/MBew2Bb2hj";
 

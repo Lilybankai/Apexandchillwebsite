@@ -1,0 +1,107 @@
+/*
+ * Ambient motion for the overlay mocks. Every animation in this file is
+ * decorative — the page reads identically with all of it stilled, which is
+ * exactly what the reduced-motion block at the bottom does.
+ */
+
+/* ── Track map: cars circulate the lap on a CSS motion path. ─────────────── */
+/* Each car carries its offset-path and a static offset-distance inline; the
+   negative animation-delay starts the loop from that same spot, so with
+   animation disabled the field is still spread around the circuit. */
+.orbit {
+  animation: orbit var(--orbit-dur, 30s) linear infinite;
+}
+@keyframes orbit {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
+}
+
+/* ── Race control: the five-lamp start sequence, then the green flag. ────── */
+/* Base styles (in the component) show the lit end-state, so a stilled page
+   shows all lamps on with GREEN FLAG up — the frame worth freezing on. */
+.lamp1 { animation: lamp1 9s infinite; }
+.lamp2 { animation: lamp2 9s infinite; }
+.lamp3 { animation: lamp3 9s infinite; }
+.lamp4 { animation: lamp4 9s infinite; }
+.lamp5 { animation: lamp5 9s infinite; }
+@keyframes lamp1 {
+  0%, 7% { background-color: #10131f; box-shadow: none; }
+  9%, 54% { background-color: #ff5470; box-shadow: 0 0 12px rgba(255, 84, 112, 0.8); }
+  56%, 100% { background-color: #10131f; box-shadow: none; }
+}
+@keyframes lamp2 {
+  0%, 15% { background-color: #10131f; box-shadow: none; }
+  17%, 54% { background-color: #ff5470; box-shadow: 0 0 12px rgba(255, 84, 112, 0.8); }
+  56%, 100% { background-color: #10131f; box-shadow: none; }
+}
+@keyframes lamp3 {
+  0%, 23% { background-color: #10131f; box-shadow: none; }
+  25%, 54% { background-color: #ff5470; box-shadow: 0 0 12px rgba(255, 84, 112, 0.8); }
+  56%, 100% { background-color: #10131f; box-shadow: none; }
+}
+@keyframes lamp4 {
+  0%, 31% { background-color: #10131f; box-shadow: none; }
+  33%, 54% { background-color: #ff5470; box-shadow: 0 0 12px rgba(255, 84, 112, 0.8); }
+  56%, 100% { background-color: #10131f; box-shadow: none; }
+}
+@keyframes lamp5 {
+  0%, 39% { background-color: #10131f; box-shadow: none; }
+  41%, 54% { background-color: #ff5470; box-shadow: 0 0 12px rgba(255, 84, 112, 0.8); }
+  56%, 100% { background-color: #10131f; box-shadow: none; }
+}
+.rcMsg { animation: rcMsg 9s infinite; }
+@keyframes rcMsg {
+  0%, 56% { opacity: 0; }
+  59%, 96% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Engineer: the speech waveform while a question is being asked. ──────── */
+.waveBar {
+  transform-origin: center;
+  animation: wave 0.8s ease-in-out infinite alternate;
+}
+@keyframes wave {
+  from { transform: scaleY(0.25); }
+  to { transform: scaleY(1); }
+}
+.fadeUp { animation: fadeUp 0.35s ease-out both; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Speedo: the battery cell breathing on regen, per the app's keyframes. ─ */
+.breathe { animation: breathe 1.6s ease-in-out infinite; }
+@keyframes breathe {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}
+.glowPulse { animation: glowPulse 2.6s ease-in-out infinite; }
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+/* ── Reference pace: the marker settles onto your percentage once. ───────── */
+.settle { animation: settle 1.4s cubic-bezier(0.22, 0.8, 0.22, 1) both; }
+@keyframes settle {
+  from { left: 4%; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit,
+  .lamp1,
+  .lamp2,
+  .lamp3,
+  .lamp4,
+  .lamp5,
+  .rcMsg,
+  .waveBar,
+  .fadeUp,
+  .breathe,
+  .glowPulse,
+  .settle {
+    animation: none;
+  }
+}

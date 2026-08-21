@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Script from "next/script";
 import { Button } from "@/components/ui/Button";
 
@@ -78,7 +79,12 @@ export function Analytics() {
             <div className="glass mx-auto flex max-w-3xl flex-col gap-4 rounded-card p-5 shadow-glow-soft sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted">
                 We use Google Analytics cookies to see how the site is used so we can improve it.
-                Nothing is sold or shared for ads — you can decline and everything still works.
+                Nothing is sold or shared for ads — you can decline and everything still works. See
+                our{" "}
+                <Link href="/privacy" className="text-cyan underline hover:no-underline">
+                  Privacy Policy
+                </Link>
+                .
               </p>
               <div className="flex shrink-0 gap-2">
                 <Button onClick={() => choose("denied")} variant="ghost" size="sm">

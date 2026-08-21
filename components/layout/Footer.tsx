@@ -34,6 +34,10 @@ const FOOTER_NAV = {
     { href: YOUTUBE_URL, label: "YouTube", external: true },
     { href: `mailto:${CONTACT_EMAIL}`, label: "Contact", external: true },
   ],
+  Legal: [
+    { href: "/terms", label: "Terms of Service" },
+    { href: "/privacy", label: "Privacy Policy" },
+  ],
 } as const;
 
 export function Footer() {
@@ -83,7 +87,7 @@ export function Footer() {
       </div>
 
       {/* Main footer grid */}
-      <div className="container-rail grid gap-10 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+      <div className="container-rail grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div className="space-y-4">
           <Link href="/" className="flex items-center gap-2.5" aria-label="Apex & Chill Racing home">
             <ApexChevron className="h-8 w-8" />
@@ -161,6 +165,15 @@ export function Footer() {
       <div className="border-t border-line">
         <div className="container-rail flex flex-col items-center justify-between gap-2 py-5 text-xs text-subtle sm:flex-row">
           <p>© {year} Apex &amp; Chill Racing. All rights reserved.</p>
+          <nav className="flex items-center gap-4" aria-label="Legal">
+            <Link href="/terms" className="transition-colors hover:text-cyan">
+              Terms of Service
+            </Link>
+            <span aria-hidden className="text-line">|</span>
+            <Link href="/privacy" className="transition-colors hover:text-cyan">
+              Privacy Policy
+            </Link>
+          </nav>
           <p className="font-mono uppercase tracking-widest">
             Multi-Platform · GT7 &amp; Le Mans Ultimate
           </p>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import type { JoinResult, JoinSubmission, League } from '@/lib/types';
 import { LEAGUES, LEAGUE_LABELS } from '@/lib/types';
@@ -405,7 +406,15 @@ export function JoinForm({ leagues = LEAGUES }: { leagues?: readonly League[] })
             />
             <span>
               I&apos;m 16 or over and agree to race clean and follow the league
-              rules and stewarding decisions.
+              rules and stewarding decisions. I&apos;ve read the{' '}
+              <Link href="/terms" className="text-cyan hover:underline">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" className="text-cyan hover:underline">
+                Privacy Policy
+              </Link>
+              .
             </span>
           </label>
         </div>

@@ -6,13 +6,19 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ApexChevron } from "@/components/ui/Logo";
+import { AIO_COMING_SOON } from "@/lib/aio";
 import { cn } from "@/lib/utils";
 
 /** A leaf link, or a parent with a dropdown of `children`. */
 type NavItem = {
   href: string;
   label: string;
-  children?: readonly { href: string; label: string; description?: string }[];
+  children?: readonly {
+    href: string;
+    label: string;
+    description?: string;
+    badge?: string;
+  }[];
 };
 
 /** Primary navigation. Order confirmed by Scout report. */
@@ -30,7 +36,10 @@ const NAV_LINKS: readonly NavItem[] = [
       {
         href: "/apex-overlay-system",
         label: "Apex AIO System",
-        description: "LMU overlays, voice race engineer + setups",
+        description: AIO_COMING_SOON
+          ? "Lights out soon — overlays, voice engineer + setups"
+          : "LMU overlays, voice race engineer + setups",
+        badge: AIO_COMING_SOON ? "Soon" : undefined,
       },
       {
         href: "/lmu-livery-studio",
@@ -179,8 +188,13 @@ export function Header() {
                             : "text-muted hover:bg-elevated hover:text-ink",
                         )}
                       >
-                        <span className="font-display text-sm font-medium uppercase tracking-wide">
+                        <span className="flex items-center gap-2 font-display text-sm font-medium uppercase tracking-wide">
                           {child.label}
+                          {child.badge ? (
+                            <span className="rounded-sm border border-cyan/40 bg-cyan/10 px-1.5 py-px font-mono text-[0.6rem] font-semibold tracking-widest text-cyan">
+                              {child.badge}
+                            </span>
+                          ) : null}
                         </span>
                         {child.description && (
                           <span className="mt-0.5 block text-xs normal-case tracking-normal text-subtle">
@@ -253,13 +267,18 @@ export function Header() {
                     key={child.href}
                     href={child.href}
                     className={cn(
-                      "block border-l-2 px-4 py-3 pl-7 font-display text-base uppercase tracking-wide transition-colors",
+                      "flex items-center gap-2 border-l-2 px-4 py-3 pl-7 font-display text-base uppercase tracking-wide transition-colors",
                       isActive(child.href)
                         ? "border-accent bg-elevated text-accent"
                         : "border-transparent text-muted hover:text-ink",
                     )}
                   >
                     {child.label}
+                    {child.badge ? (
+                      <span className="rounded-sm border border-cyan/40 bg-cyan/10 px-1.5 py-px font-mono text-[0.6rem] font-semibold tracking-widest text-cyan">
+                        {child.badge}
+                      </span>
+                    ) : null}
                   </Link>
                 ))}
               </div>

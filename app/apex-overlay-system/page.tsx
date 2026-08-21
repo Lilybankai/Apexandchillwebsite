@@ -41,6 +41,8 @@ import {
 } from "@/components/overlay/OverlayMocks";
 import { AskEngineer } from "@/components/overlay/AskEngineer";
 import { WidgetCatalogue } from "@/components/overlay/WidgetCatalogue";
+import { AioComingSoon } from "@/components/overlay/AioComingSoon";
+import { AIO_COMING_SOON } from "@/lib/aio";
 
 /**
  * ── OPERATOR: THE LIVE LINKS ─────────────────────────────────────────────────
@@ -67,7 +69,7 @@ const DISCORD_URL = "https://discord.gg/MBew2Bb2hj";
 const PRICE = "£4.99";
 const TRIAL_DAYS = 7;
 
-export const metadata: Metadata = {
+const LIVE_METADATA: Metadata = {
   title: "Apex AIO System — LMU Overlays, Voice Race Engineer & Setups",
   description:
     "The all-in-one Le Mans Ultimate toolkit: 20 telemetry overlays, a push-to-talk voice race engineer, your pace measured against the aliens, a live setup editor with community sharing, and a stream bot. 7-day free trial.",
@@ -109,6 +111,32 @@ export const metadata: Metadata = {
       "20 telemetry overlays, a push-to-talk voice race engineer, live setup engineering and a stream bot. 7-day free trial, then £4.99/month.",
   },
 };
+
+const SOON_METADATA: Metadata = {
+  title: "Apex AIO System — Coming Soon",
+  description:
+    "Twenty telemetry overlays, a push-to-talk voice race engineer, live setups and a stream bot — the all-in-one LMU toolkit. Lights out soon. Join the Apex & Chill Discord to hear it first.",
+  keywords: LIVE_METADATA.keywords,
+  alternates: {
+    canonical: "/apex-overlay-system",
+  },
+  openGraph: {
+    type: "website",
+    url: "/apex-overlay-system",
+    title: "Apex AIO System — Coming Soon",
+    description:
+      "The pit wall is built. Twenty overlays, a voice race engineer, live setups and a stream bot. Lights out soon.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Apex AIO System — Coming Soon",
+    description:
+      "Twenty telemetry overlays, a voice race engineer, live setups and a stream bot. Lights out soon.",
+  },
+};
+
+/** Follows `AIO_COMING_SOON` in `lib/aio.ts` — flip that flag at launch. */
+export const metadata: Metadata = AIO_COMING_SOON ? SOON_METADATA : LIVE_METADATA;
 
 /** The things no other LMU tool ships. The core sales pitch. */
 const EXCLUSIVES: { icon: typeof Sliders; title: string; tag: string; body: string }[] = [
@@ -316,6 +344,8 @@ const FAQ: { q: string; a: string }[] = [
 ];
 
 export default function ApexAioSystemPage() {
+  if (AIO_COMING_SOON) return <AioComingSoon />;
+
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",

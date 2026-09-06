@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const SOCIAL_IMAGE_SIZE = { width: 1200, height: 630 };
 export const SOCIAL_IMAGE_ALT =
-  "Apex AIO System — LMU overlays, voice race engineer and live setup tools";
+  "Apex AIO System — LMU overlays, voice race engineer, setup optimiser and team pit wall";
 
 export function renderAioSocialImage() {
   return new ImageResponse(
@@ -82,7 +82,8 @@ export function renderAioSocialImage() {
             <div style={{ display: "flex", gap: 30 }}>
               <span>20 overlays</span>
               <span>Voice engineer</span>
-              <span>Live setups</span>
+              <span>Setup optimiser</span>
+              <span>Team pit wall</span>
             </div>
             <div
               style={{

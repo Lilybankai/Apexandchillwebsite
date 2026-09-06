@@ -7,7 +7,7 @@ const PAGE_URL = `${SITE_URL}${PAGE_PATH}`;
 
 const TITLE = "Apex AIO System | LMU Overlays & Voice Race Engineer";
 const DESCRIPTION =
-  "Download Apex AIO System for 20 lightweight LMU and rFactor 2 overlays, a voice race engineer, live setup tools and StreamBot. Try everything free for 7 days.";
+  "Download Apex AIO for 20 lightweight LMU and rFactor 2 overlays, a voice race engineer, setup optimiser and live team pit wall. Try it free for 7 days.";
 
 export const AIO_METADATA: Metadata = {
   title: { absolute: TITLE },
@@ -27,7 +27,10 @@ export const AIO_METADATA: Metadata = {
     "LMU MFD overlay",
     "LMU reference lap times",
     "LMU setup editor",
+    "LMU setup optimiser",
     "LMU setups",
+    "LMU team engineering pit wall",
+    "Le Mans Ultimate endurance race strategy",
     "LMU track map overlay",
     "LMU track limits overlay",
     "sim racing overlays",
@@ -55,13 +58,13 @@ export const AIO_METADATA: Metadata = {
     siteName: "Apex & Chill Racing",
     title: TITLE,
     description:
-      "Twenty LMU and rFactor 2 overlays, a push-to-talk voice race engineer, live setup engineering and StreamBot in one Windows app.",
+      "Twenty overlays, a voice race engineer, setup optimiser and live team pit wall for LMU and rFactor 2 in one Windows app.",
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description:
-      "20 lightweight overlays, a voice race engineer, live setup tools and StreamBot. Try Apex AIO free for 7 days.",
+      "20 lightweight overlays, a voice race engineer, setup optimiser and live team pit wall. Try Apex AIO free for 7 days.",
   },
 };
 
@@ -80,7 +83,9 @@ export function buildAioSoftwareJsonLd() {
     featureList: [
       "20 telemetry overlays for OBS and in-game use",
       "Push-to-talk voice race engineer",
-      "Live LMU setup editor and community setup sharing",
+      "Live LMU setup editor with intent-based race engineer optimisation",
+      "Team engineering pit wall with live strategy and telemetry relay",
+      "Community setup sharing with verified pace",
       "LMU MFD controls",
       "3D track maps",
       "Track limits and pit-stop tools",

@@ -1,10 +1,10 @@
 /** Public product details shared by the landing page and its SEO metadata. */
 export const AIO_PRODUCT = {
   name: "Apex AIO System",
-  version: "0.82.0",
+  version: "0.98.0",
   installerUrl:
-    "https://github.com/Lilybankai/Apexandchilloverlaysystem/releases/download/v0.82.0/Apex-Overlay-System-Setup-0.82.0.exe",
-  installerFilename: "Apex Overlay System Setup 0.82.0.exe",
+    "https://github.com/Lilybankai/Apexandchilloverlaysystem/releases/download/v0.98.0/Apex-AIO-System-Setup-0.98.0.exe",
+  installerFilename: "Apex AIO System Setup 0.98.0.exe",
   price: 4.99,
   priceDisplay: "£4.99",
   trialDays: 7,

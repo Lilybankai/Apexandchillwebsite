@@ -39,6 +39,7 @@ import {
   TyreTempMock,
 } from "@/components/overlay/OverlayMocks";
 import { AskEngineer } from "@/components/overlay/AskEngineer";
+import { AioEngineeringFeatures } from "@/components/overlay/AioEngineeringFeatures";
 import { AioReviews } from "@/components/overlay/AioReviews";
 import { WidgetCatalogue } from "@/components/overlay/WidgetCatalogue";
 import { AIO_PRODUCT } from "@/lib/aio";
@@ -115,6 +116,12 @@ const EXCLUSIVES: { icon: typeof Sliders; title: string; tag: string; body: stri
 
 /** Beyond the overlays — the modules that make it an all-in-one. */
 const MODULES: { icon: typeof Bot; title: string; body: string }[] = [
+  {
+    icon: Monitor,
+    title: "Team engineering pit wall",
+    body:
+      "Timing, track map, live fuel strategy, per-corner tyres and brakes, car state, weather and lap trends on one board. Team relay automatically follows whoever is driving and labels stale data before it can mislead the crew.",
+  },
   {
     icon: Bot,
     title: "StreamBot",
@@ -247,12 +254,20 @@ const FAQ: { q: string; a: string }[] = [
     a: "They're the sim's own numbers, not an estimate. LMU publishes its stewarding to its trace log, which the overlay reads; the reader was validated against a real session-end results file and reproduced every one of that race's charges in order. Penalties are named as the stewards name them — DRIVE THROUGH, STOP-GO 10S — with a PENALTY SERVED confirmation, and a rival's penalty online never touches your own count. The one caveat is timing: LMU flushes that log in blocks, so a charge can arrive up to ~25 seconds after the cut. The total is always right; occasionally it's right late.",
   },
   {
+    q: "How does the setup optimiser change the car?",
+    a: "The Race engineer uses ten intent sliders — including front turn-in, rear traction, braking stability and kerb compliance — to stage balanced changes across the real setup keys available on your current car. It never applies those changes silently: you see every proposed value first, and ruleset-locked or unavailable settings are skipped. Apply sends the staged setup to LMU; Revert removes the preview.",
+  },
+  {
+    q: "How does the team engineering pit wall follow our car?",
+    a: "Each teammate runs Apex AIO while signed in to the same crew. The driving PC relays its live local telemetry once per second, and the Team board automatically follows the freshest source with real tyre data, so a driver swap needs no manual handover. The board visibly marks live, relayed and stale data. Every crew member needs their own active Apex subscription, and up to six members can join a team.",
+  },
+  {
     q: "Does it work with rFactor 2 as well as Le Mans Ultimate?",
     a: "Yes, though LMU gets the most. The standings, relative, radar, track map, speedo, motion, pedals and fuel widgets all work on both. The MFD, race control, track limits, damage and setup features are LMU-only, because they depend on data rFactor 2 simply doesn't publish — and where that data is missing, those widgets say so rather than showing a plausible-looking zero.",
   },
   {
     q: "What does the free trial include?",
-    a: `Everything. The ${TRIAL_DAYS}-day trial is the complete system — every widget, the race engineer, the setup workshop, StreamBot, the leaderboards, both destinations, all of it. A card is taken at signup through Stripe's hosted checkout (the app never sees it) but nothing is charged until the trial ends, and you can cancel from the in-app subscription card at any point before then and pay nothing.`,
+    a: `Everything. The ${TRIAL_DAYS}-day trial is the complete system — every widget, the race engineer, setup optimiser, team pit wall, StreamBot, leaderboards and both overlay destinations. A card is taken at signup through Stripe's hosted checkout (the app never sees it) but nothing is charged until the trial ends, and you can cancel from the in-app subscription card at any point before then and pay nothing.`,
   },
   {
     q: "What if I'm racing somewhere without internet?",
@@ -318,8 +333,9 @@ export default function ApexAioSystemPage() {
           <p className="mt-5 max-w-2xl text-lg text-muted">
             Your whole pit wall in one app: <strong className="text-ink">twenty overlays</strong>, a{" "}
             <strong className="text-ink">voice race engineer</strong> on push-to-talk, your pace
-            measured <strong className="text-ink">against the aliens</strong>, live setup
-            engineering and a stream bot — in OBS, over the game, or both at once.
+            measured <strong className="text-ink">against the aliens</strong>, intent-based setup
+            optimisation, a live team engineering board and a stream bot — in OBS, over the game,
+            or both at once.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -521,6 +537,8 @@ export default function ApexAioSystemPage() {
           </div>
         </div>
       </section>
+
+      <AioEngineeringFeatures />
 
       {/* ── Track map deep dive ──────────────────────────────────────────── */}
       <section className="border-y border-line bg-surface/30 py-16">
@@ -840,7 +858,7 @@ export default function ApexAioSystemPage() {
               {[
                 "All 20 widgets, in OBS and in game",
                 "The voice race engineer, bundled and included",
-                "Setup workshop, leaderboards and StreamBot",
+                "Setup optimiser, team pit wall, leaderboards and StreamBot",
                 "Every update, on the day it ships",
                 "Cancel any time — including during the trial",
               ].map((point) => (

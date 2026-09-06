@@ -1,4 +1,5 @@
 import { MessageCircle, Quote } from "lucide-react";
+import { Reveal } from "@/components/ui/Reveal";
 import { AIO_REVIEWS, type AioReview } from "@/lib/aio";
 import { cn } from "@/lib/utils";
 
@@ -15,9 +16,9 @@ function ReviewCard({ review }: { review: AioReview }) {
   return (
     <figure
       className={cn(
-        "relative flex h-full flex-col rounded-card border bg-base/70 p-6 shadow-card",
+        "relative flex h-full flex-col rounded-card border bg-base/70 p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/60",
         review.featured
-          ? "border-accent/50 shadow-glow-soft md:col-span-2 lg:col-span-2"
+          ? "border-accent/50 shadow-glow-soft"
           : "border-line",
       )}
     >
@@ -56,7 +57,7 @@ export function AioReviews() {
       className="border-y border-line bg-surface/30 py-16"
     >
       <div className="container-rail">
-        <div className="mb-10 text-center">
+        <Reveal className="mb-10 text-center">
           <span className="kicker mb-4">From the test team</span>
           <h2 id="reviews-heading" className="text-4xl font-bold text-ink sm:text-5xl">
             Built with racers. <span className="text-gradient">Proven on track.</span>
@@ -64,18 +65,26 @@ export function AioReviews() {
           <p className="mx-auto mt-4 max-w-2xl text-muted">
             Early feedback from LMU drivers using Apex AIO in the Apex &amp; Chill community.
           </p>
-        </div>
+        </Reveal>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {AIO_REVIEWS.map((review, index) => (
-            <ReviewCard key={`${review.author}-${index}`} review={review} />
+            <Reveal
+              key={`${review.author}-${index}`}
+              delay={(index % 3) * 90}
+              className={cn("h-full", review.featured && "md:col-span-2 lg:col-span-2")}
+            >
+              <ReviewCard review={review} />
+            </Reveal>
           ))}
         </div>
 
-        <p className="mt-6 flex items-center justify-center gap-2 text-center text-sm text-subtle">
-          <MessageCircle aria-hidden size={16} className="text-cyan" />
-          Shared by community members in the Apex &amp; Chill Discord.
-        </p>
+        <Reveal>
+          <p className="mt-6 flex items-center justify-center gap-2 text-center text-sm text-subtle">
+            <MessageCircle aria-hidden size={16} className="text-cyan" />
+            Shared by community members in the Apex &amp; Chill Discord.
+          </p>
+        </Reveal>
       </div>
     </section>
   );

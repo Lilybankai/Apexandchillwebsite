@@ -103,10 +103,10 @@ function TrackMapPanel() {
             strokeOpacity=".45"
             strokeWidth="2"
           />
-          <circle cx="49" cy="39" r="5" fill="rgb(var(--color-cyan))" />
-          <circle cx="104" cy="18" r="3.5" fill="rgb(var(--color-accent-2))" />
-          <circle cx="180" cy="43" r="3.5" fill="rgb(var(--color-gold))" />
-          <circle cx="121" cy="89" r="3.5" fill="rgb(var(--color-success))" />
+          <circle className="motion-map-car" cx="49" cy="39" r="5" fill="rgb(var(--color-cyan))" />
+          <circle className="motion-map-car" style={{ animationDelay: "-.5s" }} cx="104" cy="18" r="3.5" fill="rgb(var(--color-accent-2))" />
+          <circle className="motion-map-car" style={{ animationDelay: "-1s" }} cx="180" cy="43" r="3.5" fill="rgb(var(--color-gold))" />
+          <circle className="motion-map-car" style={{ animationDelay: "-1.5s" }} cx="121" cy="89" r="3.5" fill="rgb(var(--color-success))" />
         </svg>
         <div className="w-24 space-y-2 font-mono text-[9px]">
           <p className="text-cyan">● #87 CARL</p>
@@ -211,8 +211,8 @@ function LapChartPanel() {
   return (
     <Panel title="Lap times" icon={<Radio size={13} />} className="col-span-8">
       <svg viewBox="0 0 500 70" className="h-16 w-full" preserveAspectRatio="none" aria-hidden>
-        <path d="M0 48 L70 42 L140 51 L210 28 L280 33 L350 20 L420 31 L500 15" fill="none" stroke="rgb(var(--color-cyan))" strokeWidth="2" />
-        <path d="M0 58 L70 51 L140 55 L210 46 L280 49 L350 38 L420 42 L500 34" fill="none" stroke="rgb(var(--color-accent-2))" strokeWidth="2" />
+        <path className="motion-chart-line" pathLength="1" d="M0 48 L70 42 L140 51 L210 28 L280 33 L350 20 L420 31 L500 15" fill="none" stroke="rgb(var(--color-cyan))" strokeWidth="2" />
+        <path className="motion-chart-line" pathLength="1" style={{ animationDelay: "-.4s" }} d="M0 58 L70 51 L140 55 L210 46 L280 49 L350 38 L420 42 L500 34" fill="none" stroke="rgb(var(--color-accent-2))" strokeWidth="2" />
         <path d="M0 64 H500 M0 42 H500 M0 20 H500" stroke="rgb(var(--color-line))" strokeWidth="1" />
       </svg>
       <div className="flex gap-2 font-mono text-[9px]">
@@ -228,15 +228,16 @@ export function TeamPitWallMock() {
     <div
       role="img"
       aria-label="Apex AIO Team pit wall showing live timing, track map, fuel, strategy, tyres, weather and lap charts"
-      className="overflow-x-auto rounded-card border border-line bg-[#080a0f] shadow-card"
+      className="relative overflow-x-auto rounded-card border border-line bg-[#080a0f] shadow-card"
     >
+      <span aria-hidden className="motion-scanline pointer-events-none absolute inset-y-0 z-10 w-24 bg-gradient-to-r from-transparent via-cyan/5 to-transparent" />
       <div className="min-w-[900px]">
         <div className="flex items-center justify-between border-b border-line bg-elevated/80 px-4 py-3">
           <div className="flex items-center gap-3">
             <span className="font-display text-sm font-semibold uppercase tracking-widest text-ink">
               Team · The pit wall
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-success/40 bg-success/10 px-2 py-1 font-mono text-[9px] font-bold text-success">
+            <span className="motion-live-pulse inline-flex items-center gap-1.5 rounded-full border border-success/40 bg-success/10 px-2 py-1 font-mono text-[9px] font-bold text-success">
               <Radio size={9} /> RELAY · CARL
             </span>
           </div>

@@ -62,7 +62,7 @@ function EngineerSlider({
       <div className="relative h-1 rounded-full bg-line">
         <span className="absolute left-1/2 top-1/2 h-2.5 w-px -translate-y-1/2 bg-subtle" />
         <span
-          className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-base bg-cyan shadow-glow-cyan"
+          className="motion-slider-thumb absolute top-1/2 h-3.5 w-3.5 rounded-full border-2 border-base bg-cyan shadow-glow-cyan"
           style={{ left: position }}
         />
       </div>
@@ -75,8 +75,9 @@ export function SetupOptimiserMock() {
     <div
       role="img"
       aria-label="Apex AIO Setups screen showing live garage settings and staged Race engineer changes"
-      className="overflow-hidden rounded-card border border-line bg-[#080a0f] shadow-card"
+      className="relative overflow-hidden rounded-card border border-line bg-[#080a0f] shadow-card"
     >
+      <span aria-hidden className="motion-scanline pointer-events-none absolute inset-y-0 z-10 w-24 bg-gradient-to-r from-transparent via-cyan/5 to-transparent" />
       <div className="flex items-center justify-between border-b border-line bg-elevated/80 px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-flag-red/70" />
@@ -86,7 +87,7 @@ export function SetupOptimiserMock() {
             Setups
           </span>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-success/40 bg-success/10 px-2.5 py-1 font-mono text-[10px] font-bold text-success">
+        <span className="motion-live-pulse inline-flex items-center gap-1.5 rounded-full border border-success/40 bg-success/10 px-2.5 py-1 font-mono text-[10px] font-bold text-success">
           <Radio size={10} /> LIVE
         </span>
       </div>

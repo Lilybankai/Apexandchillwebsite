@@ -1,6 +1,8 @@
 import { CheckCircle2, Gauge, SlidersHorizontal, Users } from "lucide-react";
+import { CommunitySetups } from "@/components/overlay/CommunitySetups";
 import { SetupOptimiserMock } from "@/components/overlay/SetupOptimiserMock";
 import { TeamPitWallMock } from "@/components/overlay/TeamPitWallMock";
+import { Reveal } from "@/components/ui/Reveal";
 
 const SETUP_POINTS = [
   "Ten intent sliders turn handling feedback into balanced, car-specific changes.",
@@ -50,7 +52,7 @@ export function AioEngineeringFeatures() {
     <>
       <section className="border-y border-line bg-surface/30 py-16">
         <div className="container-rail grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
-          <div>
+          <Reveal>
             <span className="kicker mb-4">Setups · Race engineer</span>
             <h2 className="text-4xl font-bold text-ink sm:text-5xl">
               A setup optimiser that <span className="text-gradient">shows its work</span>
@@ -65,40 +67,48 @@ export function AioEngineeringFeatures() {
               <SlidersHorizontal aria-hidden size={18} className="shrink-0 text-cyan" />
               This is intent-based setup engineering, not a black-box lap-time promise.
             </div>
-          </div>
-          <SetupOptimiserMock />
+          </Reveal>
+          <Reveal delay={140}>
+            <SetupOptimiserMock />
+          </Reveal>
         </div>
       </section>
 
+      <CommunitySetups />
+
       <section className="container-rail py-16">
         <div className="mb-10 grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
-          <div>
+          <Reveal>
             <span className="kicker mb-4">Team engineering · Endurance</span>
             <h2 className="text-4xl font-bold text-ink sm:text-5xl">
               The whole race on <span className="text-gradient">one pit wall</span>
             </h2>
-          </div>
-          <div>
+          </Reveal>
+          <Reveal delay={100}>
             <p className="text-lg text-muted">
               Follow the active team car from another PC with the same fuel, tyre, damage and
               strategy data the driver sees. No tab hunting: the Engineer board keeps every
               decision-making signal visible together.
             </p>
             <FeaturePoints points={PIT_WALL_POINTS} />
-          </div>
+          </Reveal>
         </div>
 
-        <TeamPitWallMock />
+        <Reveal>
+          <TeamPitWallMock />
+        </Reveal>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          {PIT_WALL_CALLOUTS.map((item) => (
-              <div key={item.title} className="rounded-card border border-line bg-surface/40 p-4">
+          {PIT_WALL_CALLOUTS.map((item, index) => (
+            <Reveal key={item.title} delay={index * 90} className="h-full">
+              <div className="h-full rounded-card border border-line bg-surface/40 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-cyan/40">
                 <item.icon aria-hidden size={18} className="text-cyan" />
                 <p className="mt-3 font-display text-sm uppercase tracking-wide text-ink">
                   {item.title}
                 </p>
                 <p className="mt-1 text-sm text-subtle">{item.body}</p>
               </div>
+            </Reveal>
           ))}
         </div>
 

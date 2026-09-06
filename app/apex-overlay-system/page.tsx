@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Reveal } from "@/components/ui/Reveal";
 import {
   DamagePredictorMock,
   FuelMock,
@@ -258,6 +259,10 @@ const FAQ: { q: string; a: string }[] = [
     a: "The Race engineer uses ten intent sliders — including front turn-in, rear traction, braking stability and kerb compliance — to stage balanced changes across the real setup keys available on your current car. It never applies those changes silently: you see every proposed value first, and ruleset-locked or unavailable settings are skipped. Apply sends the staged setup to LMU; Revert removes the preview.",
   },
   {
+    q: "Do community setups cost extra?",
+    a: "No. Publishing and downloading community setups are included in Apex AIO, with no per-setup charge. Shared setups carry their track, car, class and handling tags, and can include the fastest verified clean lap driven on that exact setup as a useful baseline. You can sort by fastest verified lap, recommendation, rating, downloads or newest, then send a setup straight to LMU. Ratings are only opened after a driver has downloaded the setup.",
+  },
+  {
     q: "How does the team engineering pit wall follow our car?",
     a: "Each teammate runs Apex AIO while signed in to the same crew. The driving PC relays its live local telemetry once per second, and the Team board automatically follows the freshest source with real tyre data, so a driver swap needs no manual handover. The board visibly marks live, relayed and stale data. Every crew member needs their own active Apex subscription, and up to six members can join a team.",
   },
@@ -326,61 +331,65 @@ export default function ApexAioSystemPage() {
           className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-accent/15 blur-[120px]"
         />
         <div className="container-rail relative py-20">
-          <span className="kicker mb-4">Le Mans Ultimate · rFactor 2 · Windows</span>
-          <h1 className="max-w-4xl text-5xl font-bold text-ink sm:text-6xl lg:text-7xl">
-            Apex <span className="text-gradient">AIO System</span>
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg text-muted">
-            Your whole pit wall in one app: <strong className="text-ink">twenty overlays</strong>, a{" "}
-            <strong className="text-ink">voice race engineer</strong> on push-to-talk, your pace
-            measured <strong className="text-ink">against the aliens</strong>, intent-based setup
-            optimisation, a live team engineering board and a stream bot — in OBS, over the game,
-            or both at once.
-          </p>
+          <Reveal>
+            <span className="kicker mb-4">Le Mans Ultimate · rFactor 2 · Windows</span>
+            <h1 className="max-w-4xl text-5xl font-bold text-ink sm:text-6xl lg:text-7xl">
+              Apex <span className="text-gradient">AIO System</span>
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg text-muted">
+              Your whole pit wall in one app: <strong className="text-ink">twenty overlays</strong>, a{" "}
+              <strong className="text-ink">voice race engineer</strong> on push-to-talk, your pace
+              measured <strong className="text-ink">against the aliens</strong>, intent-based setup
+              optimisation, a live team engineering board and a stream bot — in OBS, over the game,
+              or both at once.
+            </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button href={INSTALLER_URL} size="lg" clip download={INSTALLER_FILENAME}>
-              <Download size={18} />
-              Start your {TRIAL_DAYS}-day free trial
-            </Button>
-            <Button href="#widgets" size="lg" variant="outline">
-              <Layers size={18} />
-              See everything in it
-            </Button>
-          </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button href={INSTALLER_URL} size="lg" clip download={INSTALLER_FILENAME}>
+                <Download size={18} />
+                Start your {TRIAL_DAYS}-day free trial
+              </Button>
+              <Button href="#widgets" size="lg" variant="outline">
+                <Layers size={18} />
+                See everything in it
+              </Button>
+            </div>
 
-          <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
-            {[
-              `${PRICE}/month after the trial`,
-              "Signed installer — no SmartScreen warning",
-              "No plugin needed for LMU",
-              "Runs inside OBS's own browser",
-              `v${APP_VERSION} · Windows`,
-            ].map((point) => (
-              <li key={point} className="inline-flex items-center gap-2">
-                <CheckCircle2 size={15} className="text-success" />
-                {point}
-              </li>
-            ))}
-          </ul>
+            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
+              {[
+                `${PRICE}/month after the trial`,
+                "Signed installer — no SmartScreen warning",
+                "No plugin needed for LMU",
+                "Runs inside OBS's own browser",
+                `v${APP_VERSION} · Windows`,
+              ].map((point) => (
+                <li key={point} className="inline-flex items-center gap-2">
+                  <CheckCircle2 size={15} className="text-success" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </Reveal>
 
           {/* The live wall: these are the real widgets rebuilt in HTML/CSS/SVG
               from the app's own rendering code — and they run, because the
               product's whole point is live data. */}
-          <div className="relative mt-14">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -inset-x-10 -inset-y-6 rounded-[32px] bg-gradient-to-br from-cyan/5 via-accent/10 to-accent-2/5 blur-2xl"
-            />
-            <div className="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <StandingsMock />
-              <TrackMapMock />
-              <div className="grid gap-4">
-                <TrackLimitsMock />
-                <FuelMock />
+          <Reveal delay={150}>
+            <div className="relative mt-14">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -inset-x-10 -inset-y-6 rounded-[32px] bg-gradient-to-br from-cyan/5 via-accent/10 to-accent-2/5 blur-2xl"
+              />
+              <div className="relative grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <StandingsMock />
+                <TrackMapMock />
+                <div className="grid gap-4">
+                  <TrackLimitsMock />
+                  <FuelMock />
+                </div>
               </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -403,7 +412,7 @@ export default function ApexAioSystemPage() {
       {/* ── Race engineer — the interactive demo ─────────────────────────── */}
       <section className="container-rail py-16">
         <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
-          <div>
+          <Reveal>
             <span className="kicker mb-4">The race engineer</span>
             <h2 className="text-4xl font-bold text-ink sm:text-5xl">
               An engineer <span className="text-gradient">on the radio</span>
@@ -427,8 +436,10 @@ export default function ApexAioSystemPage() {
                 </li>
               ))}
             </ul>
-          </div>
-          <AskEngineer />
+          </Reveal>
+          <Reveal delay={140}>
+            <AskEngineer />
+          </Reveal>
         </div>
       </section>
 

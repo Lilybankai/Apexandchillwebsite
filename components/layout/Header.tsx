@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ApexChevron } from "@/components/ui/Logo";
-import { AIO_COMING_SOON } from "@/lib/aio";
 import { cn } from "@/lib/utils";
 
 /** A leaf link, or a parent with a dropdown of `children`. */
@@ -36,10 +35,7 @@ const NAV_LINKS: readonly NavItem[] = [
       {
         href: "/apex-overlay-system",
         label: "Apex AIO System",
-        description: AIO_COMING_SOON
-          ? "Lights out soon — overlays, voice engineer + setups"
-          : "LMU overlays, voice race engineer + setups",
-        badge: AIO_COMING_SOON ? "Soon" : undefined,
+        description: "LMU overlays, voice race engineer + setups",
       },
       {
         href: "/lmu-livery-studio",

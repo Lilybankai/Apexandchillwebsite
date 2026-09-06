@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import {
   ArrowRight,
   BadgeCheck,
@@ -40,103 +39,33 @@ import {
   TyreTempMock,
 } from "@/components/overlay/OverlayMocks";
 import { AskEngineer } from "@/components/overlay/AskEngineer";
+import { AioReviews } from "@/components/overlay/AioReviews";
 import { WidgetCatalogue } from "@/components/overlay/WidgetCatalogue";
-import { AioComingSoon } from "@/components/overlay/AioComingSoon";
-import { AIO_COMING_SOON } from "@/lib/aio";
+import { AIO_PRODUCT } from "@/lib/aio";
+import {
+  AIO_BREADCRUMB_JSON_LD,
+  AIO_METADATA,
+  buildAioSoftwareJsonLd,
+} from "@/lib/aio-seo";
 
 /**
  * ── OPERATOR: THE LIVE LINKS ─────────────────────────────────────────────────
  * INSTALLER_URL points at a GitHub Release asset so the ~330 MB binary (the
  * voice engineer is bundled and signed inside it) never lands in this repo.
  * To ship a new build: publish the release from the app repo
- * (`npm run release`), then bump APP_VERSION + INSTALLER_URL here.
+ * (`npm run release`), then update the product details in `lib/aio.ts`.
  * Existing installs auto-update themselves, so this link only serves new users.
  */
-const APP_VERSION = "0.82.0";
-const INSTALLER_URL =
-  "https://github.com/Lilybankai/Apexandchilloverlaysystem/releases/download/v0.82.0/Apex-Overlay-System-Setup-0.82.0.exe";
-const INSTALLER_FILENAME = "Apex Overlay System Setup 0.82.0.exe";
+const {
+  discordUrl: DISCORD_URL,
+  installerFilename: INSTALLER_FILENAME,
+  installerUrl: INSTALLER_URL,
+  priceDisplay: PRICE,
+  trialDays: TRIAL_DAYS,
+  version: APP_VERSION,
+} = AIO_PRODUCT;
 
-const DISCORD_URL = "https://discord.gg/MBew2Bb2hj";
-
-/**
- * ── OPERATOR: PRICING ────────────────────────────────────────────────────────
- * One plan, one price. Billing itself lives in the app (Stripe hosted
- * checkout via Supabase Edge Functions); this page only states the terms.
- * Keep PRICE in sync with the live Stripe price or the checkout will
- * contradict the marketing.
- */
-const PRICE = "£4.99";
-const TRIAL_DAYS = 7;
-
-const LIVE_METADATA: Metadata = {
-  title: "Apex AIO System — LMU Overlays, Voice Race Engineer & Setups",
-  description:
-    "The all-in-one Le Mans Ultimate toolkit: 20 telemetry overlays, a push-to-talk voice race engineer, your pace measured against the aliens, a live setup editor with community sharing, and a stream bot. 7-day free trial.",
-  keywords: [
-    "LMU overlay",
-    "Le Mans Ultimate overlay",
-    "LMU race engineer",
-    "voice race engineer sim racing",
-    "LMU telemetry overlay",
-    "LMU OBS overlay",
-    "Le Mans Ultimate HUD",
-    "LMU MFD overlay",
-    "LMU reference lap times",
-    "LMU setup editor",
-    "LMU setups",
-    "LMU track map overlay",
-    "LMU track limits overlay",
-    "sim racing overlays",
-    "rFactor 2 overlay",
-    "LMU streaming overlay",
-    "LMU pit stop timer",
-    "best LMU overlays",
-    "Apex AIO",
-  ],
-  alternates: {
-    canonical: "/apex-overlay-system",
-  },
-  openGraph: {
-    type: "website",
-    url: "/apex-overlay-system",
-    title: "Apex AIO System — LMU Overlays, Voice Race Engineer & Setups",
-    description:
-      "Twenty overlays, a voice race engineer on push-to-talk, live setup engineering and a stream bot — one app, one subscription. 7-day free trial.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Apex AIO System — the all-in-one LMU toolkit",
-    description:
-      "20 telemetry overlays, a push-to-talk voice race engineer, live setup engineering and a stream bot. 7-day free trial, then £4.99/month.",
-  },
-};
-
-const SOON_METADATA: Metadata = {
-  title: "Apex AIO System — Coming Soon",
-  description:
-    "Twenty telemetry overlays, a push-to-talk voice race engineer, live setups and a stream bot — the all-in-one LMU toolkit. Lights out soon. Join the Apex & Chill Discord to hear it first.",
-  keywords: LIVE_METADATA.keywords,
-  alternates: {
-    canonical: "/apex-overlay-system",
-  },
-  openGraph: {
-    type: "website",
-    url: "/apex-overlay-system",
-    title: "Apex AIO System — Coming Soon",
-    description:
-      "The pit wall is built. Twenty overlays, a voice race engineer, live setups and a stream bot. Lights out soon.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Apex AIO System — Coming Soon",
-    description:
-      "Twenty telemetry overlays, a voice race engineer, live setups and a stream bot. Lights out soon.",
-  },
-};
-
-/** Follows `AIO_COMING_SOON` in `lib/aio.ts` — flip that flag at launch. */
-export const metadata: Metadata = AIO_COMING_SOON ? SOON_METADATA : LIVE_METADATA;
+export const metadata = AIO_METADATA;
 
 /** The things no other LMU tool ships. The core sales pitch. */
 const EXCLUSIVES: { icon: typeof Sliders; title: string; tag: string; body: string }[] = [
@@ -344,8 +273,6 @@ const FAQ: { q: string; a: string }[] = [
 ];
 
 export default function ApexAioSystemPage() {
-  if (AIO_COMING_SOON) return <AioComingSoon />;
-
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -356,22 +283,7 @@ export default function ApexAioSystemPage() {
     })),
   };
 
-  const appJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Apex AIO System",
-    applicationCategory: "GameApplication",
-    operatingSystem: "Windows",
-    softwareVersion: APP_VERSION,
-    description:
-      "All-in-one Le Mans Ultimate and rFactor 2 toolkit: 20 telemetry overlays for OBS and in-game, a push-to-talk voice race engineer, reference pace against alien lap times, a live setup editor with community sharing, and a stream bot.",
-    offers: {
-      "@type": "Offer",
-      price: "4.99",
-      priceCurrency: "GBP",
-      description: `${TRIAL_DAYS}-day free trial, then ${PRICE} per month`,
-    },
-  };
+  const appJsonLd = buildAioSoftwareJsonLd();
 
   return (
     <div className="pb-8">
@@ -382,6 +294,10 @@ export default function ApexAioSystemPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(appJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(AIO_BREADCRUMB_JSON_LD) }}
       />
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
@@ -892,6 +808,8 @@ export default function ApexAioSystemPage() {
           ))}
         </ol>
       </section>
+
+      <AioReviews />
 
       {/* ── Pricing ──────────────────────────────────────────────────────── */}
       <section id="pricing" className="container-rail scroll-mt-24 py-8">

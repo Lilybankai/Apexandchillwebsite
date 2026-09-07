@@ -1,4 +1,4 @@
-import { MessageCircle, Quote } from "lucide-react";
+import { MessageCircle, Quote, Star } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
 import { AIO_REVIEWS, type AioReview } from "@/lib/aio";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,33 @@ function initials(name: string) {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+function StarRating({ rating, summary }: { rating: number; summary?: string }) {
+  const visibleSummary = summary ?? rating.toFixed(1);
+
+  return (
+    <div
+      className="flex items-center gap-1"
+      aria-label={`${rating} out of 5 stars, ${visibleSummary}`}
+    >
+      {Array.from({ length: 5 }, (_, index) => (
+        <Star
+          key={index}
+          aria-hidden
+          size={16}
+          className={
+            index < rating
+              ? "fill-flag-gold text-flag-gold"
+              : "fill-transparent text-line"
+          }
+        />
+      ))}
+      <span className="ml-1 font-mono text-xs font-bold text-flag-gold">
+        {visibleSummary}
+      </span>
+    </div>
+  );
 }
 
 function ReviewCard({ review }: { review: AioReview }) {
@@ -28,6 +55,9 @@ function ReviewCard({ review }: { review: AioReview }) {
         size={34}
         strokeWidth={1.5}
       />
+      <div className="mb-4">
+        <StarRating rating={review.rating} />
+      </div>
       <blockquote className="relative flex-1 pr-8 text-lg leading-relaxed text-ink">
         “{review.body}”
       </blockquote>
@@ -50,6 +80,10 @@ function ReviewCard({ review }: { review: AioReview }) {
 }
 
 export function AioReviews() {
+  const aggregateRating =
+    AIO_REVIEWS.reduce((total, review) => total + review.rating, 0) /
+    AIO_REVIEWS.length;
+
   return (
     <section
       id="reviews"
@@ -65,6 +99,12 @@ export function AioReviews() {
           <p className="mx-auto mt-4 max-w-2xl text-muted">
             Early feedback from LMU drivers using Apex AIO in the Apex &amp; Chill community.
           </p>
+          <div className="mt-5 flex justify-center">
+            <StarRating
+              rating={aggregateRating}
+              summary={`${aggregateRating.toFixed(1)} from ${AIO_REVIEWS.length} reviews`}
+            />
+          </div>
         </Reveal>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

@@ -72,6 +72,10 @@ export const AIO_METADATA: Metadata = {
 };
 
 export function buildAioSoftwareJsonLd() {
+  const ratingCount = AIO_REVIEWS.length;
+  const ratingValue =
+    AIO_REVIEWS.reduce((total, review) => total + review.rating, 0) / ratingCount;
+
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -114,6 +118,14 @@ export function buildAioSoftwareJsonLd() {
         billingDuration: "P1M",
       },
     },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: Number(ratingValue.toFixed(1)),
+      ratingCount,
+      reviewCount: ratingCount,
+      bestRating: 5,
+      worstRating: 1,
+    },
     review: AIO_REVIEWS.map((review) => ({
       "@type": "Review",
       author: {
@@ -121,6 +133,12 @@ export function buildAioSoftwareJsonLd() {
         name: review.author,
       },
       reviewBody: review.body,
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: review.rating,
+        bestRating: 5,
+        worstRating: 1,
+      },
     })),
   };
 }

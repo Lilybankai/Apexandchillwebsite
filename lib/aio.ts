@@ -15,6 +15,7 @@ export type AioReview = {
   author: string;
   body: string;
   context: string;
+  rating: number;
   featured?: boolean;
 };
 
@@ -29,28 +30,33 @@ export const AIO_REVIEWS: readonly AioReview[] = [
     body:
       "The pit wall for engineering your teammate is phenomenal. No other app has anything close. So useful to have the correct info, not the BS LMU gives you.",
     context: "Apex & Chill member",
+    rating: 5,
     featured: true,
   },
   {
     author: "Jammskie",
     body: "Absolutely great work from you guys. Brilliant software. Should be proud.",
     context: "Apex & Chill member",
+    rating: 5,
   },
   {
     author: "Obsidian",
     body:
       "Super proud of this product. Great work — glad to be a part of the test team. Can't wait for everyone else to get to use this.",
     context: "Moderator & test team",
+    rating: 5,
   },
   {
     author: "Timmy P",
     body:
       "Absolutely every LMU Apex & Chill member really should try this app. You will not be disappointed.",
     context: "Moderator",
+    rating: 5,
   },
   {
     author: "Obsidian",
     body: "I second this — it's an absolute game changer.",
     context: "Moderator & test team",
+    rating: 5,
   },
 ] as const;

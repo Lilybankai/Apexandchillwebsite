@@ -7,6 +7,8 @@ import {
   ChevronDown,
   Cpu,
   Download,
+  Globe,
+  History,
   Layers,
   Map as MapIcon,
   Mic,
@@ -42,6 +44,8 @@ import {
 import { AskEngineer } from "@/components/overlay/AskEngineer";
 import { AioEngineeringFeatures } from "@/components/overlay/AioEngineeringFeatures";
 import { AioReviews } from "@/components/overlay/AioReviews";
+import { RemoteBoards } from "@/components/overlay/RemoteBoards";
+import { AioReviewTab } from "@/components/overlay/AioReviewTab";
 import { WidgetCatalogue } from "@/components/overlay/WidgetCatalogue";
 import { AIO_PRODUCT } from "@/lib/aio";
 import {
@@ -65,6 +69,8 @@ const {
   priceDisplay: PRICE,
   trialDays: TRIAL_DAYS,
   version: APP_VERSION,
+  webBoardsUrl: WEB_BOARDS_URL,
+  webBoardsLabel: WEB_BOARDS_LABEL,
 } = AIO_PRODUCT;
 
 export const metadata = AIO_METADATA;
@@ -107,6 +113,13 @@ const EXCLUSIVES: { icon: typeof Sliders; title: string; tag: string; body: stri
       "The whole circuit as a raised 2.5-D ribbon lit by a single light, with a dot for every car in the session in its class colour. Thirty-two LMU and WEC circuits ship in the box; anywhere else, the map is built from your own first lap and cached forever — so it works at every LMU and rF2 circuit, including ones that don't exist yet.",
   },
   {
+    icon: History,
+    title: "Review — your whole season, read back",
+    tag: "Every lap you ever drove",
+    body:
+      "Apex has written a file for every lap since the day you installed it, and the Review tab reads them all back — no account, no upload, nothing thrown away. A report per session with your optimal lap and the time left on the table, a sheet per stint, and any lap with telemetry behind it opens into speed, pedals, gear and steering drawn against distance, with a second lap laid underneath and a chip per 500 m saying what that stretch cost.",
+  },
+  {
     icon: TrafficCone,
     title: "Corner cuts & pit countdowns",
     tag: "The sim's own numbers",
@@ -121,7 +134,13 @@ const MODULES: { icon: typeof Bot; title: string; body: string }[] = [
     icon: Monitor,
     title: "Team engineering pit wall",
     body:
-      "Timing, track map, live fuel strategy, per-corner tyres and brakes, car state, weather and lap trends on one board. Team relay automatically follows whoever is driving and labels stale data before it can mislead the crew.",
+      "Timing, track map, live fuel strategy, per-corner tyres and brakes, car state, weather and lap trends on one board. Team relay automatically follows whoever is driving and labels stale data before it can mislead the crew. The Team and Solo boards are on the web as well as in the app, so the crew can watch the whole stint from a phone, a tablet or another machine while an app stays connected to the session.",
+  },
+  {
+    icon: History,
+    title: "Review",
+    body:
+      "Every session you have ever driven, read back from the lap files on your own PC. A report per session — best lap, optimal lap, what was left on the table, how consistent and how clean — then the lap chart, tyre wear lap by lap, a sheet per stint, and any lap with telemetry opens for study against another one.",
   },
   {
     icon: Bot,
@@ -264,7 +283,23 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "How does the team engineering pit wall follow our car?",
-    a: "Each teammate runs Apex AIO while signed in to the same crew. The driving PC relays its live local telemetry once per second, and the Team board automatically follows the freshest source with real tyre data, so a driver swap needs no manual handover. The board visibly marks live, relayed and stale data. Every crew member needs their own active Apex subscription, and up to six members can join a team.",
+    a: `Each teammate runs Apex AIO while signed in to the same crew. The driving PC relays its live local telemetry once per second, and the Team board automatically follows the freshest source with real tyre data, so a driver swap needs no manual handover. The board visibly marks live, relayed and stale data. Every crew member needs their own active Apex subscription, and up to six members can join a team. The board itself is also served on the web at ${WEB_BOARDS_LABEL}, so a crew member watching rather than driving doesn't need to be at a PC at all.`,
+  },
+  {
+    q: "Do the engineer boards only work inside the app?",
+    a: `No. The Team pit wall and the Solo engineer board are served on the web as well, at ${WEB_BOARDS_LABEL}. Sign in with the same Apex account on a phone, a tablet, a Mac, a work laptop — anything with a browser — and you get the same live board: timing, fuel and strategy, per-corner tyres and brakes, car state, weather, the track map and lap trends. The only requirement is that an Apex AIO app is connected to the session and relaying it, because the telemetry still comes from a driving PC. Stand in the garage, sit on the sofa or engineer your teammate from another country — the board follows the session, not the machine.`,
+  },
+  {
+    q: "What is the Review tab, and do I have to set it up?",
+    a: "Nothing to set up, and nothing to wait for. Apex has been writing a file for every lap since the day you installed it, so the first time you open Review your whole history is already in it — sessions down the left, and on the right the one you picked. It reads those files off your own disk: no account, no upload, no cloud, and it works with the internet unplugged. The strip across the top counts your whole career on that PC — laps, distance, hours at the wheel, circuits, cars and sessions.",
+  },
+  {
+    q: "What does Review actually tell me about a session?",
+    a: "Your best lap, and then the part that matters: your optimal lap — your own best sector 1, 2 and 3 added together — and the untapped time between that and your real best. Consistency is given as the real spread of your clean laps in seconds rather than as a percentage, because ±0.31 s is something you can work on and a score isn't. Clean driving says what the rest was lost to, so it reads \"2 laps lost to track limits\" rather than quietly discounting them. Underneath: every lap as a chart with the stints marked, your best here over the last 30 days, tyre wear lap by lap, and a card per stint holding the full sheet.",
+  },
+  {
+    q: "Can I compare two laps in Review?",
+    a: "That is what it is for. Any lap with telemetry behind it opens into speed, throttle and brake, gear and steering, all drawn against distance round the circuit rather than against time — which is what makes two laps line up at the same corner instead of drifting apart. Pick any other lap of the session and it is laid underneath yours, dashed, with a delta band captioned slower above, faster below. Under the charts, one chip per stretch of road of about 500 m says what that stretch cost or gained — the difference between \"I was seven tenths slower\" and \"I was 0.18 s slower into turn 3\".",
   },
   {
     q: "Does it work with rFactor 2 as well as Le Mans Ultimate?",
@@ -341,7 +376,9 @@ export default function ApexAioSystemPage() {
               <strong className="text-ink">voice race engineer</strong> on push-to-talk, your pace
               measured <strong className="text-ink">against the aliens</strong>, intent-based setup
               optimisation, a live team engineering board and a stream bot — in OBS, over the game,
-              or both at once.
+              or both at once. Every lap you drive is written down and read back in Review, and the
+              Team and Solo engineer boards open in a browser too, so the crew can follow a live
+              session from any device, anywhere.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -353,6 +390,16 @@ export default function ApexAioSystemPage() {
                 <Layers size={18} />
                 See everything in it
               </Button>
+              <Button
+                href={WEB_BOARDS_URL}
+                size="lg"
+                variant="outline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Globe size={18} />
+                Open the boards on any device
+              </Button>
             </div>
 
             <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
@@ -361,6 +408,8 @@ export default function ApexAioSystemPage() {
                 "Signed installer — no SmartScreen warning",
                 "No plugin needed for LMU",
                 "Runs inside OBS's own browser",
+                "Engineer boards on any device, in a browser",
+                "Review reads back every lap you have ever driven",
                 `v${APP_VERSION} · Windows`,
               ].map((point) => (
                 <li key={point} className="inline-flex items-center gap-2">
@@ -402,10 +451,21 @@ export default function ApexAioSystemPage() {
               {TRIAL_DAYS} days free, then {PRICE}/month
             </p>
           </div>
-          <Button href="#pricing" size="sm" variant="outline">
-            See the pricing
-            <ArrowRight size={16} />
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href={WEB_BOARDS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-card border border-cyan/50 bg-base/60 px-4 py-2 font-mono text-sm font-semibold text-cyan transition-all duration-200 hover:border-cyan hover:shadow-glow-cyan"
+            >
+              <Globe size={16} aria-hidden />
+              Engineer boards on any device: {WEB_BOARDS_LABEL}
+            </a>
+            <Button href="#pricing" size="sm" variant="outline">
+              See the pricing
+              <ArrowRight size={16} />
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -486,7 +546,7 @@ export default function ApexAioSystemPage() {
         <div className="mb-10 text-center">
           <span className="kicker mb-4">Nobody else ships these</span>
           <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-            Six things you can&apos;t get <span className="text-gradient">anywhere else</span>
+            Seven things you can&apos;t get <span className="text-gradient">anywhere else</span>
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-muted">
             Plenty of tools will draw you a standings tower. These are the six that took real work,
@@ -550,6 +610,12 @@ export default function ApexAioSystemPage() {
       </section>
 
       <AioEngineeringFeatures />
+
+      {/* ── The boards on the web ─────────────────────────────────────────── */}
+      <RemoteBoards />
+
+      {/* ── Review — the session, and one lap inside it ───────────────────── */}
+      <AioReviewTab />
 
       {/* ── Track map deep dive ──────────────────────────────────────────── */}
       <section className="border-y border-line bg-surface/30 py-16">
@@ -870,6 +936,8 @@ export default function ApexAioSystemPage() {
                 "All 20 widgets, in OBS and in game",
                 "The voice race engineer, bundled and included",
                 "Setup optimiser, team pit wall, leaderboards and StreamBot",
+                "Review — every session and every lap you have driven",
+                "Team and Solo engineer boards in a browser, on any device",
                 "Every update, on the day it ships",
                 "Cancel any time — including during the trial",
               ].map((point) => (

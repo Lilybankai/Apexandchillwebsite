@@ -1,4 +1,4 @@
-import { CheckCircle2, Gauge, SlidersHorizontal, Users } from "lucide-react";
+import { CheckCircle2, Gauge, SlidersHorizontal, Smartphone, Users } from "lucide-react";
 import { CommunitySetups } from "@/components/overlay/CommunitySetups";
 import { SetupOptimiserMock } from "@/components/overlay/SetupOptimiserMock";
 import { TeamPitWallMock } from "@/components/overlay/TeamPitWallMock";
@@ -14,6 +14,7 @@ const PIT_WALL_POINTS = [
   "One engineer board for timing, strategy, fuel, tyres, weather, maps and lap trends.",
   "Team relay follows whoever is driving, with a visible data-age state so stale telemetry never looks live.",
   "Strategy replans from real consumption and shows pit windows plus the save target needed to reach them.",
+  "The same board opens in a browser on any device — you don't have to be at a PC to engineer the stint.",
 ] as const;
 
 const PIT_WALL_CALLOUTS = [
@@ -31,6 +32,11 @@ const PIT_WALL_CALLOUTS = [
     icon: SlidersHorizontal,
     title: "Engineer presets",
     body: "Switch between Engineer, Strategist and Car board layouts.",
+  },
+  {
+    icon: Smartphone,
+    title: "Any device",
+    body: "The Team and Solo boards open in a browser, not just in the app.",
   },
 ] as const;
 
@@ -86,9 +92,9 @@ export function AioEngineeringFeatures() {
           </Reveal>
           <Reveal delay={100}>
             <p className="text-lg text-muted">
-              Follow the active team car from another PC with the same fuel, tyre, damage and
-              strategy data the driver sees. No tab hunting: the Engineer board keeps every
-              decision-making signal visible together.
+              Follow the active team car from another PC — or from a phone, a tablet or any browser
+              at all — with the same fuel, tyre, damage and strategy data the driver sees. No tab
+              hunting: the Engineer board keeps every decision-making signal visible together.
             </p>
             <FeaturePoints points={PIT_WALL_POINTS} />
           </Reveal>
@@ -98,7 +104,7 @@ export function AioEngineeringFeatures() {
           <TeamPitWallMock />
         </Reveal>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {PIT_WALL_CALLOUTS.map((item, index) => (
             <Reveal key={item.title} delay={index * 90} className="h-full">
               <div className="h-full rounded-card border border-line bg-surface/40 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-cyan/40">

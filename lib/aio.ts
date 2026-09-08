@@ -1,14 +1,22 @@
 /** Public product details shared by the landing page and its SEO metadata. */
 export const AIO_PRODUCT = {
   name: "Apex AIO System",
-  version: "0.98.0",
+  version: "0.99.2",
   installerUrl:
-    "https://github.com/Lilybankai/Apexandchilloverlaysystem/releases/download/v0.98.0/Apex-AIO-System-Setup-0.98.0.exe",
-  installerFilename: "Apex AIO System Setup 0.98.0.exe",
+    "https://github.com/Lilybankai/Apexandchilloverlaysystem/releases/download/v0.99.2/Apex-AIO-System-Setup-0.99.2.exe",
+  installerFilename: "Apex AIO System Setup 0.99.2.exe",
   price: 4.99,
   priceDisplay: "£4.99",
   trialDays: 7,
   discordUrl: "https://discord.gg/MBew2Bb2hj",
+  /**
+   * The web pit wall. The Team and Solo engineer boards are served here as
+   * well as in the desktop app, so a crew can follow a live session from a
+   * phone, tablet or any other machine while the driver's PC relays telemetry.
+   */
+  webBoardsUrl: "https://aio.apexandchillracing.co.uk/",
+  /** The same address, written the way it should be read on screen. */
+  webBoardsLabel: "aio.apexandchillracing.co.uk",
 } as const;
 
 export type AioReview = {

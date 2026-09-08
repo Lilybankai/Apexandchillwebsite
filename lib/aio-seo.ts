@@ -7,7 +7,7 @@ const PAGE_URL = `${SITE_URL}${PAGE_PATH}`;
 
 const TITLE = "Apex AIO System | LMU Overlays & Voice Race Engineer";
 const DESCRIPTION =
-  "Download Apex AIO for 20 lightweight LMU and rFactor 2 overlays, a voice race engineer, setup optimiser and live team pit wall. Try it free for 7 days.";
+  "Download Apex AIO for 20 lightweight LMU and rFactor 2 overlays, a voice race engineer, setup optimiser, live team pit wall and Review — every lap you have driven, compared lap against lap. Try it free for 7 days.";
 
 export const AIO_METADATA: Metadata = {
   title: { absolute: TITLE },
@@ -33,6 +33,10 @@ export const AIO_METADATA: Metadata = {
     "free LMU setups",
     "LMU setups with lap times",
     "LMU team engineering pit wall",
+    "LMU telemetry analysis",
+    "LMU lap comparison",
+    "LMU stint review",
+    "Le Mans Ultimate driving coach",
     "Le Mans Ultimate endurance race strategy",
     "LMU track map overlay",
     "LMU track limits overlay",
@@ -92,6 +96,10 @@ export function buildAioSoftwareJsonLd() {
       "Push-to-talk voice race engineer",
       "Live LMU setup editor with intent-based race engineer optimisation",
       "Team engineering pit wall with live strategy and telemetry relay",
+      "Team and Solo engineer boards viewable in any browser, on any device",
+      "Review: local session and lap telemetry analysis with lap-vs-lap comparison",
+      "Per-session report with optimal lap, untapped time, consistency and clean-lap breakdown",
+      "Lap traces against distance with a plan-view circuit map and micro-sector deltas",
       "Community setup sharing with verified pace",
       "Publish and download community setups without per-setup fees",
       "LMU MFD controls",

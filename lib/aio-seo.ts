@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AIO_PRODUCT, AIO_REVIEWS } from "@/lib/aio";
+import { AIO_FALLBACK_RELEASE, type AioRelease } from "@/lib/aio-release";
 import { SITE_URL } from "@/lib/site";
 
 const PAGE_PATH = "/apex-overlay-system";
@@ -75,7 +76,14 @@ export const AIO_METADATA: Metadata = {
   },
 };
 
-export function buildAioSoftwareJsonLd() {
+/**
+ * Build the SoftwareApplication structured data.
+ *
+ * @param release - The installer currently being offered, from
+ *   `getLatestAioRelease()`. Defaults to the pinned fallback so callers that
+ *   have no live lookup (or run at build time) still emit valid markup.
+ */
+export function buildAioSoftwareJsonLd(release: AioRelease = AIO_FALLBACK_RELEASE) {
   const ratingCount = AIO_REVIEWS.length;
   const ratingValue =
     AIO_REVIEWS.reduce((total, review) => total + review.rating, 0) / ratingCount;
@@ -85,11 +93,11 @@ export function buildAioSoftwareJsonLd() {
     "@type": "SoftwareApplication",
     name: AIO_PRODUCT.name,
     url: PAGE_URL,
-    downloadUrl: AIO_PRODUCT.installerUrl,
+    downloadUrl: release.installerUrl,
     applicationCategory: "GameApplication",
     applicationSubCategory: "Sim racing telemetry and race engineer software",
     operatingSystem: "Windows",
-    softwareVersion: AIO_PRODUCT.version,
+    softwareVersion: release.version,
     description: DESCRIPTION,
     featureList: [
       "20 telemetry overlays for OBS and in-game use",

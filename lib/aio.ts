@@ -1,10 +1,25 @@
 /** Public product details shared by the landing page and its SEO metadata. */
 export const AIO_PRODUCT = {
   name: "Apex AIO System",
-  version: "0.99.2",
+  /**
+   * `owner/repo` holding the public releases. `lib/aio-release.ts` reads the
+   * newest release from here so the download button follows `npm run release`
+   * on its own.
+   */
+  releasesRepo: "Lilybankai/apex-aio-releases",
+  /**
+   * The link the site actually points at. It redirects to whichever installer
+   * is newest, so it never needs changing and is safe to share anywhere.
+   */
+  downloadPath: "/api/aio/download",
+  /**
+   * The last release pinned by hand. Only ever served if GitHub can't be
+   * reached, so keep it pointing at a real, working installer.
+   */
+  version: "0.99.11",
   installerUrl:
-    "https://github.com/Lilybankai/Apexandchilloverlaysystem/releases/download/v0.99.2/Apex-AIO-System-Setup-0.99.2.exe",
-  installerFilename: "Apex AIO System Setup 0.99.2.exe",
+    "https://github.com/Lilybankai/apex-aio-releases/releases/download/v0.99.11/Apex-AIO-System-Setup-0.99.11.exe",
+  installerFilename: "Apex-AIO-System-Setup-0.99.11.exe",
   price: 4.99,
   priceDisplay: "£4.99",
   trialDays: 7,

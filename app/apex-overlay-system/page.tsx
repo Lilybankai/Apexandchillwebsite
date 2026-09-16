@@ -48,6 +48,7 @@ import { RemoteBoards } from "@/components/overlay/RemoteBoards";
 import { AioReviewTab } from "@/components/overlay/AioReviewTab";
 import { WidgetCatalogue } from "@/components/overlay/WidgetCatalogue";
 import { AIO_PRODUCT } from "@/lib/aio";
+import { AIO_RELEASE_TTL_SECONDS, getLatestAioRelease } from "@/lib/aio-release";
 import {
   AIO_BREADCRUMB_JSON_LD,
   AIO_METADATA,
@@ -56,22 +57,34 @@ import {
 
 /**
  * ── OPERATOR: THE LIVE LINKS ─────────────────────────────────────────────────
- * INSTALLER_URL points at a GitHub Release asset so the ~330 MB binary (the
- * voice engineer is bundled and signed inside it) never lands in this repo.
- * To ship a new build: publish the release from the app repo
- * (`npm run release`), then update the product details in `lib/aio.ts`.
- * Existing installs auto-update themselves, so this link only serves new users.
+ * DOWNLOAD_PATH is this site's own `/api/aio/download`, which redirects to the
+ * installer on the newest release in `Lilybankai/apex-aio-releases`. The
+ * ~330 MB binary (the voice engineer is bundled and signed inside it) never
+ * lands in this repo, and nothing here needs editing to ship a new build:
+ * publish the release from the app repo (`npm run release`) and this page
+ * picks it up within half an hour. The version shown on screen is read from
+ * that same release. Existing installs auto-update themselves, so this link
+ * only serves new users.
+ *
+ * `lib/aio.ts` still pins the last known-good installer. That is the fallback
+ * if GitHub can't be read, so keep it pointing at a release that works.
  */
 const {
   discordUrl: DISCORD_URL,
-  installerFilename: INSTALLER_FILENAME,
-  installerUrl: INSTALLER_URL,
+  downloadPath: DOWNLOAD_PATH,
   priceDisplay: PRICE,
   trialDays: TRIAL_DAYS,
-  version: APP_VERSION,
   webBoardsUrl: WEB_BOARDS_URL,
   webBoardsLabel: WEB_BOARDS_LABEL,
 } = AIO_PRODUCT;
+
+/**
+ * Re-render the page on the same cadence as the release lookup, so the version
+ * on screen never lags behind the installer the button hands out. Next.js
+ * requires a static literal, so this cannot reference
+ * {@link AIO_RELEASE_TTL_SECONDS} — keep the two in sync manually.
+ */
+export const revalidate = 1800;
 
 export const metadata = AIO_METADATA;
 
@@ -327,7 +340,11 @@ const FAQ: { q: string; a: string }[] = [
   },
 ];
 
-export default function ApexAioSystemPage() {
+export default async function ApexAioSystemPage() {
+  // The newest published release, or the pinned fallback if GitHub is unreachable.
+  const release = await getLatestAioRelease();
+  const { version: APP_VERSION, installerFilename: INSTALLER_FILENAME } = release;
+
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -338,7 +355,7 @@ export default function ApexAioSystemPage() {
     })),
   };
 
-  const appJsonLd = buildAioSoftwareJsonLd();
+  const appJsonLd = buildAioSoftwareJsonLd(release);
 
   return (
     <div className="pb-8">
@@ -382,7 +399,7 @@ export default function ApexAioSystemPage() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button href={INSTALLER_URL} size="lg" clip download={INSTALLER_FILENAME}>
+              <Button href={DOWNLOAD_PATH} size="lg" clip download={INSTALLER_FILENAME}>
                 <Download size={18} />
                 Start your {TRIAL_DAYS}-day free trial
               </Button>
@@ -948,7 +965,7 @@ export default function ApexAioSystemPage() {
               ))}
             </ul>
 
-            <Button href={INSTALLER_URL} size="lg" clip download={INSTALLER_FILENAME} className="mt-8 w-full">
+            <Button href={DOWNLOAD_PATH} size="lg" clip download={INSTALLER_FILENAME} className="mt-8 w-full">
               <Download size={18} />
               Start the free trial
             </Button>
@@ -1064,7 +1081,7 @@ export default function ApexAioSystemPage() {
             driving without.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Button href={INSTALLER_URL} size="lg" clip download={INSTALLER_FILENAME}>
+            <Button href={DOWNLOAD_PATH} size="lg" clip download={INSTALLER_FILENAME}>
               <Download size={18} />
               Start the free trial
               <ArrowRight size={18} />

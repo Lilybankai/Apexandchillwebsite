@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -47,6 +48,7 @@ import { AioReviews } from "@/components/overlay/AioReviews";
 import { RemoteBoards } from "@/components/overlay/RemoteBoards";
 import { AioReviewTab } from "@/components/overlay/AioReviewTab";
 import { WidgetCatalogue } from "@/components/overlay/WidgetCatalogue";
+import { ReferralBanner } from "@/components/overlay/ReferralBanner";
 import { AIO_PRODUCT } from "@/lib/aio";
 import { AIO_RELEASE_TTL_SECONDS, getLatestAioRelease } from "@/lib/aio-release";
 import {
@@ -371,6 +373,20 @@ export default async function ApexAioSystemPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(AIO_BREADCRUMB_JSON_LD) }}
       />
+
+      {/* ── Referral banner ──────────────────────────────────────────────────
+          Only renders for someone who arrived on a partner's /r/CODE link, and
+          nothing at all for everyone else. A CLIENT component so this page
+          keeps its static render and its 30-minute revalidate: reading the
+          query string in the server component would opt the whole page out of
+          that to personalise one strip.
+
+          Suspense is not optional around useSearchParams — without the
+          boundary the production build fails, which is at least the right end
+          to find out. */}
+      <Suspense fallback={null}>
+        <ReferralBanner />
+      </Suspense>
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-line">

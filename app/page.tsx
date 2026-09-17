@@ -16,6 +16,7 @@ import { SeriesCovered } from "@/components/home/SeriesCovered";
 import { MiniStandings } from "@/components/home/MiniStandings";
 import { LatestReplays } from "@/components/home/LatestReplays";
 import { PartnersStrip } from "@/components/home/PartnersStrip";
+import { ChannelPartners } from "@/components/partners/ChannelPartners";
 import { AndysManClub } from "@/components/home/AndysManClub";
 import { CommunityCTA } from "@/components/home/CommunityCTA";
 import type { Metadata } from "next";
@@ -102,6 +103,7 @@ export default async function HomePage() {
       <LatestReplays result={replays} />
       <AndysManClub />
       <PartnersStrip />
+      <ChannelPartners />
       <CommunityCTA />
     </>
   );

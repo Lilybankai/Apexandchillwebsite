@@ -14,9 +14,12 @@ use these in the build instead of AI-generated placeholders. Reference them from
 | `replays.png` | `/brand/replays.png` | operator | 300×147 | Neon render — Replays section accent / fallback thumb. Low-res. |
 | `schedule.png` | `/brand/schedule.png` | operator | 300×147 | Neon render — Schedule section art. Low-res. |
 | `standings.png` | `/brand/standings.png` | operator | 300×147 | Neon render — Standings section art. Low-res. |
+| `partners/obsidian-endurance-racing.png` | `/brand/partners/obsidian-endurance-racing.png` | operator | 500×500 (transparent) | **Channel partner** logo — Obsidian Endurance Racing. Round badge, dark/red; reads on dark surfaces. Used by `components/partners/ChannelPartners.tsx` (home + Apex AIO landing). |
+| `partners/yamas-gaming.png` | `/brand/partners/yamas-gaming.png` | operator | 866×288 (transparent) | **Channel partner** logo — Yamas Gaming. Wide wordmark, yellow/black; reads on dark surfaces. Used by `components/partners/ChannelPartners.tsx` (home + Apex AIO landing). |
 
 ## Rules
 1. **Never** replace these with AI-generated or stock imagery. The operator explicitly wants the real brand assets used.
 2. The 300×147 banners are low-res — use them where small (thumbnails, card art, section accents). Do not upscale into full-bleed heroes; instead use a tasteful CSS gradient/neon composition + the real logo until the operator supplies hi-res hero art.
 3. Use `next/image` with explicit width/height; the AMC/ITSOKAYTOTALK logos are white → only place on dark surfaces.
 4. Operator is supplying more assets over time — re-check this folder; Coordinator will announce additions.
+5. Channel-partner logos live in `public/brand/partners/`. They are *not* the affiliate/commercial partners (MOZA, Rogue Energy, Sim Endurance) — those are text-only cards in `components/partners/PartnerGrid.tsx`.

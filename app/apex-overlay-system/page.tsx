@@ -49,6 +49,7 @@ import { RemoteBoards } from "@/components/overlay/RemoteBoards";
 import { AioReviewTab } from "@/components/overlay/AioReviewTab";
 import { WidgetCatalogue } from "@/components/overlay/WidgetCatalogue";
 import { ReferralBanner } from "@/components/overlay/ReferralBanner";
+import { ChannelPartners } from "@/components/partners/ChannelPartners";
 import { AIO_PRODUCT } from "@/lib/aio";
 import { AIO_RELEASE_TTL_SECONDS, getLatestAioRelease } from "@/lib/aio-release";
 import {
@@ -1066,6 +1067,13 @@ export default async function ApexAioSystemPage() {
           ))}
         </div>
       </section>
+
+      {/* ── Channel partners ────────────────────────────────────────────── */}
+      <ChannelPartners
+        className="border-t border-line py-16"
+        blurb="Teams and communities we work with. They're not affiliates or resellers — they're the people we race, stream and build alongside."
+        heading={<>Partnered <span className="text-gradient">communities</span></>}
+      />
 
       {/* ── Credit ───────────────────────────────────────────────────────── */}
       <section className="container-rail py-4">

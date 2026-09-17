@@ -1,7 +1,7 @@
 /**
  * `GET /r/<code>/overlay` — a partner's discount code, as an OBS browser source.
  *
- * A branded strip a partner drops onto their stream: the Apex chevron, the 10%,
+ * A branded strip a partner drops onto their stream: the Apex AIO lockup, the 10%,
  * their code, and the short link to say out loud. No sign-in, no desktop app,
  * no telemetry — a public page keyed by the code, so it works in OBS on a
  * machine that has never installed Apex.
@@ -39,6 +39,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { lookupReferral, normaliseCode } from '@/lib/referral';
+import { AIO_LOCKUP } from './lockup';
 
 /**
  * Re-resolved at most every five minutes. An OBS source loads this once and
@@ -104,17 +105,8 @@ function markup(code: string, pct: number, badge: boolean): string {
   return `
   <div class="wrap${badge ? ' badge' : ''}">
     <div class="card">
-      <svg viewBox="0 0 48 48" class="chev" aria-hidden="true">
-        <defs>
-          <linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
-            <stop offset="0%" stop-color="#22e3ff"/>
-            <stop offset="100%" stop-color="#9b5cff"/>
-          </linearGradient>
-        </defs>
-        <path d="M24 5 L43 40 L34 40 L24 21 L14 40 L5 40 Z" fill="url(#g)"/>
-      </svg>
+      ${AIO_LOCKUP}
       <div class="body">
-        <p class="kicker">APEX AIO SYSTEM</p>
         <p class="head"><span class="pct">${esc(String(pct))}% OFF</span><span class="sub">your subscription</span></p>
         <p class="foot">apexandchillracing.co.uk/r/${esc(code)}</p>
       </div>
@@ -167,9 +159,13 @@ function html(bodyMarkup: string, s: number, light: boolean): string {
     -webkit-backdrop-filter: blur(${6 * s}px);
     backdrop-filter: blur(${6 * s}px);
   }
-  .chev { width: ${34 * s}px; height: ${34 * s}px; display: block; flex: 0 0 auto; }
+  /* Width, not height: the lockup is ~3.96:1 and pinning both axes would
+     squash lettering that is going out over live video. The colour property
+     is what the artwork's currentColor lettering reads — the symbol keeps
+     its own gradient in both themes. (No backticks in here: this comment is
+     inside a template literal.) */
+  .mark { width: ${104 * s}px; height: auto; display: block; flex: 0 0 auto; color: ${ink}; }
   .body { display: flex; flex-direction: column; gap: ${2 * s}px; }
-  .kicker { margin: 0; font-size: ${9 * s}px; letter-spacing: 0.18em; color: ${muted}; font-weight: 700; }
   .head { margin: 0; display: flex; align-items: baseline; gap: ${7 * s}px; }
   .pct {
     font-size: ${25 * s}px; font-weight: 800; line-height: 1; letter-spacing: -0.01em;
@@ -204,7 +200,7 @@ function html(bodyMarkup: string, s: number, light: boolean): string {
     margin-left: 0; padding-left: 0; border-left: 0;
     border-top: 1px solid ${edge}; padding-top: ${10 * s}px; width: 100%;
   }
-  .badge .chev { width: ${28 * s}px; height: ${28 * s}px; }
+  .badge .mark { width: ${122 * s}px; }
 </style>
 </head>
 <body>${bodyMarkup}</body>

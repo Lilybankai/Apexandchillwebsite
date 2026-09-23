@@ -278,37 +278,16 @@
   .bf-stage { --bf-scale: 0.86; }
 }
 
-/* Faint streaks running out of the vanishing point (dash pattern sums to 400) */
-@keyframes bf-streak {
-  to { stroke-dashoffset: -400; }
-}
-.bf-streak {
-  animation: bf-streak 2s linear infinite;
-}
-
-/* The centre line rushing towards the camera (dash pattern sums to 80) */
-@keyframes bf-dash {
-  to { stroke-dashoffset: -80; }
-}
-.bf-dash {
-  animation: bf-dash 0.6s linear infinite;
-}
-
-/* The LIVE bug's dot */
-@keyframes bf-rec {
-  0%, 55% { opacity: 1; }
-  56%, 100% { opacity: 0.25; }
-}
-.bf-rec {
-  animation: bf-rec 1.6s steps(1, end) infinite;
+/* The hero frame is a still: freeze the mocks' ambient loops. Their
+   negative delays keep the cars spread round the circuit when stopped. */
+.bf-still *,
+.bf-still *::before,
+.bf-still *::after {
+  animation-play-state: paused !important;
+  transition: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bf-streak,
-  .bf-dash,
-  .bf-rec {
-    animation: none !important;
-  }
   .bf-stint-visual,
   .bf-stint-fill {
     transition: none !important;

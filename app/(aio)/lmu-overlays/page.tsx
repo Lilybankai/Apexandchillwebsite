@@ -1,22 +1,6 @@
 import Link from "next/link";
-import {
-  Boxes,
-  CheckCircle2,
-  Cpu,
-  Download,
-  Keyboard,
-  Layers,
-  Map as MapIcon,
-  Monitor,
-  MonitorPlay,
-  Repeat,
-  ShieldAlert,
-  Sliders,
-  Timer,
-  TrafficCone,
-} from "lucide-react";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Reveal } from "@/components/ui/Reveal";
 import {
   DamagePredictorMock,
@@ -38,7 +22,9 @@ import { AioFaq } from "@/components/aio/AioFaq";
 import { AioRelatedPages } from "@/components/aio/AioRelatedPages";
 import { AioTrialCta } from "@/components/aio/AioTrialCta";
 import { JsonLd } from "@/components/aio/JsonLd";
-import { AIO_PRODUCT } from "@/lib/aio";
+import { SectionHeading } from "@/components/aio/SectionHeading";
+import { Annotated, type Annotation } from "@/components/aio/overlays/Annotated";
+import { AIO_PRODUCT, AIO_REVIEWS } from "@/lib/aio";
 import { getAioFaq, type AioFaqItem } from "@/lib/aio-faq";
 import { buildAioBreadcrumbJsonLd, buildAioPageMetadata } from "@/lib/aio-seo";
 
@@ -54,12 +40,12 @@ const PAGE_FAQ: AioFaqItem[] = [
   {
     q: "What are the best LMU overlays?",
     page: "overlays",
-    a: "It depends what you race with, but a good Le Mans Ultimate set covers timing, traffic, the car and strategy. Apex AIO ships twenty widgets that do exactly that — standings, relative, delta, proximity radar, fuel calculator, tyre temps, pedals and a speedo cluster — plus the ones no other LMU tool ships: a fully working MFD you can drive from your wheel, track limits in the stewards' own points, a pit-stop predictor built from the sim's repair estimate, a 3D track map with 32 circuits bundled, and your pace against Ohne Speed's reference times. Every one runs in OBS's own browser or over the game, and all of them are in the one price.",
+    a: "It depends what you race with, but a good Le Mans Ultimate set covers timing, traffic, the car and strategy. Apex AIO ships twenty widgets for that: standings, relative, delta, proximity radar, fuel calculator, tyre temps, pedals and a speedo cluster. It also has a fully working MFD you can drive from your wheel, track limits in the stewards' own points, a pit-stop predictor built from the sim's repair estimate, a 3D track map with 32 circuits bundled, and your pace against Ohne Speed's reference times. Every one runs in OBS's own browser or over the game, and all of them are in the one price.",
   },
   {
     q: "How do I add an LMU overlay to OBS?",
     page: "overlays",
-    a: "Install Apex AIO, sign in and start the trial — the overlay server starts itself when the app opens. Tick the widgets you want, copy each one's Browser Source URL from its card, and paste it into a Browser Source in your OBS scene. No terminal, no config files and no editing game directories; Le Mans Ultimate works out of the box over its own REST API.",
+    a: "Install Apex AIO, sign in and start the trial. The overlay server starts itself when the app opens. Tick the widgets you want, copy each one's Browser Source URL from its card, and paste it into a Browser Source in your OBS scene. There is nothing to set up in a terminal, config file or game directory; Le Mans Ultimate works out of the box over its own REST API.",
   },
   {
     q: "Can I change how often the overlays update?",
@@ -69,89 +55,130 @@ const PAGE_FAQ: AioFaqItem[] = [
   {
     q: "Are all the LMU overlays included in the subscription?",
     page: "overlays",
-    a: `Yes. There is one plan: ${TRIAL_DAYS} days free, then ${PRICE} a month, and it includes all twenty widgets in both destinations — OBS and in-game — along with the race engineer, setup tools, pit wall and every update. There is no cut-down tier and no widget held back as an upsell.`,
+    a: `Yes. There is one plan: ${TRIAL_DAYS} days free, then ${PRICE} a month. It includes all twenty widgets in both destinations (OBS and in-game), the race engineer, setup tools, pit wall and every update. There is no cut-down tier and no widget held back as an upsell.`,
   },
 ];
 
-/** The two places every widget can be sent. */
-const DESTINATIONS: { icon: typeof Monitor; title: string; body: string; points: string[] }[] = [
+/** The two destinations, side by side. `both` spans the two columns. */
+const DESTINATIONS: { label: string; obs?: ReactNode; game?: ReactNode; both?: ReactNode }[] = [
+  { label: "Made for", obs: "Streaming", game: "Driving" },
   {
-    icon: MonitorPlay,
-    title: "OBS Browser Source overlays",
-    body:
-      "For streaming. Every widget has its own Browser Source URL — copy it from the widget's card and drop it into your scene. The overlays are rendered by the Chromium instance OBS already runs, so nothing new starts on your PC.",
-    points: [
-      "One URL per widget, so each sits exactly where your scene wants it",
-      "Its own background-opacity override on every widget",
-      "Stream chat merges YouTube and Twitch into one column, Super Chats included",
-    ],
+    label: "Drawn by",
+    obs: "The Chromium instance OBS already runs for Browser Sources. Nothing new starts on your PC.",
+    game: "The app, directly over the sim.",
   },
   {
-    icon: Monitor,
-    title: "In-game HUD layer",
-    body:
-      "For driving. The in-game layer draws the widgets over the sim itself, and the layout editor lets you drag and resize each one exactly where you want it over the cockpit — including onto the side screens of a triple-monitor rig.",
-    points: [
-      "A layout editor: drag and resize each widget over the cockpit",
-      "Place widgets onto the side screens of a triple-monitor rig",
-      "Race control brings start lights, flags and sector yellows into your layout, without the stock HUD",
-    ],
+    label: "Placement",
+    obs: "One URL per widget, copied from its card, so each one sits exactly where your scene wants it.",
+    game: "A layout editor: drag and resize each widget over the cockpit, including onto the side screens of a triple-monitor rig.",
+  },
+  { label: "Background", both: "Its own opacity override on every widget." },
+  {
+    label: "Specific to it",
+    obs: "Stream chat merges YouTube and Twitch into one column, Super Chats included.",
+    game: "Race control brings start lights, flags and sector yellows into your layout, so the stock HUD can go.",
   },
 ];
 
-/** How you actually get running. Deliberately short. */
-const STEPS: { icon: typeof Download; title: string; body: string }[] = [
+/** Teardown notes for the MFD mock. Positions are % of the mock's box. */
+const MFD_NOTES: Annotation[] = [
   {
-    icon: Download,
+    side: "left",
+    x: 30,
+    y: 20,
+    label: "Race control",
+    body: "Serving a penalty strips the stop back to no service, and leaves your wing, ducts, pressures and fuel ratio alone.",
+  },
+  {
+    side: "left",
+    x: 2,
+    y: 56,
+    label: "Colour groups",
+    body: "Tyres, pressures, ducts, aero, fuel and brakes each carry a colour, so the menu reads as blocks.",
+  },
+  {
+    side: "left",
+    x: 22,
+    y: 88,
+    label: "Driving aids",
+    body: "Brake bias, TC, ABS and motor map, on the same four buttons.",
+  },
+  {
+    side: "right",
+    x: 99,
+    y: 2,
+    label: "Read back",
+    body: "Every value is read back from the game before it's shown. If LMU refuses a change, you see what LMU kept.",
+  },
+  {
+    side: "right",
+    x: 70,
+    y: 51,
+    label: "Tyre row",
+    body: "Only offers compounds this car has at this event, and clamps at both ends so one blind press can't cancel the tyres you just booked.",
+  },
+  {
+    side: "right",
+    x: 93,
+    y: 77,
+    label: "Four binds",
+    body: "Up, down, plus, minus. Put them on a wheel, a Stream Deck or a hotkey and every adjustable row is in reach.",
+  },
+];
+
+/** The live widgets, laid out like a monitor wall. */
+function WallTile({
+  name,
+  note,
+  className,
+  children,
+}: {
+  name: string;
+  note: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <figure className={className}>
+      {children}
+      <figcaption className="mt-3 flex gap-3 border-t border-line pt-3 text-sm text-muted">
+        <span className="shrink-0 font-mono text-[10px] uppercase leading-5 tracking-[0.2em] text-cyan">{name}</span>
+        <span>{note}</span>
+      </figcaption>
+    </figure>
+  );
+}
+
+const STEPS: { title: string; body: string }[] = [
+  {
     title: "Install and sign in",
-    body:
-      `One signed Windows installer, one window, no SmartScreen warnings. Create an account, start the ${TRIAL_DAYS}-day trial, and the server starts itself the moment the app opens.`,
+    body: `One signed Windows installer, no SmartScreen warning. Create an account and start the ${TRIAL_DAYS}-day trial. The server starts itself when the app opens.`,
   },
   {
-    icon: Boxes,
-    title: "Tick the overlays you want",
-    body:
-      "Each widget is a card with its own switch. Every card has two independent destinations: OBS and in-game. A widget can be on in one and off in the other.",
+    title: "Tick the overlays",
+    body: "Each widget is a card with a switch for OBS and a switch for in-game. One can be on and the other off.",
   },
   {
-    icon: Monitor,
     title: "Paste a URL into OBS",
-    body:
-      "Copy each overlay's Browser Source URL from its card and drop it into your scene. Or skip OBS entirely and use the in-game layer, dragging widgets over the sim.",
+    body: "Copy the widget's Browser Source URL from its card into your scene. Or skip OBS and drag widgets over the sim instead.",
   },
   {
-    icon: Repeat,
-    title: "Stay current, quietly",
-    body:
-      "The telemetry plugin installs itself, and new versions announce themselves in the app but are never installed for you. A live stream is never interrupted by an update you didn't ask for.",
+    title: "Updates wait for you",
+    body: "The telemetry plugin installs itself. New versions are announced in the app and never installed for you, so an update can't interrupt a live stream.",
   },
 ];
 
-function Bullets({ items }: { items: readonly string[] }) {
-  return (
-    <ul className="mt-6 space-y-3">
-      {items.map((point) => (
-        <li key={point} className="flex items-start gap-3 text-muted">
-          <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-success" />
-          <span>{point}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
+const PERFORMANCE: [string, string][] = [
+  ["Second browser", "None. Nothing launches beside the game to draw the overlays."],
+  ["Runtime downloads", "None. Native fonts, no CDN."],
+  ["Blur and backdrop filters", "None. They are the expensive part of a glassy overlay."],
+  ["Audio cues", "Synthesised from an oscillator, not played from files."],
+  ["Track map", "~40 KB per circuit, drawn once then blitted each frame."],
+  ["Telemetry rate", "30 Hz default, 1–120 Hz on one slider."],
+  ["Frame size", "~1–2 KB of JSON over loopback, serialised once for every source."],
+];
 
-function FactTiles({ items }: { items: readonly (readonly [string, string])[] }) {
-  return (
-    <div className="mt-6 grid gap-3 sm:grid-cols-2">
-      {items.map(([title, body]) => (
-        <div key={title} className="rounded-card border border-line bg-base/50 p-4">
-          <h3 className="font-display text-sm uppercase tracking-wide text-ink">{title}</h3>
-          <p className="mt-1 text-sm text-muted">{body}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
+const quote = AIO_REVIEWS.find((r) => r.author === "Timmy P") ?? AIO_REVIEWS[0];
 
 export default function LmuOverlaysPage() {
   return (
@@ -167,346 +194,337 @@ export default function LmuOverlaysPage() {
         }
         lead={
           <>
-            Twenty lightweight <strong className="text-ink">Le Mans Ultimate overlays</strong> in one
-            Windows app — standings, relative, radar, a 3D track map, fuel, tyres, track limits and a
-            fully working MFD. Send each one to OBS as a Browser Source for your{" "}
+            Twenty <strong className="text-ink">Le Mans Ultimate overlays</strong> in one Windows app:
+            standings, relative, radar, a 3D track map, fuel, tyres, track limits and a working MFD.
+            Send each one to OBS as a Browser Source for your{" "}
             <strong className="text-ink">LMU streaming overlay</strong>, draw it over the sim as an{" "}
-            <strong className="text-ink">in-game HUD</strong>, or both at once. They run inside the
-            browser OBS already has, need no plugin for LMU, and work with rFactor 2 too.
+            <strong className="text-ink">in-game HUD</strong>, or both. They run in the browser OBS
+            already has, need no plugin for LMU, and work with rFactor 2.
           </>
         }
-        points={[
-          "20 widgets, one price",
-          "OBS Browser Source + in-game layer",
-          "No plugin needed for LMU",
-          "Runs inside OBS's own browser",
-          "32 track maps bundled",
+        stats={[
+          { value: "20", label: "Widgets" },
+          { value: "32", label: "Track maps bundled" },
+          { value: "2", label: "Destinations each" },
+          { value: "1–120", label: "Hz, your choice" },
         ]}
+        points={["One price, every widget", "No plugin needed for LMU", "Runs in OBS's own browser"]}
         actions={
           <Button href="#widgets" size="lg" variant="outline">
-            <Layers size={18} />
             See every overlay
           </Button>
         }
-        visual={
-          <div className="relative">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -inset-x-6 -inset-y-4 rounded-[32px] bg-gradient-to-br from-cyan/5 via-accent/10 to-accent-2/5 blur-2xl"
-            />
-            <div className="relative grid gap-4">
-              <StandingsMock />
-              <TrackLimitsMock />
-            </div>
-          </div>
-        }
+        visualCaption="Overlay · Standings"
+        visual={<StandingsMock />}
       />
 
-      {/* ── The catalogue ─────────────────────────────────────────────────── */}
-      <section id="widgets" className="scroll-mt-36 py-16">
+      {/* ── 01 The catalogue ──────────────────────────────────────────────── */}
+      <section id="widgets" className="scroll-mt-36 py-20">
         <div className="container-rail">
           <Reveal>
-            <span className="kicker mb-4">The widget catalogue</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              Every LMU overlay <span className="text-gradient">in the box</span>
-            </h2>
-            <p className="mt-5 max-w-3xl text-lg text-muted">
-              Twenty widgets, each with its own switch and its own two destinations — an OBS Browser
-              Source and the in-game layer. A widget can be on in one and off in the other, every one
-              has its own background-opacity override, and every one of them is included in{" "}
-              <Link href="/apex-overlay-system#pricing" className="text-cyan hover:underline">
-                the one price
-              </Link>
-              . Filter by what you need: timing and pace, track and traffic, the car, strategy, or
-              your stream.
-            </p>
-          </Reveal>
-
-          <div className="mt-8">
-            <WidgetCatalogue />
-          </div>
-
-          {/* The widgets rendered live — the real overlays rebuilt from the app's own drawing code. */}
-          <div className="mt-14 grid gap-10">
-            <div>
-              <h3 className="text-2xl font-bold text-ink">Relative, radar and tyre overlays</h3>
-              <p className="mt-2 max-w-3xl text-muted">
-                The relative shows the nearest cars on track with a live delta, each tagged in its
-                class colour. The proximity radar is a spotter&apos;s-eye strip drawn to true scale,
-                with the pit-release light built in. Tyre temps give four-corner temperatures in five
-                view modes, from core temp to a full tyre map.
-              </p>
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                <RelativeMock />
-                <RadarMock />
-                <TyreTempMock />
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-2xl font-bold text-ink">Speedo cluster and race control</h3>
-              <p className="mt-2 max-w-3xl text-muted">
-                Speed, gear, revs, hybrid battery and aid chips — the panel lights up as revs rise.
-                Race control brings start lights, flags, sector yellows and pit confirmations to your
-                own layout, so you can turn off the stock HUD.
-              </p>
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                <SpeedoMock className="md:col-span-2" />
-                <RaceControlMock />
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-2xl font-bold text-ink">Fuel calculator and reference pace</h3>
-              <p className="mt-2 max-w-3xl text-muted">
-                The fuel calculator gives per-lap use, laps remaining, fuel-to-finish and your pit
-                window; the crew can follow the same strategy on the{" "}
-                <Link href="/lmu-pit-wall" className="text-cyan hover:underline">
-                  LMU pit wall
-                </Link>
-                . Reference pace puts your lap on a six-band ladder as a percentage of alien pace for
-                your exact class and layout, on Ohne Speed&apos;s reference times — and{" "}
-                <Link href="/lmu-telemetry" className="text-cyan hover:underline">
-                  LMU telemetry review
-                </Link>{" "}
-                shows you where the rest of the time went.
-              </p>
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <FuelMock />
-                <RefPaceMock />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── OBS vs in-game ────────────────────────────────────────────────── */}
-      <section id="obs-and-in-game" className="scroll-mt-36 border-y border-line bg-surface/30 py-16">
-        <div className="container-rail">
-          <div className="mb-10 max-w-3xl">
-            <span className="kicker mb-4">Two destinations per widget</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              OBS overlays and in-game HUD — <span className="text-gradient">one switch each</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              Every widget has two independent destinations, and each has its own switch. Streamers
-              use OBS. Drivers who never stream use the in-game layer. Plenty of people use both at
-              once — a full standings tower for the viewers, a slim relative and fuel readout for
-              yourself.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {DESTINATIONS.map((d) => (
-              <Card key={d.title} variant="default" className="flex flex-col p-7">
-                <d.icon size={26} className="text-cyan" />
-                <h3 className="mt-4 text-2xl font-bold text-ink">{d.title}</h3>
-                <p className="mt-3 text-muted">{d.body}</p>
-                <Bullets items={d.points} />
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── MFD deep dive ─────────────────────────────────────────────────── */}
-      <section id="mfd" className="container-rail scroll-mt-36 py-16">
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <div className="order-2 lg:order-1">
-            <MfdMock />
-          </div>
-          <div className="order-1 lg:order-2">
-            <span className="kicker mb-4">The MFD · LMU only</span>
-            <h2 className="text-4xl font-bold text-ink">
-              The LMU MFD, <span className="text-gradient">driven from your wheel</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              Every other overlay that mentions an MFD shows you a readout. This one is the menu.
-              Race control at the top, LMU&apos;s own pit strategy in the middle — colour-grouped by
-              category so tyres, pressures, ducts, aero, fuel and brakes read as blocks rather than a
-              wall — and your driving aids underneath: brake bias, TC, ABS and motor map.
-            </p>
-            <Bullets
-              items={[
-                "Bind four buttons — up, down, plus, minus — on a wheel, a Stream Deck or a hotkey, and every adjustable row is reachable without taking your hands off the wheel.",
-                "The tyre row only offers compounds this car actually has at this event, and clamps at both ends so one blind press can't cancel the tyres you just booked.",
-                "Every value is read back from the game before it's shown — if LMU refuses a change, you see what LMU kept, not what you asked for.",
-                "Serving a penalty strips the stop back to no service, but leaves your wing, ducts, pressures and fuel ratio alone.",
-              ]}
+            <SectionHeading
+              index="01"
+              label="Catalogue"
+              title="Every LMU overlay in the box"
+              lead={
+                <>
+                  Twenty widgets. Each has its own switch, its own two destinations (an OBS Browser
+                  Source and the in-game layer) and its own background-opacity override. All twenty are
+                  in{" "}
+                  <Link href="/apex-overlay-system#pricing" className="text-cyan hover:underline">
+                    the one price
+                  </Link>
+                  .
+                </>
+              }
             />
+          </Reveal>
+          <WidgetCatalogue />
+        </div>
+      </section>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-card border border-line bg-surface/60 p-5">
-                <div className="flex items-center gap-2">
-                  <Sliders size={18} className="text-cyan" />
-                  <h3 className="font-display text-sm font-bold uppercase tracking-wide text-ink">
-                    Over LMU&apos;s REST API
-                  </h3>
-                </div>
-                <p className="mt-2 text-sm text-muted">
-                  Pit changes travel over LMU&apos;s own REST API, so the in-game MFD never has to be
-                  on screen and the game doesn&apos;t even need to be the focused window.
-                </p>
+      {/* ── 02 The monitor wall ───────────────────────────────────────────── */}
+      <section id="on-screen" className="scroll-mt-36 border-y border-line bg-surface/30 py-20">
+        <div className="container-rail">
+          <SectionHeading
+            index="02"
+            label="On screen"
+            title="Relative, radar, fuel and tyre overlays"
+            lead="The widgets below are rebuilt from the app's own drawing code. The data is a representative LMU session, not live telemetry."
+          />
+          <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 lg:grid-cols-12">
+            <WallTile name="Relative" note="The nearest cars on track with a live delta, each tagged in its class colour." className="lg:col-span-5">
+              <RelativeMock />
+            </WallTile>
+            <WallTile name="Radar" note="A spotter's-eye strip drawn to true scale, with the pit-release light built in." className="lg:col-span-3">
+              <RadarMock />
+            </WallTile>
+            <WallTile name="Tyres" note="Four-corner temperatures in five view modes, from core temp to a full tyre map." className="md:col-span-2 lg:col-span-4">
+              <TyreTempMock />
+            </WallTile>
+            <WallTile name="Speedo" note="Speed, gear, revs, hybrid battery and aid chips. The panel lights up as revs rise." className="md:col-span-2 lg:col-span-8">
+              <SpeedoMock />
+            </WallTile>
+            <WallTile name="Race control" note="Start lights, flags, sector yellows and pit confirmations in your own layout." className="md:col-span-2 lg:col-span-4">
+              <RaceControlMock />
+            </WallTile>
+            <WallTile
+              name="Fuel"
+              note={
+                <>
+                  Per-lap use, laps remaining, fuel to finish and your pit window. The crew can follow
+                  the same numbers on the{" "}
+                  <Link href="/lmu-pit-wall" className="text-cyan hover:underline">
+                    LMU pit wall
+                  </Link>
+                  .
+                </>
+              }
+              className="lg:col-span-6"
+            >
+              <FuelMock />
+            </WallTile>
+            <WallTile
+              name="Ref pace"
+              note={
+                <>
+                  Your lap on a six-band ladder, as a percentage of alien pace for your class and
+                  layout, on Ohne Speed&apos;s reference times.{" "}
+                  <Link href="/lmu-telemetry" className="text-cyan hover:underline">
+                    LMU telemetry review
+                  </Link>{" "}
+                  shows where the rest of the time went.
+                </>
+              }
+              className="lg:col-span-6"
+            >
+              <RefPaceMock />
+            </WallTile>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 03 OBS vs in-game, as a spec sheet ────────────────────────────── */}
+      <section id="obs-and-in-game" className="container-rail scroll-mt-36 py-20">
+        <SectionHeading
+          index="03"
+          label="Destinations"
+          title="OBS overlays and in-game HUD, one switch each"
+          lead="Every widget has two independent destinations. Streamers use OBS, drivers who never stream use the in-game layer, and plenty run both: a full standings tower for the viewers, a slim relative and fuel readout for themselves."
+        />
+        <div className="border-t border-line">
+          <div className="hidden grid-cols-[11rem_1fr_1fr] gap-8 border-b border-line py-3 font-mono text-[10px] uppercase tracking-[0.24em] text-subtle md:grid">
+            <span />
+            <h3 className="font-mono text-[11px] font-normal tracking-[0.24em] text-cyan">OBS Browser Source</h3>
+            <h3 className="font-mono text-[11px] font-normal tracking-[0.24em] text-cyan">In-game HUD layer</h3>
+          </div>
+          <dl>
+            {DESTINATIONS.map((row) => (
+              <div key={row.label} className="grid gap-2 border-b border-line py-4 md:grid-cols-[11rem_1fr_1fr] md:gap-8">
+                <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-subtle">{row.label}</dt>
+                {row.both ? (
+                  <dd className="text-ink md:col-span-2">{row.both}</dd>
+                ) : (
+                  <>
+                    <dd className="text-ink">
+                      <span className="mr-2 font-mono text-[10px] uppercase tracking-[0.2em] text-cyan md:hidden">OBS</span>
+                      {row.obs}
+                    </dd>
+                    <dd className="text-ink">
+                      <span className="mr-2 font-mono text-[10px] uppercase tracking-[0.2em] text-cyan md:hidden">In-game</span>
+                      {row.game}
+                    </dd>
+                  </>
+                )}
               </div>
-              <div className="rounded-card border border-line bg-surface/60 p-5">
-                <div className="flex items-center gap-2">
-                  <Keyboard size={18} className="text-cyan" />
-                  <h3 className="font-display text-sm font-bold uppercase tracking-wide text-ink">
-                    Key-binding helper
-                  </h3>
-                </div>
-                <p className="mt-2 text-sm text-muted">
-                  The overlay presses LMU&apos;s own key bindings, and a wheel-only binding can&apos;t
-                  be pressed from outside the game — so the app finds what&apos;s unbound and binds it
-                  for you in one click, using scancodes no keyboard on earth produces. Your existing
-                  binds are never touched, a timestamped backup is taken first, and there&apos;s an
-                  undo.
-                </p>
-              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
+      {/* ── 04 MFD teardown ───────────────────────────────────────────────── */}
+      <section id="mfd" className="scroll-mt-36 border-t border-line py-20">
+        <div className="container-rail">
+          <SectionHeading
+            index="04"
+            label="MFD · LMU only"
+            title="The LMU MFD, driven from your wheel"
+            lead="A working copy of LMU's MFD menu, driven from four buttons: race control at the top, LMU's own pit strategy in the middle, your driving aids underneath."
+          />
+          <Annotated caption="Overlay · MFD" meta="Teardown" notes={MFD_NOTES} mockWidth={26}>
+            <MfdMock />
+          </Annotated>
+
+          <div className="mt-12 grid gap-10 md:grid-cols-2">
+            <div className="border-l border-line pl-5">
+              <h3 className="font-mono text-[11px] font-normal tracking-[0.24em] text-cyan">Over LMU&apos;s REST API</h3>
+              <p className="mt-3 text-muted">
+                Pit changes travel over LMU&apos;s own REST API. The in-game MFD never has to be on
+                screen, and the game doesn&apos;t need to be the focused window.
+              </p>
+            </div>
+            <div className="border-l border-line pl-5">
+              <h3 className="font-mono text-[11px] font-normal tracking-[0.24em] text-cyan">Key-binding helper</h3>
+              <p className="mt-3 text-muted">
+                The overlay presses LMU&apos;s own key bindings, and a wheel-only binding can&apos;t be
+                pressed from outside the game. So the app finds what&apos;s unbound and binds it in one
+                click, using scancodes no keyboard produces. Your existing binds aren&apos;t touched, a
+                timestamped backup is taken first, and there&apos;s an undo.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Track map deep dive ───────────────────────────────────────────── */}
-      <section id="track-map" className="scroll-mt-36 border-y border-line bg-surface/30 py-16">
-        <div className="container-rail grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div>
-            <span className="kicker mb-4">
-              <MapIcon size={14} className="mr-1 inline" aria-hidden />
-              32 bundled, the rest learned
-            </span>
-            <h2 className="text-4xl font-bold text-ink">
-              3D track map <span className="text-gradient">overlay</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              The radar answers &ldquo;who is beside me&rdquo;. The LMU track map overlay answers
-              &ldquo;where is everyone&rdquo; — traffic two corners ahead, how far back the car
-              you&apos;re chasing really is, whether a yellow is on your part of the circuit. The
-              whole circuit is drawn as a raised 2.5-D ribbon with a dot for every car in the session
-              in its class colour.
+      {/* ── 05 Track map, 7/5 ─────────────────────────────────────────────── */}
+      <section id="track-map" className="scroll-mt-36 border-y border-line bg-surface/30 py-20">
+        <div className="container-rail">
+          <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
+            <figure className="border border-line bg-base/60 lg:col-span-7">
+              <figcaption className="flex items-center justify-between border-b border-line px-4 py-2 font-mono text-[10px] uppercase tracking-[0.24em] text-subtle">
+                <span>Overlay · Track map</span>
+                <span className="text-cyan">Classic red</span>
+              </figcaption>
+              <div className="p-4 sm:p-6">
+                <TrackMapMock large />
+              </div>
+            </figure>
+
+            <div className="lg:col-span-5">
+              <SectionHeading
+                index="05"
+                label="32 bundled, the rest learned"
+                title="3D track map overlay"
+                lead="The radar tells you who is beside you. The track map shows where everyone is: traffic two corners ahead, the real gap to the car you're chasing, and whether a yellow is on your part of the circuit."
+              />
+              <ol className="border-t border-line">
+                {[
+                  ["32 circuits in the box", "Le Mans, Spa, Monza, Sebring, Fuji, Imola and the rest of the LMU and WEC calendar."],
+                  ["Everywhere else, learned", "Built from your first lap, cached locally, drawn instantly after that."],
+                  ["True world coordinates", "A car running wide is drawn running wide."],
+                  ["Your car carries the gradient", "Everyone else is in class colour. Pit lane is faded."],
+                ].map(([title, body], i) => (
+                  <li key={title} className="grid grid-cols-[2rem_1fr] gap-3 border-b border-line py-3">
+                    <span className="font-mono text-xs tabular-nums text-subtle">{String(i + 1).padStart(2, "0")}</span>
+                    <span>
+                      <span className="block font-semibold text-ink">{title}</span>
+                      <span className="text-sm text-muted">{body}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+
+          <div className="mt-12 grid gap-8 text-muted md:grid-cols-2">
+            <p>
+              The circuit is a raised 2.5-D ribbon with a dot for every car in the session, lit as one
+              material by one light. Each segment is shaded from the direction the road runs, so a
+              straight and the corner it feeds read as two faces of one solid. Elevation is exaggerated
+              and the road is extruded down to a ground plane, so a climb reads as the track pulling
+              away from its base. Two styles ship: the classic red shown here, and a brand style that
+              runs cyan at the start line to pink at the end of the lap.
             </p>
-            <p className="mt-4 text-lg text-muted">
-              It&apos;s one material lit by one light, not a flat road with a coloured wall glued to
-              it. Every segment is shaded from the direction the road actually runs, so a straight
-              and the corner it feeds read as two faces of one solid. Elevation is deliberately
-              exaggerated and the road is extruded down to a ground plane, so a climb reads as the
-              track pulling away from its own base. Two styles ship: the classic red shown here, and
-              a brand style whose hue runs cyan at the start line to pink at the end of the lap.
+            <p>
+              LMU packs its circuits into encrypted archives, and no API exposes the shape of the road.
+              The sim does publish where your car is thirty times a second. So the first time you drive
+              an unknown track, the widget builds the map from your own lap, caches it locally and
+              draws it instantly every session after. There&apos;s no per-track setup, at any LMU or rF2
+              circuit.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 06 Track limits + pit predictor, double feature ───────────────── */}
+      <section id="track-limits" className="container-rail scroll-mt-36 py-20">
+        <SectionHeading
+          index="06"
+          label="The sim's own numbers"
+          title="Track limits and pit-stop overlays"
+          lead="One tells you how many more careless kerbs you can afford. The other tells you what the next stop will cost."
+        />
+
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-0 lg:divide-x lg:divide-line">
+          <div className="lg:pr-12">
+            <h3 className="text-2xl font-bold text-ink">LMU track limits overlay</h3>
+            <dl className="mt-6 grid grid-cols-2 border-y border-line">
+              <div className="flex flex-col-reverse py-4 pr-4">
+                <dt className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-subtle">A wheel over the line</dt>
+                <dd className="font-mono text-4xl font-semibold tabular-nums leading-none text-flag-amber">0.25</dd>
+              </div>
+              <div className="flex flex-col-reverse border-l border-line py-4 pl-4">
+                <dt className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-subtle">A cut that gained time</dt>
+                <dd className="font-mono text-4xl font-semibold tabular-nums leading-none text-flag-amber">1.00</dd>
+              </div>
+            </dl>
+            <div className="mt-6">
+              <TrackLimitsMock large />
+            </div>
+            <p className="mt-6 text-muted">
+              LMU charges each cut on the time it gained and issues a drive-through when your running
+              total reaches the session&apos;s allowance. The headline number counts{" "}
+              <strong className="text-ink">down</strong>, because that&apos;s the one you act on:
+              &ldquo;1.75&rdquo; means a couple more careless kerbs and you&apos;re in the pit lane.
             </p>
             <p className="mt-4 text-muted">
-              LMU packs its circuits into encrypted archives and no API exposes the shape of the
-              road — but the sim does publish where your car is thirty times a second. So the first
-              time you drive an unknown track, the widget builds the map from your own lap, caches it
-              locally and draws it instantly every session after. No per-track setup, at any LMU or
-              rF2 circuit.
+              Penalties are named when they land (<strong className="text-ink">DRIVE THROUGH</strong>,{" "}
+              <strong className="text-ink">STOP-GO 10S</strong>, even &ldquo;serve within 3 laps&rdquo;)
+              and confirmed with <strong className="text-ink">PENALTY SERVED</strong> once paid. A
+              rival&apos;s penalty online never touches your count.
             </p>
-            <FactTiles
-              items={[
-                ["32 circuits in the box", "Le Mans, Spa, Monza, Sebring, Fuji, Imola and the rest of the LMU and WEC calendar, ready to draw."],
-                ["Everywhere else, learned", "Built from your first lap, cached locally, drawn instantly forever."],
-                ["Cars in true world coordinates", "A car running wide is drawn running wide."],
-                ["Your car carries the gradient", "Everyone else in class colour; pit lane faded."],
-              ]}
-            />
-          </div>
-          <TrackMapMock large />
-        </div>
-      </section>
-
-      {/* ── Track limits + pit predictor ──────────────────────────────────── */}
-      <section id="track-limits" className="container-rail scroll-mt-36 py-16">
-        <div className="mb-10 max-w-3xl">
-          <span className="kicker mb-4">The sim&apos;s own numbers</span>
-          <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-            Track limits and <span className="text-gradient">pit-stop overlays</span>
-          </h2>
-          <p className="mt-5 text-lg text-muted">
-            The two LMU overlays that change how you drive: one tells you how many more careless
-            kerbs you can afford, the other what the next stop will cost you.
-          </p>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div>
-            <TrackLimitsMock large />
-            <div className="mt-6">
-              <div className="flex items-center gap-3">
-                <TrafficCone size={22} className="text-flag-amber" />
-                <h3 className="text-2xl font-bold text-ink">LMU track limits overlay</h3>
-              </div>
-              <p className="mt-4 text-muted">
-                LMU charges each cut on the time it gained — a quarter-point for a wheel over the
-                line, a full point for a cut that actually gained you something — and issues a
-                drive-through when your running total hits the session&apos;s allowance. The headline
-                number counts <strong className="text-ink">down</strong>, because that&apos;s the one
-                you act on: &ldquo;1.75&rdquo; means a couple more careless kerbs and you&apos;re
-                walking down the pit lane.
-              </p>
-              <p className="mt-4 text-muted">
-                When a penalty lands, it&apos;s named — <strong className="text-ink">DRIVE
-                THROUGH</strong>, <strong className="text-ink">STOP-GO 10S</strong>, even
-                &ldquo;serve within 3 laps&rdquo; — and confirmed with{" "}
-                <strong className="text-ink">PENALTY SERVED</strong> when you&apos;ve paid it. A
-                rival&apos;s penalty online never touches your own count.
-              </p>
-            </div>
           </div>
 
-          <div>
-            <DamagePredictorMock />
+          <div className="lg:pl-12">
+            <h3 className="text-2xl font-bold text-ink">Pit-stop predictor</h3>
             <div className="mt-6">
-              <div className="flex items-center gap-3">
-                <Timer size={22} className="text-cyan" />
-                <h3 className="text-2xl font-bold text-ink">Pit-stop predictor</h3>
-              </div>
-              <p className="mt-4 text-muted">
-                Mid-stint it answers the question you can&apos;t answer from the cockpit: what does
-                this damage cost me to fix? The figure is the sim&apos;s own live estimate, read
-                straight through and rounded up to the nearest five seconds so the overlay never
-                disagrees with the message on your screen. Tyres are priced separately and shown
-                beside it, never summed — two honest figures you can add up beat one that might be
-                wrong by the whole tyre time.
-              </p>
-              <p className="mt-4 text-muted">
-                The moment the car stops in its box, that slot becomes a countdown to release with a
-                progress bar. Past zero it keeps going and says so, because the booked time is a floor
-                and not a promise — LMU draws a random delay when the stop happens and publishes only
-                the cap. Freezing on zero and hoping would be the one confidently-wrong number this
-                widget is careful never to show.
-              </p>
+              <DamagePredictorMock />
             </div>
+            <dl className="mt-6 border-t border-line text-sm">
+              {[
+                ["Repair", "The sim's own live estimate, rounded up to the nearest 5 s so it matches the message on your screen."],
+                ["Tyres", "Priced separately and shown beside the repair time. Never summed."],
+                ["In the box", "The slot becomes a countdown to release, with a progress bar."],
+                ["Past zero", "It keeps counting and says so. The booked time is a floor: LMU adds a random delay at the stop and publishes only the cap."],
+              ].map(([term, detail]) => (
+                <div key={term} className="grid grid-cols-[6.5rem_1fr] gap-4 border-b border-line py-3">
+                  <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-subtle">{term}</dt>
+                  <dd className="text-muted">{detail}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
       </section>
 
-      {/* ── Lighter — and how it compares ─────────────────────────────────── */}
-      <section id="performance" className="scroll-mt-36 border-y border-line bg-surface/30 py-16">
-        <div className="container-rail grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-          <div>
-            <span className="kicker mb-4">Weight is a feature</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              The lightest LMU overlays <span className="text-gradient">you can run</span>
-            </h2>
-            <h3 className="mt-8 text-2xl font-bold text-ink">How it compares</h3>
-            <p className="mt-3 text-lg text-muted">
-              Most overlay tools solve the problem by launching a second browser and drawing your
-              telemetry in it. That&apos;s a whole extra renderer competing with the sim for the frames
-              you actually paid your GPU for.
+      {/* ── Pull quote ────────────────────────────────────────────────────── */}
+      <section aria-label="What drivers say" className="border-y border-line bg-surface/30 py-16">
+        <figure className="container-rail max-w-4xl">
+          <blockquote className="font-display text-3xl font-bold uppercase leading-tight text-ink sm:text-4xl">
+            &ldquo;{quote.body}&rdquo;
+          </blockquote>
+          <figcaption className="mt-6 flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.24em] text-subtle">
+            <span aria-hidden className="h-px w-8 bg-line" />
+            <span className="text-ink">{quote.author}</span>
+            <span>{quote.context}</span>
+          </figcaption>
+        </figure>
+      </section>
+
+      {/* ── 07 Performance, prose + spec sheet ────────────────────────────── */}
+      <section id="performance" className="container-rail scroll-mt-36 py-20">
+        <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
+          <div className="lg:col-span-5">
+            <SectionHeading index="07" label="Weight" title="The lightest LMU overlays you can run" />
+            <h3 className="text-xl font-bold text-ink">How it compares</h3>
+            <p className="mt-3 text-muted">
+              Most overlay tools launch a second browser and draw your telemetry in it. That is a whole
+              extra renderer competing with the sim for GPU frames.
             </p>
-            <p className="mt-4 text-lg text-muted">
-              This one doesn&apos;t. The overlays are plain HTML and JavaScript rendered by the
-              Chromium instance <strong className="text-ink">OBS already runs</strong> for Browser
-              Sources — so on stream, nothing new starts at all. Telemetry arrives as compact JSON
-              over a loopback WebSocket at a rate you set, stringified once and shared across every
-              source rather than re-encoded per widget.
-            </p>
-            <h3 className="mt-8 text-2xl font-bold text-ink">Built to stay cheap</h3>
-            <p className="mt-3 text-lg text-muted">
-              <strong className="text-ink">No web fonts</strong> and no CDN, so nothing is fetched at
-              runtime; <strong className="text-ink">no blur or backdrop filters</strong>, which are
-              expensive to composite live; and the audio cues are synthesised from an oscillator
-              rather than played from sound files. The{" "}
+            <p className="mt-4 text-muted">
+              Apex AIO&apos;s overlays are plain HTML and JavaScript, rendered by the Chromium instance{" "}
+              <strong className="text-ink">OBS already runs</strong> for Browser Sources. On stream,
+              nothing new starts. The{" "}
               <Link href="/lmu-setups" className="text-cyan hover:underline">
                 setup workshop
               </Link>
@@ -514,95 +532,76 @@ export default function LmuOverlaysPage() {
               <Link href="/lmu-race-engineer" className="text-cyan hover:underline">
                 voice race engineer
               </Link>{" "}
-              live in the control panel — not in your stream.
+              live in the control panel, not in your stream.
             </p>
           </div>
 
-          <Card variant="glow" className="p-8">
-            <div className="flex items-center gap-3">
-              <Cpu className="text-cyan" size={22} />
-              <h3 className="text-2xl font-bold text-ink">What that buys you</h3>
-            </div>
-            <ul className="mt-6 space-y-4">
-              {[
-                ["No second browser", "Nothing launches alongside your game to draw the overlays."],
-                ["No runtime downloads", "Native fonts, no CDN, cues generated in code rather than fetched."],
-                ["No live blur", "Backdrop filters are the expensive part of a glassy overlay. There aren't any."],
-                ["One small map file", "A whole circuit is ~40 KB, drawn once then blitted each frame."],
-                ["A rate you control", "30 Hz by default, adjustable from 1 to 120 with one slider."],
-              ].map(([title, body]) => (
-                <li key={title} className="flex items-start gap-3">
-                  <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-success" />
-                  <span>
-                    <strong className="text-ink">{title}</strong>
-                    <span className="mt-0.5 block text-sm text-muted">{body}</span>
-                  </span>
-                </li>
+          <div className="lg:col-span-7">
+            <h3 className="mb-4 font-mono text-[11px] font-normal tracking-[0.24em] text-cyan">Spec sheet</h3>
+            <dl className="border-t border-line">
+              {PERFORMANCE.map(([term, detail]) => (
+                <div key={term} className="grid gap-1 border-b border-line py-3 sm:grid-cols-[13rem_1fr] sm:gap-6">
+                  <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-subtle">{term}</dt>
+                  <dd className="font-mono text-sm tabular-nums text-ink">{detail}</dd>
+                </div>
               ))}
-            </ul>
-          </Card>
-        </div>
+            </dl>
 
-        <div className="container-rail mt-10">
-          <Card variant="default" className="flex items-start gap-4 p-6">
-            <ShieldAlert size={22} className="mt-0.5 shrink-0 text-flag-amber" />
-            <div className="text-sm text-muted">
-              <h3 className="font-bold text-ink">rFactor 2 overlays — and where the data isn&apos;t there</h3>
-              <p className="mt-2">
-                The standings, relative, radar, track map, speedo, motion, pedals and fuel widgets
-                work on rFactor 2 as well as LMU. The MFD, race control, track-limit, damage and
-                setup features depend on data rFactor 2 doesn&apos;t publish, so on rF2 they read
-                &ldquo;no data&rdquo; rather than showing a plausible zero. Track-limit charges can
-                arrive up to ~25 seconds late because of how LMU flushes its log — the total is
-                right, sometimes it&apos;s right late. And repair and tyre times are shown side by
-                side rather than added together, because whether they overlap hasn&apos;t been
-                verified against a real stop.
+            <div className="mt-10 border-l-2 border-flag-amber/70 pl-5">
+              <h3 className="text-lg font-bold text-ink">rFactor 2 overlays, and where the data isn&apos;t there</h3>
+              <p className="mt-3 text-sm text-muted">
+                The standings, relative, radar, track map, speedo, motion, pedals and fuel widgets work
+                on rFactor 2 as well as LMU. The MFD, race control, track-limit, damage and setup
+                features depend on data rFactor 2 doesn&apos;t publish, so on rF2 they read &ldquo;no
+                data&rdquo; rather than showing a plausible zero.
+              </p>
+              <p className="mt-3 text-sm text-muted">
+                Track-limit charges can arrive up to ~25 seconds late because of how LMU flushes its
+                log. The total is right, sometimes late. Repair and tyre times are shown side by side
+                rather than added, because whether they overlap hasn&apos;t been verified against a real
+                stop.
               </p>
             </div>
-          </Card>
+          </div>
         </div>
       </section>
 
-      {/* ── Setup ─────────────────────────────────────────────────────────── */}
-      <section id="setup" className="container-rail scroll-mt-36 py-16">
-        <div className="mb-10 text-center">
-          <span className="kicker mb-4">Install → on screen</span>
-          <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-            Set up in OBS <span className="text-gradient">in minutes</span>
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted">
-            No terminal, no config files, no editing game directories. Open the app, tick what you
-            want, paste a URL.
-          </p>
+      {/* ── 08 Setup, as a timeline ───────────────────────────────────────── */}
+      <section id="setup" className="scroll-mt-36 border-t border-line py-20">
+        <div className="container-rail">
+          <SectionHeading
+            index="08"
+            label="Install to on screen"
+            title="Set up in OBS in minutes"
+            lead="Nothing to configure by hand. Open the app, tick what you want, paste a URL."
+            align="center"
+          />
+          <ol className="relative grid gap-8 md:grid-cols-4 md:gap-6">
+            <span aria-hidden className="absolute left-0 right-0 top-[11px] hidden h-px bg-line md:block" />
+            {STEPS.map((step, i) => (
+              <li key={step.title} className="relative">
+                <span className="relative inline-flex items-center gap-3 bg-base pr-3 font-mono text-xs tabular-nums text-cyan">
+                  <span aria-hidden className="h-[9px] w-[9px] border border-cyan bg-base" />
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="mt-4 text-xl font-bold text-ink">{step.title}</h3>
+                <p className="mt-2 text-sm text-muted">{step.body}</p>
+              </li>
+            ))}
+          </ol>
         </div>
-
-        <ol className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((step, i) => (
-            <li key={step.title}>
-              <Card variant="default" className="flex h-full flex-col gap-4 p-6">
-                <div className="flex items-center justify-between">
-                  <span className="font-display text-4xl font-bold text-line">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <step.icon size={24} className="text-accent" />
-                </div>
-                <h3 className="text-xl font-bold text-ink">{step.title}</h3>
-                <p className="text-sm text-muted">{step.body}</p>
-              </Card>
-            </li>
-          ))}
-        </ol>
       </section>
 
       <AioFaq
         heading="LMU overlay questions"
+        index="09"
         className="border-t border-line"
         items={[...getAioFaq("overlays"), ...PAGE_FAQ]}
       />
 
       <AioRelatedPages current="overlays" />
 
-      <AioTrialCta body="Every LMU overlay — in OBS, over the sim, or both — plus the race engineer, setups, pit wall and Review in the same app. Install it before your next session and see what you've been driving without." />
+      <AioTrialCta body="Every LMU overlay, in OBS, over the sim or both, plus the race engineer, setups, pit wall and Review in the same app. Install it before your next session." />
     </div>
   );
 }

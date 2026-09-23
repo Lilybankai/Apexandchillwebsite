@@ -1,24 +1,4 @@
 import Link from "next/link";
-import {
-  CheckCircle2,
-  CloudOff,
-  CloudSun,
-  Flag,
-  Fuel,
-  Gauge,
-  HelpCircle,
-  Lock,
-  Mic,
-  Radio,
-  ShieldCheck,
-  Timer,
-  Users,
-  Volume2,
-  Wrench,
-  Disc3,
-  Sparkles,
-} from "lucide-react";
-import { Card } from "@/components/ui/Card";
 import { Reveal } from "@/components/ui/Reveal";
 import { AskEngineer } from "@/components/overlay/AskEngineer";
 import { AioPageHero } from "@/components/aio/AioPageHero";
@@ -26,9 +6,13 @@ import { AioFaq } from "@/components/aio/AioFaq";
 import { AioRelatedPages } from "@/components/aio/AioRelatedPages";
 import { AioTrialCta } from "@/components/aio/AioTrialCta";
 import { JsonLd } from "@/components/aio/JsonLd";
+import { SectionHeading } from "@/components/aio/SectionHeading";
+import { Annotated, type Annotation } from "@/components/aio/overlays/Annotated";
+import { RadioPanel } from "@/components/aio/race-engineer/RadioPanel";
 import { AIO_PRODUCT } from "@/lib/aio";
 import { getAioFaq, type AioFaqItem } from "@/lib/aio-faq";
 import { buildAioBreadcrumbJsonLd, buildAioPageMetadata } from "@/lib/aio-seo";
+import { cn } from "@/lib/utils";
 
 const { priceDisplay: PRICE, trialDays: TRIAL_DAYS } = AIO_PRODUCT;
 
@@ -37,83 +21,52 @@ export const revalidate = 1800;
 
 export const metadata = buildAioPageMetadata("race-engineer");
 
-/** Press, ask, hear — how one exchange with the engineer goes. */
-const HOW_IT_WORKS: { icon: typeof Mic; title: string; body: string }[] = [
+/** Teardown of one exchange. Positions are % of the radio panel's box. */
+const RADIO_NOTES: Annotation[] = [
   {
-    icon: Disc3,
-    title: "Bind one wheel button",
-    body: "That's your push-to-talk. Hands stay where they belong — on the wheel, mid-corner.",
+    side: "left",
+    x: 10,
+    y: 24,
+    label: "Push-to-talk",
+    body: "Bind one button on your wheel. The mic opens only while you hold it, and a chirp tells you he's listening.",
   },
   {
-    icon: Mic,
-    title: "Press it, hear the chirp, ask",
-    body: "Out loud, in your own words: gap behind, fuel to the end, when do we pit, what's the weather doing.",
+    side: "left",
+    x: 30,
+    y: 82,
+    label: "The answer",
+    body: "Worked out from live telemetry on your PC and read back through the app's radio effects.",
   },
   {
-    icon: Radio,
-    title: "The answer comes back on the radio",
-    body: "In under a second, from your live telemetry, through radio effects — like a real pit wall on the other end.",
+    side: "right",
+    x: 86,
+    y: 5,
+    label: "Voice",
+    body: "Alan, the app's en-GB engineer. One of six voices bundled in the installer.",
+  },
+  {
+    side: "right",
+    x: 94,
+    y: 64,
+    label: "Response",
+    body: "Back in under a second, so your hands stay on the wheel mid-corner.",
   },
 ];
 
 /**
- * The areas the 28 offline questions cover. "Heard in the demo" lines are the
- * scripted demo questions above, each one of the real 28.
+ * The areas the 28 offline questions cover. "Demo" lines are the scripted
+ * demo questions in the hero, each one of the real 28.
  */
-const QUESTION_GROUPS: { icon: typeof Mic; title: string; body: string; demo?: string }[] = [
-  {
-    icon: Timer,
-    title: "Gaps",
-    body: "The car behind, the car ahead, and how the gap is moving.",
-    demo: "Gap behind?",
-  },
-  {
-    icon: Users,
-    title: "Rivals",
-    body: "Who's around you and what they're lapping — including where the leader is.",
-    demo: "Where's the leader?",
-  },
-  {
-    icon: Gauge,
-    title: "Pace",
-    body: "Your laps against theirs, so you know whether you're matching the car you're chasing.",
-  },
-  {
-    icon: Fuel,
-    title: "Fuel",
-    body: "Litres needed to the flag and what that means for the plan.",
-    demo: "Fuel to the end?",
-  },
-  {
-    icon: Sparkles,
-    title: "Tyres",
-    body: "Corner-by-corner condition, and which one is running away from you.",
-    demo: "How are my tyres?",
-  },
-  {
-    icon: Wrench,
-    title: "Damage",
-    body: "What's damaged, how badly, and roughly what it's costing a lap.",
-    demo: "Any damage?",
-  },
-  {
-    icon: Radio,
-    title: "Pit windows",
-    body: "When your window opens and who stops around you.",
-    demo: "When do we pit?",
-  },
-  {
-    icon: Flag,
-    title: "Flags",
-    body: "What race control is showing, and where you stand on track limits — without looking away from the road.",
-    demo: "Track limits?",
-  },
-  {
-    icon: CloudSun,
-    title: "Weather",
-    body: "Rain on the way, and which way the track temperature is heading.",
-    demo: "What's the weather doing?",
-  },
+const QUESTION_GROUPS: { title: string; body: string; demo?: string }[] = [
+  { title: "Gaps", body: "The car behind, the car ahead, and how the gap is moving.", demo: "Gap behind?" },
+  { title: "Rivals", body: "Who's around you and what they're lapping, including where the leader is.", demo: "Where's the leader?" },
+  { title: "Pace", body: "Your laps against theirs, so you know whether you're matching the car you're chasing." },
+  { title: "Fuel", body: "Litres needed to the flag and what that means for the plan.", demo: "Fuel to the end?" },
+  { title: "Tyres", body: "Corner-by-corner condition, and which one is running away from you.", demo: "How are my tyres?" },
+  { title: "Damage", body: "What's damaged, how badly, and roughly what it's costing a lap.", demo: "Any damage?" },
+  { title: "Pit windows", body: "When your window opens and who stops around you.", demo: "When do we pit?" },
+  { title: "Flags", body: "What race control is showing, and where you stand on track limits.", demo: "Track limits?" },
+  { title: "Weather", body: "Rain on the way, and which way the track temperature is heading.", demo: "What's the weather doing?" },
 ];
 
 /** The proactive radio dial, exactly as the app offers it. */
@@ -122,38 +75,47 @@ const DIAL: { level: string; tag: string; calls: string[]; body: string }[] = [
     level: "Off",
     tag: "Silence",
     calls: [],
-    body: "Off means off. He only speaks when you press the button and ask.",
+    body: "He only speaks when you press the button and ask.",
   },
   {
     level: "Essential",
-    tag: "The things that matter",
+    tag: "What matters",
     calls: ["Flags", "Fuel", "Penalties", "Damage"],
-    body: "The calls you'd want from a real engineer in a tight race — nothing you'd have to filter out.",
+    body: "The calls you'd want from a real engineer in a tight race.",
   },
   {
     level: "Standard",
-    tag: "Essential, plus the race around you",
+    tag: "Plus the race",
     calls: ["Everything on Essential", "Fastest laps", "Position changes", "Rivals' pit stops"],
-    body: "For when you want to know how the race is unfolding, not just your own car.",
+    body: "For following how the race is unfolding around your own car.",
   },
 ];
 
-/** New questions this page answers — none duplicated in the shared bank. */
+const PRIVACY: [string, string][] = [
+  ["Microphone", "Open only while you hold your push-to-talk button. There is no wake word."],
+  ["Team chat, stream, room", "Not listened to."],
+  ["The 28 core questions", "Answered on your PC from live telemetry. Nothing is sent anywhere."],
+  ["Free-form questions", "Transcribed on your PC by whisper.cpp. Only the text and a telemetry summary are sent."],
+  ["Your audio", "Never leaves your machine."],
+  ["A mumbled question", "He says “Say again?” instead of guessing."],
+];
+
+/** New questions this page answers, none duplicated in the shared bank. */
 const PAGE_FAQ: AioFaqItem[] = [
   {
     q: "What can I ask the LMU race engineer?",
     page: "race-engineer",
-    a: "Twenty-eight questions are answered instantly from live Le Mans Ultimate telemetry, on your PC: gaps, rivals, pace, fuel, tyres, damage, pit windows, flags and weather — things like \"Gap behind?\", \"Fuel to the end?\", \"When do we pit?\" or \"What's the weather doing?\". Anything outside that set can be asked as a free-form question, which goes to an AI engineer with your speech transcribed locally first.",
+    a: "Twenty-eight questions are answered instantly from live Le Mans Ultimate telemetry, on your PC: gaps, rivals, pace, fuel, tyres, damage, pit windows, flags and weather. Things like \"Gap behind?\", \"Fuel to the end?\", \"When do we pit?\" or \"What's the weather doing?\". Anything outside that set can be asked as a free-form question, which goes to an AI engineer with your speech transcribed locally first.",
   },
   {
     q: "Does the LMU voice race engineer work offline?",
     page: "race-engineer",
-    a: "The 28 core questions do — they're answered entirely on your PC from live telemetry, with no cloud and no per-use cost, and they keep working with the internet unplugged. Only free-form AI questions need a connection. A confirmed subscription also carries a 72-hour offline grace window, so the app keeps running for three full days with no connection at all.",
+    a: "The 28 core questions do. They're answered entirely on your PC from live telemetry, with no cloud and no per-use cost, and they keep working with the internet unplugged. Only free-form AI questions need a connection. A confirmed subscription also carries a 72-hour offline grace window, so the app keeps running for three full days with no connection at all.",
   },
   {
     q: "How do I talk to the race engineer in Le Mans Ultimate?",
     page: "race-engineer",
-    a: "Bind one button on your wheel as push-to-talk. Press it, hear the chirp, and ask out loud; the answer comes back over radio effects in under a second. There's no wake word and no open mic — the microphone only opens while you hold the button.",
+    a: "Bind one button on your wheel as push-to-talk. Press it, hear the chirp, and ask out loud; the answer comes back over radio effects in under a second. There's no wake word and no open mic. The microphone only opens while you hold the button.",
   },
   {
     q: "Does the race engineer make calls without being asked?",
@@ -168,7 +130,7 @@ export default function LmuRaceEngineerPage() {
       <JsonLd data={buildAioBreadcrumbJsonLd("race-engineer")} />
 
       <AioPageHero
-        kicker="Apex AIO · Voice race engineer"
+        kicker="Apex AIO · Voice race engineer · Le Mans Ultimate"
         title={
           <>
             LMU Race Engineer, <span className="text-gradient">on push-to-talk</span>
@@ -177,338 +139,302 @@ export default function LmuRaceEngineerPage() {
         lead={
           <>
             A voice race engineer for Le Mans Ultimate. Bind one wheel button, press it and ask out
-            loud — gap behind, fuel to the end, when do we pit, what the weather&apos;s doing. The
-            Apex AIO LMU race engineer answers 28 questions offline from live telemetry, in under a
-            second, over radio effects — and makes proactive radio calls on a dial you control.{" "}
-            <strong className="text-ink">Try it: pick a question.</strong>
+            loud: gap behind, fuel to the end, when do we pit. He answers 28 questions offline from
+            live telemetry, in under a second, over radio effects, and makes proactive calls on a dial
+            you control. <strong className="text-ink">Pick a question to hear him.</strong>
           </>
         }
-        points={[
-          "Push-to-talk, never an open mic",
-          "28 questions answered offline",
-          "Audio never leaves your PC",
-          "Included in the subscription",
+        stats={[
+          { value: "28", label: "Questions offline" },
+          { value: "<1 s", label: "To answer" },
+          { value: "6", label: "Bundled voices" },
+          { value: "72 h", label: "Offline grace" },
         ]}
+        points={["Push-to-talk, never an open mic", "Audio never leaves your PC", "Included in the subscription"]}
+        visualCaption="Radio · Race engineer"
+        visualMeta="Demo"
         visual={<AskEngineer />}
       />
 
-      {/* ── What it is ───────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="container-rail scroll-mt-36 py-16">
-        <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-start">
-          <Reveal>
-            <span className="kicker mb-4">How it works</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              A voice race engineer <span className="text-gradient">for Le Mans Ultimate</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              If you&apos;ve used a crew-chief-style app before, the idea will be familiar: an
-              engineer on the radio who knows what the car is doing, so you don&apos;t have to take
-              your eyes off the road to find out. The Apex AIO engineer reads Le Mans
-              Ultimate&apos;s live telemetry and talks back in a proper radio voice — ask him
-              something, or let him call the important moments on his own.
-            </p>
-            <p className="mt-4 text-lg text-muted">
-              He lives in the same app as your{" "}
-              <Link href="/lmu-overlays" className="text-cyan hover:underline">
-                LMU overlays
-              </Link>
-              , your{" "}
-              <Link href="/lmu-setups" className="text-cyan hover:underline">
-                setups
-              </Link>{" "}
-              and the{" "}
-              <Link href="/lmu-pit-wall" className="text-cyan hover:underline">
-                team pit wall
-              </Link>
-              , so there&apos;s nothing extra to install, configure or keep running beside the sim.
-            </p>
-            <p className="mt-6 rounded-card border border-line bg-surface/60 p-4 text-sm text-subtle">
-              Not to be confused with the setup optimiser&apos;s <em>Race engineer</em> sliders on{" "}
-              <Link href="/lmu-setups" className="text-cyan hover:underline">
-                LMU Setups
-              </Link>
-              , which turn a handling intent into staged garage changes. This page is about the one
-              you talk to on track.
-            </p>
-          </Reveal>
-
-          <div className="grid gap-4">
-            {HOW_IT_WORKS.map((step, i) => (
-              <Reveal key={step.title} delay={i * 100}>
-                <Card variant="default" className="flex items-start gap-4 p-6">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent/10 font-display text-lg font-bold text-accent">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <h3 className="flex items-center gap-2 text-xl font-bold text-ink">
-                      <step.icon size={18} className="text-cyan" />
-                      {step.title}
-                    </h3>
-                    <p className="mt-1 text-muted">{step.body}</p>
-                  </div>
-                </Card>
-              </Reveal>
-            ))}
+      {/* ── 01 How it works: a teardown of one exchange ───────────────────── */}
+      <section id="how-it-works" className="scroll-mt-36 py-20">
+        <div className="container-rail">
+          <div className="grid gap-x-12 lg:grid-cols-12">
+            <div className="lg:col-span-7">
+              <SectionHeading index="01" label="How it works" title="A voice race engineer for Le Mans Ultimate" />
+            </div>
+            <div className="text-muted lg:col-span-5 lg:pt-10">
+              <p>
+                An engineer on the radio who knows what the car is doing, so you don&apos;t take your
+                eyes off the road to find out. If you&apos;ve used a crew-chief-style app, the idea is
+                familiar. He reads LMU&apos;s live telemetry and talks back in a radio voice, when you
+                ask or, if you let him, on his own.
+              </p>
+              <p className="mt-4">
+                He lives in the same app as your{" "}
+                <Link href="/lmu-overlays" className="text-cyan hover:underline">
+                  LMU overlays
+                </Link>
+                ,{" "}
+                <Link href="/lmu-setups" className="text-cyan hover:underline">
+                  setups
+                </Link>{" "}
+                and the{" "}
+                <Link href="/lmu-pit-wall" className="text-cyan hover:underline">
+                  team pit wall
+                </Link>
+                , so there&apos;s nothing extra to install or keep running beside the sim.
+              </p>
+            </div>
           </div>
+
+          <Annotated caption="Radio · One exchange" meta="Teardown" notes={RADIO_NOTES} mockWidth={30} className="mt-4">
+            <RadioPanel />
+          </Annotated>
+
+          <p className="mt-6 max-w-3xl font-mono text-xs leading-relaxed text-subtle">
+            Not the setup optimiser&apos;s <em>Race engineer</em> sliders on{" "}
+            <Link href="/lmu-setups" className="text-cyan hover:underline">
+              LMU Setups
+            </Link>
+            , which turn a handling intent into staged garage changes. This page is about the one you
+            talk to on track.
+          </p>
         </div>
       </section>
 
-      {/* ── The 28 questions ─────────────────────────────────────────────── */}
-      <section id="questions" className="scroll-mt-36 border-y border-line bg-surface/30 py-16">
+      {/* ── 02 The 28 questions, as a radio log ──────────────────────────── */}
+      <section id="questions" className="scroll-mt-36 border-y border-line bg-surface/30 py-20">
         <div className="container-rail">
-          <Reveal className="max-w-3xl">
-            <span className="kicker mb-4">28 core questions · on your PC</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              Ask out loud: <span className="text-gradient">28 questions answered offline</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              The engineer&apos;s core question set is answered locally, straight from live
-              telemetry — no cloud, no per-use cost, and it works with the internet unplugged.
-              Free, offline, forever. These are the areas it covers:
-            </p>
-          </Reveal>
+          <SectionHeading
+            index="02"
+            label="28 core questions · on your PC"
+            title="Ask out loud: 28 questions answered offline"
+            lead="The core set is answered locally, straight from live telemetry. It needs no cloud, costs nothing per question and works with the internet unplugged. These are the areas it covers."
+          />
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {QUESTION_GROUPS.map((group, i) => (
-              <Reveal key={group.title} delay={(i % 3) * 80}>
-                <Card variant="default" className="flex h-full flex-col gap-3 p-6">
-                  <div className="flex items-center gap-3">
-                    <group.icon size={20} className="text-cyan" />
-                    <h3 className="text-xl font-bold text-ink">{group.title}</h3>
-                  </div>
+          <div className="border-t border-line">
+            <div className="hidden grid-cols-[9rem_1fr_14rem] gap-6 border-b border-line py-2 font-mono text-[10px] uppercase tracking-[0.24em] text-subtle md:grid">
+              <span>Area</span>
+              <span>What he tells you</span>
+              <span>Heard in the demo</span>
+            </div>
+            <ul>
+              {QUESTION_GROUPS.map((group) => (
+                <li
+                  key={group.title}
+                  className="grid gap-1 border-b border-line py-3 md:grid-cols-[9rem_1fr_14rem] md:items-baseline md:gap-6"
+                >
+                  <h3 className="font-display text-lg font-bold text-ink">{group.title}</h3>
                   <p className="text-sm text-muted">{group.body}</p>
-                  {group.demo && (
-                    <p className="mt-auto font-mono text-xs text-subtle">
-                      Heard in the demo: <span className="text-cyan">&ldquo;{group.demo}&rdquo;</span>
-                    </p>
-                  )}
-                </Card>
-              </Reveal>
-            ))}
+                  <p className="font-mono text-xs text-cyan">{group.demo ? `“${group.demo}”` : ""}</p>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div className="mt-12 grid gap-6 lg:grid-cols-2">
-            <Card variant="glow" clip className="p-7">
-              <div className="flex items-center gap-3">
-                <Fuel size={22} className="text-cyan" />
-                <h3 className="text-2xl font-bold text-ink">An LMU fuel calculator, by voice</h3>
-              </div>
-              <p className="mt-3 text-muted">
-                Ask &ldquo;Fuel to the end?&rdquo; and you get the number, not a spreadsheet:{" "}
-                <em className="text-ink">
-                  &ldquo;You need 46.7 litres to the flag. That&apos;s a splash at the last stop —
-                  plan&apos;s unchanged.&rdquo;
-                </em>{" "}
-                Follow it with &ldquo;When do we pit?&rdquo; for the window. If you&apos;d rather
-                see it, the fuel widget in the{" "}
+          <div className="mt-14 grid gap-10 lg:grid-cols-12">
+            <figure className="lg:col-span-7">
+              <h3 className="font-mono text-[11px] font-normal tracking-[0.24em] text-cyan">
+                An LMU fuel calculator, by voice
+              </h3>
+              <blockquote className="mt-4 font-mono text-2xl leading-snug text-ink sm:text-3xl">
+                &ldquo;You need <span className="tabular-nums">46.7</span> litres to the flag. That&apos;s
+                a splash at the last stop. Plan&apos;s unchanged.&rdquo;
+              </blockquote>
+              <figcaption className="mt-4 text-muted">
+                The answer to &ldquo;Fuel to the end?&rdquo;. Follow it with &ldquo;When do we
+                pit?&rdquo; for the window. To see it as well, the fuel widget in the{" "}
                 <Link href="/lmu-overlays" className="text-cyan hover:underline">
                   LMU overlays
                 </Link>{" "}
                 keeps the same picture on screen.
+              </figcaption>
+            </figure>
+            <div className="border-l border-line pl-6 lg:col-span-5">
+              <h3 className="font-mono text-[11px] font-normal tracking-[0.24em] text-cyan">
+                Anything else: the AI engineer
+              </h3>
+              <p className="mt-4 text-muted">
+                Harder, free-form questions go to an AI engineer. Your speech is transcribed on your own
+                PC by whisper.cpp first, and only the text plus a telemetry summary is sent to be
+                answered. Your audio isn&apos;t. Free-form questions are included in the {PRICE}{" "}
+                subscription with a generous monthly allowance, and they&apos;re the one part of the
+                engineer that needs an internet connection.
               </p>
-            </Card>
-            <Card variant="default" className="p-7">
-              <div className="flex items-center gap-3">
-                <Sparkles size={22} className="text-accent" />
-                <h3 className="text-2xl font-bold text-ink">Anything else: ask the AI engineer</h3>
-              </div>
-              <p className="mt-3 text-muted">
-                Harder, free-form questions go to an AI engineer. Your speech is transcribed on your
-                own PC by whisper.cpp first, and only the transcribed text plus a telemetry summary is
-                sent to be answered — never your audio. Free-form questions are included in the{" "}
-                {PRICE} subscription with a generous monthly allowance, and they&apos;re the one part
-                of the engineer that needs an internet connection.
-              </p>
-            </Card>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Proactive radio ──────────────────────────────────────────────── */}
-      <section id="proactive-radio" className="container-rail scroll-mt-36 py-16">
-        <Reveal className="mx-auto max-w-3xl text-center">
-          <span className="kicker mb-4">Proactive radio</span>
-          <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-            Proactive radio calls — <span className="text-gradient">on a dial you control</span>
-          </h2>
-          <p className="mt-5 text-lg text-muted">
-            The engineer doesn&apos;t only answer. Set the dial and he calls the things that matter
-            on his own — the way a spotter or engineer would on a real team radio — and stays quiet
-            when you&apos;d rather concentrate.
-          </p>
-        </Reveal>
+      {/* ── 03 Proactive radio, as a three-position dial ─────────────────── */}
+      <section id="proactive-radio" className="container-rail scroll-mt-36 py-20">
+        <SectionHeading
+          index="03"
+          label="Proactive radio"
+          title="Proactive radio calls, on a dial you control"
+          lead="Set the dial and he calls the moments that matter on his own, the way an engineer would on a real team radio. Turn it down and he stays quiet."
+          align="center"
+        />
 
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {DIAL.map((setting, i) => (
-            <Reveal key={setting.level} delay={i * 100}>
-              <Card
-                variant={setting.level === "Essential" ? "glow" : "default"}
-                className="flex h-full flex-col gap-4 p-7"
+        <div className="mx-auto max-w-5xl">
+          <div aria-hidden className="relative mb-8 hidden h-6 md:block">
+            <span className="absolute inset-x-[16.66%] top-1/2 h-px bg-line" />
+            {DIAL.map((setting, i) => (
+              <span
+                key={setting.level}
+                className={cn(
+                  "absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45 border",
+                  setting.level === "Essential" ? "border-cyan bg-cyan" : "border-subtle bg-base",
+                )}
+                style={{ left: `${16.66 + i * 33.33}%` }}
+              />
+            ))}
+          </div>
+          <ol className="grid border-y border-line md:grid-cols-3 md:divide-x md:divide-line">
+            {DIAL.map((setting) => (
+              <li
+                key={setting.level}
+                className="flex flex-col gap-4 border-b border-line px-2 py-6 last:border-b-0 md:border-b-0 md:px-6"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-display text-3xl font-bold uppercase text-ink">{setting.level}</h3>
-                  <span className="chip border-accent/40 text-accent-2">{setting.tag}</span>
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3
+                    className={cn(
+                      "font-display text-3xl font-bold",
+                      setting.level === "Essential" ? "text-cyan" : "text-ink",
+                    )}
+                  >
+                    {setting.level}
+                  </h3>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-subtle">{setting.tag}</span>
                 </div>
                 {setting.calls.length > 0 ? (
-                  <ul className="space-y-2">
+                  <ul className="font-mono text-sm text-ink">
                     {setting.calls.map((call) => (
-                      <li key={call} className="flex items-start gap-3 text-muted">
-                        <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-success" />
-                        <span>{call}</span>
+                      <li key={call} className="border-b border-line/60 py-1.5 last:border-b-0">
+                        {call}
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="flex items-center gap-3 text-muted">
-                    <Volume2 size={16} className="shrink-0 text-subtle" />
-                    No unprompted calls at all
-                  </p>
+                  <p className="font-mono text-sm text-subtle">No unprompted calls</p>
                 )}
-                <p className="mt-auto text-sm text-subtle">{setting.body}</p>
-              </Card>
-            </Reveal>
-          ))}
+                <p className="mt-auto text-sm text-muted">{setting.body}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-8 text-center text-sm text-muted">
+            Pair him with the radar and relative in the{" "}
+            <Link href="/lmu-overlays" className="text-cyan hover:underline">
+              LMU overlays
+            </Link>{" "}
+            to see who&apos;s alongside as well as hear it. Engineering a teammate instead? The{" "}
+            <Link href="/lmu-pit-wall" className="text-cyan hover:underline">
+              LMU pit wall
+            </Link>{" "}
+            follows whoever is in the car.
+          </p>
         </div>
-
-        <p className="mx-auto mt-8 max-w-3xl text-center text-sm text-subtle">
-          Want to see who&apos;s alongside as well as hear it? Pair the engineer with the radar and
-          relative widgets in the{" "}
-          <Link href="/lmu-overlays" className="text-cyan hover:underline">
-            LMU overlays
-          </Link>
-          . Engineering a teammate instead of driving? The{" "}
-          <Link href="/lmu-pit-wall" className="text-cyan hover:underline">
-            LMU pit wall
-          </Link>{" "}
-          follows whoever is in the car.
-        </p>
       </section>
 
-      {/* ── Privacy ──────────────────────────────────────────────────────── */}
-      <section id="privacy" className="scroll-mt-36 border-y border-line bg-surface/30 py-16">
-        <div className="container-rail grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          <Reveal>
-            <span className="kicker mb-4">Push-to-talk · local transcription</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              Private by design: <span className="text-gradient">push-to-talk, transcribed on your PC</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              An LMU push-to-talk engineer should hear exactly what you say to him and nothing else.
-              That&apos;s the whole design: the microphone is closed unless your thumb is on the
-              button, and what you say is turned into text on your own machine.
+      {/* ── 04 Privacy, as a spec sheet ───────────────────────────────────── */}
+      <section id="privacy" className="scroll-mt-36 border-y border-line bg-surface/30 py-20">
+        <div className="container-rail grid gap-12 lg:grid-cols-12 lg:items-start">
+          <div className="lg:col-span-5">
+            <SectionHeading
+              index="04"
+              label="Push-to-talk · local transcription"
+              title="Private by design: push-to-talk, transcribed on your PC"
+              lead="He should hear what you say to him and nothing else. The mic is closed unless your thumb is on the button, and your words become text on your own machine."
+              className="mb-0"
+            />
+          </div>
+          <dl className="border-t border-line lg:col-span-7">
+            {PRIVACY.map(([term, detail]) => (
+              <div key={term} className="grid gap-1 border-b border-line py-4 sm:grid-cols-[12rem_1fr] sm:gap-6">
+                <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-subtle">{term}</dt>
+                <dd className="text-ink">{detail}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
+      {/* ── 05 Voices and cost: big figures, then the ledger ──────────────── */}
+      <section id="voices" className="container-rail scroll-mt-36 py-20">
+        <SectionHeading index="05" label="Bundled · signed · included" title="Six voices, nothing to download" />
+
+        <div className="grid gap-12 lg:grid-cols-12">
+          <Reveal className="lg:col-span-6">
+            <dl className="grid grid-cols-2 border-y border-line">
+              <div className="flex flex-col-reverse gap-3 py-6 pr-6">
+                <dt className="font-mono text-[10px] uppercase tracking-[0.2em] text-subtle">Voices in the installer</dt>
+                <dd className="font-mono text-7xl font-semibold tabular-nums leading-none text-ink">6</dd>
+              </div>
+              <div className="flex flex-col-reverse gap-3 border-l border-line py-6 pl-6">
+                <dt className="font-mono text-[10px] uppercase tracking-[0.2em] text-subtle">Offline grace</dt>
+                <dd className="font-mono text-7xl font-semibold tabular-nums leading-none text-ink">
+                  72<span className="ml-1 text-2xl text-subtle">h</span>
+                </dd>
+              </div>
+            </dl>
+            <p className="mt-6 text-muted">
+              Voices, speech recognition and all ship inside the Apex AIO installer, signed, so there is
+              nothing to download afterwards and nothing for antivirus to flag. The voice in the demo is
+              Alan, the app&apos;s own en-GB engineer, through the same radio channel the app uses.
+            </p>
+            <p className="mt-4 text-muted">
+              Every build, and the bundled voice engine, is code-signed through Azure Trusted Signing
+              under The Lilybank Agency Ltd, so Windows shows no &ldquo;unknown publisher&rdquo; prompt.
+              The 28 core questions keep working offline, and a confirmed subscription runs for 72 hours
+              without a connection, for LAN events and weekends away.
             </p>
           </Reveal>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[
-              {
-                icon: Lock,
-                title: "No open mic, no wake word",
-                body: "The microphone only opens while you hold your bound push-to-talk button. Team chat, the stream, the room — none of it is listened to.",
-              },
-              {
-                icon: CloudOff,
-                title: "The 28 questions stay on your PC",
-                body: "Core questions are answered entirely locally from live telemetry. Nothing is sent anywhere, and there's no per-use cost.",
-              },
-              {
-                icon: Mic,
-                title: "Free-form questions: whisper.cpp, locally",
-                body: "Your speech is transcribed on your PC by whisper.cpp, so your audio never leaves your machine — only the text plus a telemetry summary is sent to be answered.",
-              },
-              {
-                icon: HelpCircle,
-                title: "“Say again?”",
-                body: "When he can't make out what you said, he asks you to repeat it rather than guessing — so a mumbled question never gets a confident wrong answer.",
-              },
-            ].map((item, i) => (
-              <Reveal key={item.title} delay={(i % 2) * 100}>
-                <Card variant="default" className="flex h-full flex-col gap-3 p-6">
-                  <item.icon size={22} className="text-cyan" />
-                  <h3 className="text-xl font-bold text-ink">{item.title}</h3>
-                  <p className="text-sm text-muted">{item.body}</p>
-                </Card>
-              </Reveal>
-            ))}
+          <div className="lg:col-span-6">
+            <h3 className="text-2xl font-bold text-ink">What the race engineer costs</h3>
+            <p className="mt-3 text-muted">
+              Nothing on top. It&apos;s in the Apex AIO subscription ({TRIAL_DAYS} days free, then{" "}
+              {PRICE} a month) with every overlay, the setup optimiser, the team pit wall and{" "}
+              <Link href="/lmu-telemetry" className="text-cyan hover:underline">
+                lap-by-lap telemetry review
+              </Link>
+              .
+            </p>
+            <dl className="mt-6 border-t border-line">
+              {[
+                ["28 telemetry questions", "Answered locally. No per-use cost."],
+                ["Free-form AI questions", "Included, with a generous monthly allowance"],
+                ["Voices and speech recognition", "Bundled in the installer"],
+              ].map(([term, detail]) => (
+                <div key={term} className="grid gap-1 border-b border-line py-3 sm:grid-cols-[14rem_1fr] sm:gap-6">
+                  <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-subtle">{term}</dt>
+                  <dd className="text-ink">{detail}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-6 text-sm text-subtle">
+              Plan and billing details are in the{" "}
+              <Link href="/apex-overlay-system#pricing" className="text-cyan hover:underline">
+                Apex AIO pricing section
+              </Link>
+              .
+            </p>
           </div>
         </div>
       </section>
 
-      {/* ── Voices, offline, cost ───────────────────────────────────────── */}
-      <section id="voices" className="container-rail scroll-mt-36 py-16">
-        <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
-          <Reveal>
-            <span className="kicker mb-4">Bundled · signed · included</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              Six voices, <span className="text-gradient">nothing to download</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              The engineer — voices, speech recognition and all — ships inside the Apex AIO
-              installer. The voice you hear in the demo above is Alan, the app&apos;s own en-GB
-              engineer, through the same radio channel the app uses; he&apos;s one of six.
-            </p>
-            <ul className="mt-6 space-y-3">
-              {[
-                "Six voices, bundled and signed inside the installer — nothing to download afterwards, nothing for antivirus to flag.",
-                "Every build, and the bundled voice engine, is code-signed through Azure Trusted Signing under The Lilybank Agency Ltd — no SmartScreen “unknown publisher” prompt.",
-                "The 28 core questions keep working offline, and a confirmed subscription carries a 72-hour offline grace window for LAN events and weekends away.",
-              ].map((point) => (
-                <li key={point} className="flex items-start gap-3 text-muted">
-                  <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-success" />
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          </Reveal>
-
-          <Reveal delay={140}>
-            <Card variant="glow" clip className="p-8">
-              <div className="flex items-center gap-3">
-                <ShieldCheck size={24} className="text-cyan" />
-                <h3 className="text-2xl font-bold text-ink">What the race engineer costs</h3>
-              </div>
-              <p className="mt-4 text-muted">
-                Nothing on top. The voice race engineer is bundled and included in the Apex AIO
-                subscription — {TRIAL_DAYS} days free, then {PRICE} a month, alongside every
-                overlay, the setup optimiser, the team pit wall and{" "}
-                <Link href="/lmu-telemetry" className="text-cyan hover:underline">
-                  lap-by-lap telemetry review
-                </Link>
-                .
-              </p>
-              <dl className="mt-6 grid gap-3 text-sm">
-                {[
-                  ["28 telemetry questions", "Answered locally — effectively free forever"],
-                  ["Free-form AI questions", "Included, with a generous monthly allowance"],
-                  ["Voices & speech recognition", "Bundled in the installer"],
-                ].map(([term, detail]) => (
-                  <div
-                    key={term}
-                    className="flex flex-wrap items-baseline justify-between gap-2 rounded-card border border-line bg-base/50 px-4 py-3"
-                  >
-                    <dt className="font-display uppercase tracking-wide text-ink">{term}</dt>
-                    <dd className="text-muted">{detail}</dd>
-                  </div>
-                ))}
-              </dl>
-              <p className="mt-6 text-sm text-subtle">
-                Full plan and billing details on the{" "}
-                <Link href="/apex-overlay-system#pricing" className="text-cyan hover:underline">
-                  Apex AIO pricing section
-                </Link>
-                .
-              </p>
-            </Card>
-          </Reveal>
-        </div>
-      </section>
-
-      <AioFaq items={[...getAioFaq("race-engineer"), ...PAGE_FAQ]} heading="Race engineer FAQ" />
+      <AioFaq
+        items={[...getAioFaq("race-engineer"), ...PAGE_FAQ]}
+        heading="Race engineer FAQ"
+        index="06"
+        className="border-t border-line"
+      />
 
       <AioRelatedPages current="race-engineer" />
 
       <AioTrialCta
-        body={`Bind a wheel button, press it and ask. The voice race engineer — 28 offline questions, proactive radio and six bundled voices — is in the ${TRIAL_DAYS}-day free trial, with everything else in Apex AIO.`}
+        body={`Bind a wheel button, press it and ask. The race engineer (28 offline questions, proactive radio, six bundled voices) is in the ${TRIAL_DAYS}-day free trial with everything else in Apex AIO.`}
       />
     </>
   );

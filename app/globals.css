@@ -24,7 +24,7 @@
     /* Foreground */
     --color-ink: 244 245 250;
     --color-muted: 160 162 182;
-    --color-subtle: 108 110 132;
+    --color-subtle: 128 130 152; /* 5.2:1 on base — AA for the small mono labels */
 
     /* Brand neon */
     --color-accent: 155 92 255; /* electric violet — primary */
@@ -251,3 +251,67 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ── aio broadcast ── */
+/* The hub's broadcast frame (components/aio/broadcast). The stage is a fixed
+   1600×900 canvas scaled to its container; these are the server-render
+   estimates of that scale per breakpoint, replaced by the exact figure once
+   ScaledStage has measured. Its box height comes from aspect-ratio, so the
+   swap never moves the page. */
+.bf-stage {
+  --bf-scale: 0.21;
+  transform: scale(var(--bf-scale));
+}
+@media (min-width: 640px) {
+  .bf-stage { --bf-scale: 0.36; }
+}
+@media (min-width: 768px) {
+  .bf-stage { --bf-scale: 0.44; }
+}
+@media (min-width: 1024px) {
+  .bf-stage { --bf-scale: 0.6; }
+}
+@media (min-width: 1280px) {
+  .bf-stage { --bf-scale: 0.76; }
+}
+@media (min-width: 1440px) {
+  .bf-stage { --bf-scale: 0.86; }
+}
+
+/* Faint streaks running out of the vanishing point (dash pattern sums to 400) */
+@keyframes bf-streak {
+  to { stroke-dashoffset: -400; }
+}
+.bf-streak {
+  animation: bf-streak 2s linear infinite;
+}
+
+/* The centre line rushing towards the camera (dash pattern sums to 80) */
+@keyframes bf-dash {
+  to { stroke-dashoffset: -80; }
+}
+.bf-dash {
+  animation: bf-dash 0.6s linear infinite;
+}
+
+/* The LIVE bug's dot */
+@keyframes bf-rec {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0.25; }
+}
+.bf-rec {
+  animation: bf-rec 1.6s steps(1, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bf-streak,
+  .bf-dash,
+  .bf-rec {
+    animation: none !important;
+  }
+  .bf-stint-visual,
+  .bf-stint-fill {
+    transition: none !important;
+  }
+}
+/* ── end aio broadcast ── */

@@ -26,7 +26,11 @@ export async function AioTrialButton({
   );
 }
 
-/** The closing call to action every Apex AIO topic page ends on. */
+/**
+ * The closing call to action every Apex AIO topic page ends on, set like a
+ * broadcast end card: flat, hairline, a plain heading and the build line in
+ * mono. The trial button is the one lit thing on it.
+ */
 export async function AioTrialCta({
   heading = `Try it free for ${trialDays} days`,
   body,
@@ -36,20 +40,40 @@ export async function AioTrialCta({
 }) {
   const release = await getLatestAioRelease();
   return (
-    <section className="container-rail py-8">
-      <div className="flex flex-col items-center gap-5 rounded-card border border-accent/40 bg-surface/50 p-10 text-center shadow-glow-soft">
-        <h2 className="text-4xl font-bold text-ink">{heading}</h2>
-        <p className="max-w-xl text-muted">{body}</p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <AioTrialButton label="Start the free trial" />
-          <Button href={discordUrl} size="lg" variant="outline" target="_blank" rel="noopener noreferrer">
-            Ask us anything
-            <ArrowRight size={18} />
-          </Button>
+    <section className="container-rail py-12">
+      <div className="border-y border-line">
+        <div className="flex items-center justify-between gap-4 border-b border-line py-2 font-mono text-[10px] uppercase tracking-[0.24em] text-subtle">
+          <span>Apex AIO</span>
+          <span className="tabular-nums">v{release.version}</span>
         </div>
-        <p className="text-sm text-subtle">
-          Windows · v{release.version} · {priceDisplay}/month after the trial · everything included
-        </p>
+        <div className="grid gap-8 py-10 lg:grid-cols-[1.2fr_1fr] lg:items-end lg:py-14">
+          <div>
+            <h2 className="text-4xl font-bold leading-[0.95] text-ink sm:text-5xl lg:text-6xl">{heading}</h2>
+            <p className="mt-5 max-w-xl text-lg text-muted">{body}</p>
+          </div>
+          <div className="flex flex-col gap-5 lg:items-end">
+            <div className="flex flex-wrap gap-3 lg:justify-end">
+              <AioTrialButton label="Start the free trial" />
+              <Button href={discordUrl} size="lg" variant="ghost" target="_blank" rel="noopener noreferrer">
+                Ask us on Discord
+                <ArrowRight size={18} />
+              </Button>
+            </div>
+            <dl className="grid grid-cols-3 border-t border-line pt-4 font-mono text-xs uppercase tracking-wider lg:min-w-[26rem]">
+              {[
+                ["Platform", "Windows"],
+                ["Trial", `${trialDays} days`],
+                ["Then", `${priceDisplay}/mo`],
+              ].map(([term, value]) => (
+                <div key={term} className="flex flex-col gap-1">
+                  <dt className="text-[10px] tracking-[0.2em] text-subtle">{term}</dt>
+                  <dd className="tabular-nums text-ink">{value}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="font-mono text-[11px] uppercase tracking-wider text-subtle">Everything included. One plan.</p>
+          </div>
+        </div>
       </div>
     </section>
   );

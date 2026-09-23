@@ -1,5 +1,6 @@
-import { ChevronDown, Zap } from "lucide-react";
+import { Plus } from "lucide-react";
 import { JsonLd } from "@/components/aio/JsonLd";
+import { SectionHeading } from "@/components/aio/SectionHeading";
 import type { AioFaqItem } from "@/lib/aio-faq";
 import { cn } from "@/lib/utils";
 
@@ -12,10 +13,13 @@ export function AioFaq({
   items,
   heading = "Frequently asked",
   className,
+  index,
 }: {
   items: readonly AioFaqItem[];
   heading?: string;
   className?: string;
+  /** Two-digit section number for the heading rule, when the page numbers its sections. */
+  index?: string;
 }) {
   if (items.length === 0) return null;
 
@@ -34,28 +38,21 @@ export function AioFaq({
   return (
     <section id="faq" className={cn("container-rail scroll-mt-36 py-16", className)}>
       <JsonLd data={jsonLd} />
-      <div className="mb-8 flex items-center gap-3">
-        <Zap size={20} className="text-accent" />
-        <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-ink">{heading}</h2>
-        <span className="h-px flex-1 bg-line" />
-      </div>
-      <div className="grid items-start gap-4 md:grid-cols-2">
+      <SectionHeading index={index} label="FAQ" title={heading} />
+      <div className="grid items-start gap-x-10 md:grid-cols-2">
         {columns.map((column, c) => (
-          <div key={c} className="grid gap-4">
+          <div key={c} className={cn("border-t border-line", c === 1 && "max-md:border-t-0")}>
             {column.map((item) => (
-              <details
-                key={item.q}
-                className="group rounded-card border border-line bg-surface/50 open:border-accent/40"
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 text-lg font-bold text-ink [&::-webkit-details-marker]:hidden">
+              <details key={item.q} className="group border-b border-line">
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 py-5 text-base font-semibold text-ink transition-colors hover:text-cyan [&::-webkit-details-marker]:hidden">
                   {item.q}
-                  <ChevronDown
-                    size={18}
-                    className="shrink-0 text-subtle transition-transform group-open:rotate-180"
+                  <Plus
+                    size={16}
+                    className="mt-1 shrink-0 text-subtle transition-transform group-open:rotate-45 group-open:text-cyan"
                     aria-hidden
                   />
                 </summary>
-                <p className="px-5 pb-5 text-sm text-muted">{item.a}</p>
+                <p className="pb-5 pr-8 text-sm leading-relaxed text-muted">{item.a}</p>
               </details>
             ))}
           </div>

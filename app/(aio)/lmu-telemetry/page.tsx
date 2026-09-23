@@ -1,26 +1,16 @@
 import Link from "next/link";
-import {
-  BadgeCheck,
-  CheckCircle2,
-  Filter,
-  Gauge,
-  HardDrive,
-  History,
-  LineChart,
-  Map as MapIcon,
-  Timer,
-  Trophy,
-  WifiOff,
-} from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Reveal } from "@/components/ui/Reveal";
 import { RefPaceMock } from "@/components/overlay/OverlayMocks";
 import { ReviewLapMock, ReviewSessionMock } from "@/components/overlay/ReviewMocks";
+import { RV_ABS, RV_CURSOR, RV_MICRO, RV_SAMPLES } from "@/components/overlay/reviewTraces";
 import { AioPageHero } from "@/components/aio/AioPageHero";
 import { AioFaq } from "@/components/aio/AioFaq";
 import { AioRelatedPages } from "@/components/aio/AioRelatedPages";
 import { AioTrialCta } from "@/components/aio/AioTrialCta";
 import { JsonLd } from "@/components/aio/JsonLd";
+import { SectionHeading } from "@/components/aio/SectionHeading";
+import { AnnotatedFigure, type Callout } from "@/components/aio/setups/AnnotatedFigure";
 import { getAioFaq, type AioFaqItem } from "@/lib/aio-faq";
 import { buildAioBreadcrumbJsonLd, buildAioPageMetadata } from "@/lib/aio-seo";
 
@@ -36,12 +26,12 @@ const PAGE_FAQ: AioFaqItem[] = [
   {
     q: "What is the optimal lap in LMU telemetry?",
     page: "telemetry",
-    a: "In Review, your optimal lap is your own best sector 1, 2 and 3 of the session added together — a lap you have already driven, just in pieces. The untapped figure beside it is your best actual lap minus that optimal lap: the time on the table before you change anything about the car.",
+    a: "In Review, your optimal lap is your own best sector 1, 2 and 3 of the session added together: a lap you have already driven, in pieces. The untapped figure beside it is your best actual lap minus that optimal lap, which is the time on the table before you change anything about the car.",
   },
   {
     q: "How do I know how fast I am in LMU compared to the aliens?",
     page: "telemetry",
-    a: "The Reference Pace widget turns your best lap into a live percentage of alien pace for your exact class and layout, using Ohne Speed's reference times, and places it on a six-band ladder: Alien, Competitive, Good, Midpack, Tail-ender and Offline. A 'Good' in GT3 at Spa means Good, in GT3, at Spa — not a global average — and the marker climbs mid-session as soon as you set a better lap.",
+    a: "The Reference Pace widget turns your best lap into a live percentage of alien pace for your exact class and layout, using Ohne Speed's reference times, and places it on a six-band ladder: Alien, Competitive, Good, Midpack, Tail-ender and Offline. A 'Good' in GT3 at Spa means Good, in GT3, at Spa, not a global average. The marker climbs mid-session as soon as you set a better lap.",
   },
   {
     q: "Which laps count on the LMU league leaderboards?",
@@ -55,100 +45,161 @@ const PAGE_FAQ: AioFaqItem[] = [
   },
 ];
 
-const HERO_POINTS = [
-  "Every lap since install, already recorded",
-  "No account, no upload, works offline",
-  "Pace measured against Ohne Speed's alien times",
+const REVIEW_SPEC = [
+  ["Recorded", "Every lap since install"],
+  ["Set-up needed", "None"],
+  ["Stored", "Your own disk"],
+  ["Account", "Not needed"],
+  ["Upload", "None"],
+  ["Network", "Works offline"],
 ] as const;
 
-const REPORT_POINTS = [
-  "Optimal lap is your own best sector 1, 2 and 3 added together — a lap you have already driven in pieces. Untapped is the time on the table before you change anything about the car.",
-  "Consistency leads with the real spread of your clean laps in seconds. ±0.48 s is something you can go and work on; 84% is a score.",
-  "Clean driving says what the rest was lost to. A lap that broke the clean rule still appears, with the reason printed on it — “2 laps lost to track limits”, not a percentage that quietly swallowed them.",
-  "The report sits at the top of the page rather than behind a button, because it is the thing you came for.",
-] as const;
-
-const SESSION_BLOCKS = [
+/** The session report's four readings, in the order the report sets them. */
+const REPORT_TERMS = [
   {
-    title: "The lap chart, with stints marked",
-    body: "Every lap of the session drawn as one chart, with the stints marked on it, so the shape of the whole session reads at a glance.",
+    term: "Optimal lap",
+    body: "Your own best sector 1, 2 and 3 added together. A lap you have already driven, in pieces.",
+  },
+  {
+    term: "Untapped",
+    body: "Best lap minus optimal lap: the time on the table before you change anything about the car.",
+  },
+  {
+    term: "Consistency",
+    body: "Leads with the real spread of your clean laps in seconds (±0.48 s, say) rather than a percentage score.",
+  },
+  {
+    term: "Clean driving",
+    body: "What the rest was lost to. A lap that broke the clean rule still appears, with the reason printed on it: “2 laps lost to track limits”.",
+  },
+] as const;
+
+const STINT_BLOCKS = [
+  {
+    title: "The lap chart, stints marked",
+    body: "Every lap of the session drawn as one chart with the stints marked, so the shape of the session reads at a glance.",
   },
   {
     title: "Your 30-day best",
-    body: "Your best here over the last 30 days, so today's session is read against your recent form rather than on its own.",
+    body: "Today's session read against your best here over the last 30 days, not on its own.",
   },
   {
     title: "Tyre wear, lap by lap",
-    body: "Tyre wear lap by lap across the session, so what a stint cost the rubber is a number rather than a guess.",
+    body: "What a stint cost the rubber, as a number per lap.",
   },
   {
     title: "A sheet per stint",
-    body: "A card for every stint with the full sheet: sectors, lap time, gap to best, fuel, virtual energy, tyre temperatures and wear on every lap. Violet is the session's best, green the stint's best, amber a lap with a real time that broke the clean rule.",
+    body: "Sectors, lap time, gap to best, fuel, virtual energy, tyre temperatures and wear on every lap.",
   },
 ] as const;
 
-const LAP_POINTS = [
-  "Speed, throttle and brake, gear and steering, all drawn against distance round the circuit rather than against time — which is what makes two laps line up at the same corner instead of drifting apart.",
-  "Pick any other lap of the session and it is laid underneath yours, dashed, in each channel’s own colour, with a delta band captioned slower above, faster below.",
-  "One cursor crosses every chart at once, reading out distance, time, speed, both pedals, gear, steering and G at that exact point, while the car moves round the circuit beside it.",
-  "Amber and violet ticks under the pedals show where traction control and ABS stepped in. V-max is there too.",
+/** Timing-screen colours, as the stint sheet uses them. */
+const SHEET_KEY = [
+  { swatch: "bg-flag-purple", text: "text-flag-purple", label: "Session best" },
+  { swatch: "bg-success", text: "text-success", label: "Stint best" },
+  { swatch: "bg-flag-amber", text: "text-flag-amber", label: "Real time, broke the clean rule" },
 ] as const;
 
-const LAP_CALLOUTS = [
+/*
+ * Pins on the lap-study mock, measured against its layout at `xl`, where the
+ * figure is always 1024px wide (the 1216px rail less one 192px gutter). The
+ * three header rows come to 120px; under them the channel bands have fixed
+ * heights (54, 86, 72, 46 and 50px, each with a 1px rule). Horizontal
+ * positions on the charts come from the same traces the mock draws, so the
+ * cursor, ABS and chip pins land on the real marks.
+ */
+const pct = (i: number) => (i / (RV_SAMPLES - 1)) * 100;
+const FIRST_ABS = Math.max(
+  0,
+  RV_ABS.findIndex((on) => on === 1),
+);
+const WORST_CHIP = RV_MICRO.reduce(
+  (worst, seg, i) => (seg.delta > RV_MICRO[worst].delta ? i : worst),
+  0,
+);
+const CHIP_WIDTH = (1000 - (RV_MICRO.length - 1) * 4) / RV_MICRO.length;
+
+const LAP_CALLOUTS: Callout[] = [
   {
-    icon: LineChart,
-    title: "Against distance",
-    body: "Two laps meet at the same corner, so the comparison is a corner, not an average.",
+    x: "185px",
+    y: "44px",
+    labelY: "30px",
+    side: "right",
+    label: "Compare lap",
+    note: "Any other lap of the session, laid under yours, dashed.",
   },
   {
-    icon: MapIcon,
-    title: "In plan, to scale",
-    body: "Both axes of the circuit map share one scale, so two racing lines side by side can actually be believed.",
+    x: "40px",
+    y: "87px",
+    labelY: "104px",
+    side: "right",
+    label: "Readout",
+    note: "Distance, time, speed, both pedals, gear, steering and G.",
   },
   {
-    icon: Timer,
-    title: "Down to 500 m",
-    body: "A chip per stretch of road turns “0.7 s slower” into “0.18 s slower into turn 11”.",
+    x: 40,
+    y: "147px",
+    labelY: "178px",
+    side: "right",
+    label: "Delta",
+    note: "Slower above the line, faster below.",
   },
+  {
+    x: pct(RV_CURSOR),
+    y: "186px",
+    labelY: "248px",
+    side: "right",
+    label: "One cursor",
+    note: "Crosses every chart at the same point, and moves the car on the map.",
+  },
+  {
+    x: pct(FIRST_ABS),
+    y: "314px",
+    labelY: "322px",
+    side: "right",
+    label: "TC and ABS",
+    note: "Amber ticks for traction control, violet for ABS.",
+  },
+  {
+    x: `${(12 + WORST_CHIP * (CHIP_WIDTH + 4) + CHIP_WIDTH / 2).toFixed(1)}px`,
+    y: "432px",
+    labelY: "420px",
+    side: "right",
+    label: "500 m chips",
+    note: "What each stretch of road cost or gained.",
+  },
+  {
+    x: "152px",
+    y: "843px",
+    labelY: "824px",
+    side: "right",
+    label: "To scale",
+    note: "Both axes of the map share one scale, so two lines side by side can be believed.",
+  },
+];
+
+const PACE_SPEC = [
+  ["Bands", "6 · Alien to Offline"],
+  ["Measured against", "Your class and layout"],
+  ["Updates", "Live, mid-session"],
+  ["Feeds", "Pace rank · league boards"],
+  ["Reference times", "Ohne Speed"],
 ] as const;
 
-const PACE_CARDS = [
-  ["Six honest bands", "Alien → Competitive → Good → Midpack → Tail-ender → Offline. No participation trophies."],
-  ["Class- and layout-specific", "A 'Good' in GT3 at Spa means Good, in GT3, at Spa — not a global average."],
-  ["It moves as you do", "Set a better lap and the marker climbs mid-session, live."],
-  ["It feeds the league", "The same ladder drives your Pace rank on the dashboard and the league leaderboards."],
-] as const;
-
-const HOW_IT_WORKS = [
+const LEAGUE_STEPS = [
   {
-    icon: HardDrive,
-    title: "Already yours",
-    body: "Apex has written a file for every lap since the day you installed it. The first time you open Review, every session you have ever driven is already in it — nothing to set up, nothing to import.",
+    title: "Logged",
+    body: "Every completed lap is logged on your PC and judged by the app's own clean-lap rule.",
   },
   {
-    icon: WifiOff,
-    title: "Local and offline",
-    body: "Review reads those files off your own disk. No account, no upload, no cloud, and nothing thrown away — the tab works with the internet unplugged.",
+    title: "Synced",
+    body: "Clean laps sync to the league board. Practice and qualifying count too. This is one of the few parts that needs the network.",
   },
   {
-    icon: History,
-    title: "Your whole career",
-    body: "The strip across the top counts everything you have driven on that PC: laps and clean laps, distance, hours at the wheel, circuits, cars and sessions.",
+    title: "Ranked",
+    body: "Every member's best clean lap, filterable by track, class and car, with your own row marked. The reference-pace ladder sets your Pace rank.",
   },
 ] as const;
-
-function Points({ points }: { points: readonly string[] }) {
-  return (
-    <ul className="mt-6 space-y-3">
-      {points.map((point) => (
-        <li key={point} className="flex items-start gap-3 text-muted">
-          <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-success" />
-          <span>{point}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 export default function LmuTelemetryPage() {
   return (
@@ -156,7 +207,7 @@ export default function LmuTelemetryPage() {
       <JsonLd data={buildAioBreadcrumbJsonLd("telemetry")} />
 
       <AioPageHero
-        kicker="Apex AIO · Review & Reference Pace"
+        kicker="Apex AIO · Review · Reference Pace"
         title={
           <>
             LMU Telemetry <span className="text-gradient">&amp; Lap Comparison</span>
@@ -172,92 +223,146 @@ export default function LmuTelemetryPage() {
             times from the aliens. All on your own PC.
           </>
         }
-        points={HERO_POINTS}
+        stats={[
+          { value: "6", label: "Pace bands" },
+          { value: "~500 m", label: "Per delta chip" },
+          { value: "0", label: "Uploads" },
+        ]}
+        points={[
+          "Every lap since install, already recorded",
+          "Local and offline, no account",
+          "Pace measured against Ohne Speed's alien times",
+        ]}
         visual={<RefPaceMock />}
+        visualCaption="Overlay · Reference Pace"
       />
 
-      {/* ── Every lap you've ever driven ─────────────────────────────────── */}
-      <section id="review" className="container-rail scroll-mt-36 py-16">
-        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-          <Reveal>
-            <span className="kicker mb-4">Review · How it works</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              LMU telemetry analysis — <span className="text-gradient">every lap you&apos;ve ever driven</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              There is nothing to set up and nothing to wait for. Review is a tab inside Apex AIO
-              that reads back the lap files the app has been writing since the day you installed
-              it, so the first time you open it your whole history is already there. Sessions down
-              the left, and on the right the one you picked.
-            </p>
-            <p className="mt-4 text-lg text-muted">
-              It sits beside the rest of the app rather than replacing it: the{" "}
-              <Link href="/lmu-overlays" className="text-cyan hover:underline">
-                overlays
-              </Link>{" "}
-              and the{" "}
-              <Link href="/lmu-race-engineer" className="text-cyan hover:underline">
-                voice race engineer
-              </Link>{" "}
-              cover the lap you are driving; Review is where you sit down afterwards and find out
-              where the time went.
-            </p>
-          </Reveal>
-          <div className="grid gap-4">
-            {HOW_IT_WORKS.map((item, index) => (
-              <Reveal key={item.title} delay={index * 90}>
-                <Card variant="default" className="flex items-start gap-4 p-5">
-                  <item.icon aria-hidden size={22} className="mt-0.5 shrink-0 text-cyan" />
-                  <div>
-                    <h3 className="font-display text-base uppercase tracking-wide text-ink">{item.title}</h3>
-                    <p className="mt-1 text-sm text-muted">{item.body}</p>
-                  </div>
-                </Card>
-              </Reveal>
-            ))}
+      {/* 01 · Review: prose on the left, the facts as a spec sheet on the right */}
+      <section id="review" className="container-rail scroll-mt-36 py-20">
+        <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+          <div className="lg:col-span-7">
+            <SectionHeading
+              index="01"
+              label="Review · How it works"
+              title="LMU telemetry analysis of every lap you've driven"
+            />
+            <div className="max-w-2xl space-y-4 text-lg leading-relaxed text-muted">
+              <p>
+                Review is a tab inside Apex AIO. It reads back the lap files the app has written
+                since the day you installed it, so the first time you open it your whole history is
+                already there. Sessions run down the left; the one you picked fills the right.
+              </p>
+              <p>
+                The strip across the top counts everything you have driven on that PC: laps and
+                clean laps, distance, hours at the wheel, circuits, cars and sessions.
+              </p>
+              <p>
+                The{" "}
+                <Link href="/lmu-overlays" className="text-cyan hover:underline">
+                  overlays
+                </Link>{" "}
+                and the{" "}
+                <Link href="/lmu-race-engineer" className="text-cyan hover:underline">
+                  voice race engineer
+                </Link>{" "}
+                cover the lap you are driving. Review is where you sit down afterwards and find out
+                where the time went.
+              </p>
+            </div>
           </div>
+
+          <Reveal delay={120} className="lg:col-span-5 lg:pt-24">
+            <div className="border border-line bg-base/70">
+              <p className="border-b border-line px-4 py-3 font-mono text-[10px] uppercase tracking-[0.24em] text-subtle">
+                Review · spec
+              </p>
+              <dl>
+                {REVIEW_SPEC.map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="grid grid-cols-[1fr_auto] items-baseline gap-4 border-b border-line/70 px-4 py-3 last:border-0"
+                  >
+                    <dt className="text-sm text-muted">{label}</dt>
+                    <dd className="text-right font-mono text-sm text-ink">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* ── Session reports ──────────────────────────────────────────────── */}
-      <section id="session-report" className="scroll-mt-36 border-y border-line bg-surface/30 py-16">
+      {/* 02 · Session report: the mock wide, then the four readings and the sheet */}
+      <section
+        id="session-report"
+        className="scroll-mt-36 border-y border-line bg-surface/30 py-20"
+      >
         <div className="container-rail">
-          <div className="mb-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-            <Reveal>
-              <span className="kicker mb-4">Review · The session</span>
-              <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-                Session reports: your optimal lap and{" "}
-                <span className="text-gradient">the time left on the table</span>
-              </h2>
+          <div className="grid gap-12 lg:grid-cols-12 lg:gap-12">
+            <div className="lg:col-span-4">
+              <SectionHeading
+                index="02"
+                label="Review · The session"
+                title="Session reports: your optimal lap and the time left on the table"
+                lead="Pick a session and the report comes first, at the top of the page rather than behind a button."
+              />
+              <dl className="border-t border-line">
+                {REPORT_TERMS.map((item) => (
+                  <div key={item.term} className="border-b border-line py-4">
+                    <dt className="font-mono text-[11px] uppercase tracking-[0.22em] text-cyan">
+                      {item.term}
+                    </dt>
+                    <dd className="mt-1.5 text-sm text-muted">{item.body}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+
+            <Reveal className="lg:col-span-8 lg:pt-2">
+              <ReviewSessionMock />
             </Reveal>
-            <Reveal delay={100}>
-              <p className="text-lg text-muted">
-                Pick a session and the report comes first: your best lap, and then the part that
-                matters — the optimal lap from your own best sectors, the untapped time between the
-                two, how consistent you were and how clean.
+          </div>
+
+          <div className="mt-14 grid gap-10 lg:grid-cols-12 lg:gap-16">
+            <div className="lg:col-span-5">
+              <h3 className="font-display text-2xl font-bold uppercase tracking-wide text-ink">
+                LMU stint analysis, under the report
+              </h3>
+              <ul className="mt-5 space-y-3 font-mono text-xs uppercase tracking-[0.18em]">
+                {SHEET_KEY.map((key) => (
+                  <li key={key.label} className="flex items-center gap-3">
+                    <span aria-hidden className={`h-3 w-3 rounded-sm ${key.swatch}`} />
+                    <span className={key.text}>{key.label}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-sm text-subtle">
+                The sheet colours laps and sectors the way a timing screen does.
               </p>
-              <Points points={REPORT_POINTS} />
-            </Reveal>
+            </div>
+            <ol className="lg:col-span-7">
+              {STINT_BLOCKS.map((block, i) => (
+                <li
+                  key={block.title}
+                  className="grid grid-cols-[2.5rem_1fr] gap-3 border-t border-line py-4 last:border-b"
+                >
+                  <span className="font-mono text-xs tabular-nums text-subtle">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <h4 className="font-display text-base font-semibold uppercase tracking-wide text-ink">
+                      {block.title}
+                    </h4>
+                    <p className="mt-1 text-sm text-muted">{block.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
 
-          <Reveal>
-            <ReviewSessionMock />
-          </Reveal>
-
-          <h3 className="mt-12 text-2xl font-bold text-ink">LMU stint analysis, under the report</h3>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {SESSION_BLOCKS.map((block, index) => (
-              <Reveal key={block.title} delay={index * 80} className="h-full">
-                <div className="h-full rounded-card border border-line bg-base/50 p-5">
-                  <h4 className="font-display text-sm uppercase tracking-wide text-ink">{block.title}</h4>
-                  <p className="mt-2 text-sm text-muted">{block.body}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-          <p className="mt-6 text-sm text-subtle">
-            Running an endurance crew? The live side of this — fuel strategy, per-corner tyres and
-            lap trends while the stint is still going — is on the{" "}
+          <p className="mt-10 text-sm text-subtle">
+            Running an endurance crew? The live side of this (fuel strategy, per-corner tyres and
+            lap trends while the stint is still going) is on the{" "}
             <Link href="/lmu-pit-wall" className="text-cyan hover:underline">
               team pit wall
             </Link>
@@ -266,147 +371,131 @@ export default function LmuTelemetryPage() {
         </div>
       </section>
 
-      {/* ── Lap comparison ───────────────────────────────────────────────── */}
-      <section id="lap-comparison" className="container-rail scroll-mt-36 py-16">
-        <div className="mb-10 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-          <Reveal>
-            <span className="kicker mb-4">Review · One lap</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              Compare two laps, <span className="text-gradient">corner by corner</span>
-            </h2>
-          </Reveal>
-          <Reveal delay={100}>
-            <p className="text-lg text-muted">
+      {/* 03 · Lap comparison: the lap view, drawn up as a teardown */}
+      <section id="lap-comparison" className="container-rail scroll-mt-36 py-20">
+        <SectionHeading
+          index="03"
+          label="Review · One lap"
+          title="LMU lap comparison, corner by corner"
+          lead={
+            <>
               Any lap with telemetry behind it opens into its own view, with a second lap laid
-              underneath it. Under the charts, one chip per stretch of road of about 500 m carries
-              what that stretch cost or gained — the difference between &ldquo;I was seven tenths
-              slower&rdquo; and &ldquo;I was 0.18 s slower into turn 3&rdquo;.
-            </p>
-            <Points points={LAP_POINTS} />
-          </Reveal>
-        </div>
+              underneath. Every channel is drawn against distance round the circuit rather than
+              against time, so two laps meet at the same corner. Under the charts, one chip per
+              stretch of road of about 500 m carries what that stretch cost or gained: the
+              difference between &ldquo;seven tenths slower&rdquo; and &ldquo;0.18 s slower into
+              turn 3&rdquo;.
+            </>
+          }
+        />
 
         <Reveal>
-          <ReviewLapMock />
+          <AnnotatedFigure callouts={LAP_CALLOUTS}>
+            <ReviewLapMock />
+          </AnnotatedFigure>
         </Reveal>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          {LAP_CALLOUTS.map((item, index) => (
-            <Reveal key={item.title} delay={index * 90} className="h-full">
-              <div className="h-full rounded-card border border-line bg-surface/40 p-4 transition-all duration-300 hover:-translate-y-1 hover:border-cyan/40">
-                <item.icon aria-hidden size={18} className="text-cyan" />
-                <h3 className="mt-3 font-display text-sm uppercase tracking-wide text-ink">{item.title}</h3>
-                <p className="mt-1 text-sm text-subtle">{item.body}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-
-        <div className="mt-5 flex items-start gap-3 rounded-card border border-cyan/25 bg-cyan/5 p-4 text-sm text-subtle">
-          <Gauge aria-hidden size={18} className="mt-0.5 shrink-0 text-cyan" />
-          <span>
+        <div className="mt-12 grid gap-6 border-t border-line pt-8 text-muted lg:grid-cols-2 lg:gap-12">
+          <p className="text-sm text-subtle">
             The driven line only exists on laps recorded by a build that captures it. An older lap
-            still opens — the car simply follows the centreline — and everything driven since draws
-            the real line.
-          </span>
+            still opens and the car follows the centreline; everything driven since draws the real
+            line.
+          </p>
+          <p>
+            Found the corner? If the answer is the car rather than the driver, the{" "}
+            <Link href="/lmu-setups" className="text-cyan hover:underline">
+              setup optimiser and community setups
+            </Link>{" "}
+            are in the same app, and every shared setup can carry the fastest verified clean lap
+            driven on it.
+          </p>
         </div>
-
-        <p className="mt-6 text-muted">
-          Found the corner? If the answer is the car rather than the driver, the{" "}
-          <Link href="/lmu-setups" className="text-cyan hover:underline">
-            setup optimiser and community setups
-          </Link>{" "}
-          are in the same app — and every shared setup can carry the fastest verified clean lap
-          driven on it.
-        </p>
       </section>
 
-      {/* ── Reference pace ───────────────────────────────────────────────── */}
-      <section id="reference-pace" className="scroll-mt-36 border-y border-line bg-surface/30 py-16">
-        <div className="container-rail grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div>
-            <span className="kicker mb-4">Reference pace · the Ohne Speed ladder</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              How fast are you, really?{" "}
-              <span className="text-gradient">LMU reference pace vs the aliens</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              A delta bar tells you about the lap you just did. This tells you what it means. Your
-              best lap becomes a live percentage of <strong className="text-ink">alien pace for
-              your exact class and layout</strong>, placed on a six-band ladder — so &ldquo;am I
-              actually quick here?&rdquo; finally has a number.
-            </p>
-            <p className="mt-4 text-lg text-muted">
-              The LMU reference lap times are{" "}
-              <a
-                href={OHNE_SPEED_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-cyan hover:underline"
-              >
-                Ohne Speed
-              </a>
-              &apos;s — the benchmark set the LMU community actually measures itself against, with
-              laps contributed by beAlien, Go and Hymo. The app reads them and credits them in the
-              widget, every time a score is on screen.
-            </p>
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              {PACE_CARDS.map(([title, body]) => (
-                <div key={title} className="rounded-card border border-line bg-base/50 p-4">
-                  <h3 className="font-display text-sm uppercase tracking-wide text-ink">{title}</h3>
-                  <p className="mt-1 text-sm text-muted">{body}</p>
+      {/* 04 · Reference pace: prose and spec on the left, the widget large on the right */}
+      <section
+        id="reference-pace"
+        className="scroll-mt-36 border-y border-line bg-surface/30 py-20"
+      >
+        <div className="container-rail grid gap-12 lg:grid-cols-12 lg:items-center lg:gap-16">
+          <div className="lg:col-span-7">
+            <SectionHeading
+              index="04"
+              label="Reference pace · The Ohne Speed ladder"
+              title="How fast are you, really? LMU reference pace against the aliens"
+            />
+            <div className="max-w-2xl space-y-4 text-lg leading-relaxed text-muted">
+              <p>
+                A delta bar tells you about the lap you just did. Reference Pace tells you what it
+                means. Your best lap becomes a live percentage of{" "}
+                <strong className="text-ink">alien pace for your exact class and layout</strong>,
+                placed on a six-band ladder from Alien to Offline. A &lsquo;Good&rsquo; in GT3 at
+                Spa means Good, in GT3, at Spa.
+              </p>
+              <p>
+                The LMU reference lap times are{" "}
+                <a
+                  href={OHNE_SPEED_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-cyan hover:underline"
+                >
+                  Ohne Speed
+                </a>
+                &apos;s: the benchmark set the LMU community measures itself against, with laps
+                contributed by beAlien, Go and Hymo. The app reads them and credits them in the
+                widget whenever a score is on screen.
+              </p>
+            </div>
+
+            <dl className="mt-8 max-w-2xl border-t border-line">
+              {PACE_SPEC.map(([label, value]) => (
+                <div
+                  key={label}
+                  className="grid grid-cols-[1fr_auto] items-baseline gap-4 border-b border-line py-3"
+                >
+                  <dt className="text-sm text-muted">{label}</dt>
+                  <dd className="text-right font-mono text-sm text-ink">{value}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </div>
-          <Reveal delay={100}>
+
+          <Reveal delay={100} className="lg:col-span-5">
             <RefPaceMock large />
+            <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.16em] text-subtle">
+              The marker climbs mid-session as soon as you set a better lap.
+            </p>
           </Reveal>
         </div>
       </section>
 
-      {/* ── League leaderboards ──────────────────────────────────────────── */}
-      <section id="leaderboards" className="container-rail scroll-mt-36 py-16">
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <Reveal>
-            <span className="kicker mb-4">League leaderboards</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              League leaderboards <span className="text-gradient">from clean laps</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              Every completed lap is logged locally with the app&apos;s own clean-lap rule, then
-              synced to the league board — every member&apos;s best clean lap, ranked, with your own
-              row marked. Practice and qualifying count too.
-            </p>
-          </Reveal>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              {
-                icon: BadgeCheck,
-                title: "Clean laps only",
-                body: "Laps are judged by the app's own clean-lap rule before they reach the board.",
-              },
-              {
-                icon: Filter,
-                title: "Filter it down",
-                body: "Filter the board by track, class and car to see exactly the field you race in.",
-              },
-              {
-                icon: Trophy,
-                title: "Your Pace rank",
-                body: "The reference-pace ladder drives your Pace rank on the dashboard and the leaderboards.",
-              },
-            ].map((item, index) => (
-              <Reveal key={item.title} delay={index * 90} className="h-full">
-                <Card variant="default" className="h-full p-5">
-                  <item.icon aria-hidden size={22} className="text-cyan" />
-                  <h3 className="mt-3 font-display text-sm uppercase tracking-wide text-ink">{item.title}</h3>
-                  <p className="mt-1 text-sm text-muted">{item.body}</p>
-                </Card>
-              </Reveal>
-            ))}
-          </div>
-        </div>
+      {/* 05 · Leaderboards: three stages, left to right */}
+      <section id="leaderboards" className="container-rail scroll-mt-36 py-20">
+        <SectionHeading
+          index="05"
+          label="League leaderboards"
+          title="League leaderboards from clean laps"
+          lead="Every completed lap is logged locally with the app's own clean-lap rule, then synced to the league board: every member's best clean lap, ranked, with your own row marked."
+        />
+        <ol className="grid gap-px overflow-hidden border border-line bg-line md:grid-cols-3">
+          {LEAGUE_STEPS.map((step, i) => (
+            <li key={step.title} className="bg-base p-6">
+              <div className="flex items-baseline justify-between font-mono text-[11px] uppercase tracking-[0.24em]">
+                <span className="tabular-nums text-cyan">{String(i + 1).padStart(2, "0")}</span>
+                {i < LEAGUE_STEPS.length - 1 && (
+                  <span aria-hidden className="hidden text-subtle md:inline">
+                    →
+                  </span>
+                )}
+              </div>
+              <h3 className="mt-4 font-display text-2xl font-bold uppercase tracking-wide text-ink">
+                {step.title}
+              </h3>
+              <p className="mt-2 text-sm text-muted">{step.body}</p>
+            </li>
+          ))}
+        </ol>
       </section>
 
       <AioFaq items={[...getAioFaq("telemetry"), ...PAGE_FAQ]} className="border-t border-line" />
@@ -433,7 +522,7 @@ export default function LmuTelemetryPage() {
 
       <AioRelatedPages current="telemetry" />
 
-      <AioTrialCta body="Review, Reference Pace and the league leaderboards come with every widget, the race engineer, setups and the team pit wall — one subscription, everything included." />
+      <AioTrialCta body="Review, Reference Pace and the league leaderboards come with every widget, the race engineer, setups and the team pit wall. One subscription, everything included." />
     </>
   );
 }

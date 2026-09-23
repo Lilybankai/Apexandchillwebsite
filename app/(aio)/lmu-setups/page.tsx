@@ -1,28 +1,15 @@
 import Link from "next/link";
-import {
-  ArrowUpDown,
-  CheckCircle2,
-  Download,
-  FolderLock,
-  Gauge,
-  LockKeyhole,
-  RotateCcw,
-  Settings2,
-  SlidersHorizontal,
-  Star,
-  Tags,
-  Trophy,
-} from "lucide-react";
 import { AioFaq } from "@/components/aio/AioFaq";
 import { AioPageHero } from "@/components/aio/AioPageHero";
 import { AioRelatedPages } from "@/components/aio/AioRelatedPages";
 import { AioTrialCta } from "@/components/aio/AioTrialCta";
 import { JsonLd } from "@/components/aio/JsonLd";
+import { SectionHeading } from "@/components/aio/SectionHeading";
+import { AnnotatedFigure, type Callout } from "@/components/aio/setups/AnnotatedFigure";
 import { SetupBrowserMock } from "@/components/aio/setups/SetupBrowserMock";
 import { SetupOptimiserMock } from "@/components/overlay/SetupOptimiserMock";
-import { Card } from "@/components/ui/Card";
 import { Reveal } from "@/components/ui/Reveal";
-import { AIO_PRODUCT } from "@/lib/aio";
+import { AIO_PRODUCT, AIO_REVIEWS } from "@/lib/aio";
 import { getAioFaq, type AioFaqItem } from "@/lib/aio-faq";
 import { buildAioBreadcrumbJsonLd, buildAioPageMetadata } from "@/lib/aio-seo";
 
@@ -37,71 +24,98 @@ const PAGE_FAQ: AioFaqItem[] = [
   {
     q: "Where can I get free LMU setups?",
     page: "setups",
-    a: `Inside Apex AIO. Community setups are part of the app — publishing and downloading them carries no per-setup charge, so there is no separate setup pack to buy. Each shared Le Mans Ultimate setup is tagged with its track, car, class and handling, and can carry the fastest verified clean lap driven on it. The app itself is ${priceDisplay} a month after a ${trialDays}-day free trial, and the trial includes everything.`,
+    a: `Inside Apex AIO. Community setups are part of the app: publishing and downloading them carries no per-setup charge, so there is no separate setup pack to buy. Each shared Le Mans Ultimate setup is tagged with its track, car, class and handling, and can carry the fastest verified clean lap driven on it. The app is ${priceDisplay} a month after a ${trialDays}-day free trial, and the trial includes everything.`,
   },
   {
     q: "How do I install LMU setups?",
     page: "setups",
-    a: "Open the setup workshop in Apex AIO, find a community setup for your track, car and class, and press Get setup — it is sent straight into LMU's own setup screen, so there is nothing to copy by hand. Your own setups go into the private library as named, tagged copies of the real .svm files, kept where LMU can't overwrite them.",
+    a: "Open the setup workshop in Apex AIO, find a community setup for your track, car and class, and press Get setup. It goes straight into LMU's own setup screen, so there is nothing to copy by hand. Your own setups go into the private library as named, tagged copies of the real .svm files, kept where LMU can't overwrite them.",
   },
   {
     q: "Are the lap times on community setups real?",
     page: "setups",
-    a: "They are the fastest verified clean lap driven on that exact setup, linked to it when it was published — not a figure typed in by the author. The browser also shows how far that lap is from the board's best, so you can judge a setup on pace it has already proved. Ratings only open once a driver has downloaded the setup, so the stars come from people who have actually driven it.",
+    a: "They are the fastest verified clean lap driven on that exact setup, linked to it when it was published. The author doesn't type them in. The browser also shows how far that lap is from the board's best, so you can judge a setup on pace it has already shown. Ratings open only once a driver has downloaded the setup, so the stars come from people who have driven it.",
   },
   {
     q: "Will the setup editor overwrite my LMU setups?",
     page: "setups",
-    a: "Not without you. Edits you make by hand in the live garage editor land in the car instantly, as they would in the garage. Race engineer changes are different: they are staged first, every proposed value is shown, and nothing reaches LMU until you press Apply — Revert throws the preview away. Settings fixed by the ruleset are skipped, and the setup library keeps your named copies somewhere LMU can't overwrite them.",
+    a: "Not without you. Edits you make by hand in the live garage editor land in the car instantly, as they would in the garage. Race engineer changes are staged first: every proposed value is shown, and nothing reaches LMU until you press Apply. Revert throws the preview away. Settings fixed by the ruleset are skipped, and the setup library keeps your named copies where LMU can't overwrite them.",
   },
   {
     q: "Do the setup tools work in rFactor 2?",
     page: "setups",
-    a: "No — the setup features are LMU-only, because they depend on data rFactor 2 doesn't publish. On rF2 they read \"no data\" rather than showing something plausible-looking. The overlays that rF2 does support, such as standings, relative, radar and the track map, still work there.",
+    a: 'No. The setup features are LMU-only because they depend on data rFactor 2 doesn\'t publish. On rF2 they read "no data" rather than showing something plausible-looking. The overlays rF2 does support, such as standings, relative, radar and the track map, still work there.',
   },
 ];
 
-const OPTIMISER_POINTS = [
-  "Ten intent sliders — front turn-in, rear traction, braking stability, kerb compliance and more — turn handling feedback into balanced changes.",
-  "Changes are spread across the real setup keys available on the car you are driving, not a generic template.",
-  "Every proposed value is staged and shown before anything reaches the car.",
-  "Ruleset-locked or unavailable settings are skipped rather than forced.",
-] as const;
-
-const EDITOR_POINTS = [
-  "Every garage setting in one panel, following all six LMU garage pages.",
-  "Changes you make by hand land in the car instantly.",
-  "Settings fixed by the ruleset are marked and left alone.",
-  "The optimiser works on the same screen, so staged changes sit beside the live values.",
-] as const;
-
-const COMMUNITY_FEATURES = [
+/**
+ * Pins on the community browser mock, measured against its layout at `xl`
+ * (both gutters, two setup cards side by side). Re-check them if
+ * SetupBrowserMock's spacing changes.
+ */
+const BROWSER_CALLOUTS: Callout[] = [
   {
-    icon: Trophy,
-    title: "Verified lap times",
-    body: "Each shared setup can carry the fastest verified clean lap driven on that exact setup, with its gap to the board best.",
+    x: 30.7,
+    y: "143px",
+    labelY: "130px",
+    side: "left",
+    label: "Verified lap",
+    note: "The fastest clean lap driven on this exact setup.",
   },
   {
-    icon: Tags,
-    title: "Tagged for your car",
-    body: "Track, car, class and handling tags — low drag, endurance, kerb-friendly — so the list narrows to what you actually drive.",
+    x: 21.7,
+    y: "240px",
+    labelY: "210px",
+    side: "left",
+    label: "Handling tags",
+    note: "Low drag, endurance, kerb-friendly, plus track, car and class.",
   },
   {
-    icon: ArrowUpDown,
-    title: "Five ways to sort",
-    body: "Fastest verified lap, recommendation, rating, downloads or newest.",
+    x: 4.5,
+    y: "269px",
+    labelY: "290px",
+    side: "left",
+    label: "Rating",
+    note: "Opens only after a download, so every star comes from a driver who ran it.",
   },
   {
-    icon: Star,
-    title: "Ratings that mean something",
-    body: "Ratings open only after a driver has downloaded the setup, so every star comes from someone who ran it.",
+    x: 3.9,
+    y: "336px",
+    labelY: "392px",
+    side: "left",
+    label: "Publish",
+    note: "Share your own .svm. Your clean lap goes with it.",
   },
-] as const;
+  {
+    x: 62.8,
+    y: "49px",
+    labelY: "30px",
+    side: "right",
+    label: "Five sorts",
+    note: "Fastest lap, recommended, rating, downloads, newest.",
+  },
+  {
+    x: 93.4,
+    y: "143px",
+    labelY: "160px",
+    side: "right",
+    label: "Gap to best",
+    note: "How far this setup's lap is from the board best.",
+  },
+  {
+    x: 91.6,
+    y: "269px",
+    labelY: "288px",
+    side: "right",
+    label: "Get setup",
+    note: "One press, straight into LMU's own setup screen.",
+  },
+];
 
 const CLASSES = [
   {
     name: "Hypercar",
-    body: "Look for the Hypercar class tag and sort by fastest verified lap to find a baseline proved on the track you are about to race — endurance and kerb-friendly tags help for long stints.",
+    body: "Look for the Hypercar tag and sort by fastest verified lap for a baseline proved on the track you are about to race. The endurance and kerb-friendly tags help for long stints.",
   },
   {
     name: "LMP2",
@@ -109,45 +123,55 @@ const CLASSES = [
   },
   {
     name: "LMGT3",
-    body: "GT3 setups are tagged with their car and track, each with the clean lap it was driven on and a rating from people who downloaded it.",
+    body: "GT3 setups are tagged with their car and track, each with the clean lap it was driven on and a rating from drivers who downloaded it.",
   },
+] as const;
+
+const OPTIMISER_STEPS = [
+  {
+    title: "Move a slider",
+    body: "Each of the ten sliders is an intent, not a single setting. Ask for more front turn-in and the engineer stages a set of related changes, so the balance moves the way you asked instead of one value lurching on its own.",
+  },
+  {
+    title: "Read the preview",
+    body: "Every proposed value is staged beside the live one. The preview counts how many settings were staged and how many were left alone.",
+  },
+  {
+    title: "Apply or Revert",
+    body: "Apply sends the staged setup to LMU. Revert throws the preview away and leaves the car exactly as it was.",
+  },
+] as const;
+
+const OPTIMISER_SPEC = [
+  ["Intent sliders", "10"],
+  ["Examples", "Turn-in · traction · braking · kerbs"],
+  ["Works on", "Real keys on the current car"],
+  ["Ruleset-fixed settings", "Skipped"],
+  ["Not on this car", "Skipped"],
+  ["Reaches LMU", "On Apply only"],
+  ["Revert", "Discards the preview"],
 ] as const;
 
 const INSTALL_STEPS = [
   {
-    icon: Settings2,
     title: "Open the setup workshop",
-    body: "It lives in the Apex AIO control panel, beside the live garage editor and your setup library.",
+    body: "It is in the Apex AIO control panel, beside the live garage editor and your setup library.",
   },
   {
-    icon: Tags,
     title: "Find a setup",
-    body: "Narrow community setups by track, car, class and handling tags, then sort by fastest verified lap or rating.",
+    body: "Community setups are tagged by track, car, class and handling. Sort by fastest verified lap or rating.",
   },
   {
-    icon: Download,
     title: "Get setup",
-    body: "One press sends it straight into LMU's own setup screen. No hunting for folders, no copying .svm files by hand.",
+    body: "One press sends it into LMU's own setup screen. Nothing to copy into a folder by hand.",
   },
   {
-    icon: Star,
     title: "Drive it, then rate it",
-    body: "Ratings open once you have downloaded it — and if it needs tuning for your style, the optimiser is on the same screen.",
+    body: "Ratings open once you have downloaded it. If it needs tuning for your style, the optimiser is on the same screen.",
   },
 ] as const;
 
-function Points({ items }: { items: readonly string[] }) {
-  return (
-    <ul className="mt-6 space-y-3">
-      {items.map((item) => (
-        <li key={item} className="flex items-start gap-3 text-muted">
-          <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-success" />
-          <span>{item}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
+const SETUPS_REVIEW = AIO_REVIEWS.find((review) => review.author === "Timmy P");
 
 export default function LmuSetupsPage() {
   return (
@@ -164,224 +188,245 @@ export default function LmuSetupsPage() {
         lead={
           <>
             Free Le Mans Ultimate community setups, ranked by the verified clean lap each one was
-            actually driven on — plus a live LMU setup editor and a setup optimiser that turns
-            &ldquo;more turn-in&rdquo; into real changes for your car. Download LMU setups straight
-            into the game&apos;s own setup screen, keep your .svm files safe in a private library,
-            and never pay per setup.
+            driven on. Alongside them: a live LMU setup editor, and a setup optimiser that turns
+            &ldquo;more turn-in&rdquo; into real changes for the car you are in. Setups go straight
+            into the game&apos;s own setup screen, your .svm files stay in a private library, and
+            there is no per-setup charge.
           </>
         }
+        stats={[
+          { value: "10", label: "Intent sliders" },
+          { value: "6", label: "Garage pages, one panel" },
+          { value: "5", label: "Ways to sort" },
+        ]}
         points={[
-          "Community setups included — no per-setup charge",
-          "Verified clean lap on every listed tune",
+          "Community setups included",
+          "Ranked by verified clean lap",
           "Nothing applied until you press Apply",
         ]}
         visual={<SetupOptimiserMock />}
+        frame={false}
       />
 
-      {/* ── Community setups ─────────────────────────────────────────────── */}
-      <section id="community-setups" className="scroll-mt-36 border-b border-line bg-surface/30 py-16">
-        <div className="container-rail grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
-          <Reveal>
-            <span className="kicker mb-4">Community setups · Included</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              Free LMU community setups, ranked by{" "}
-              <span className="text-gradient">real lap times</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              Instead of paying separately for a blind setup pack, start from tunes other LMU
-              drivers have proved on track. Apex AIO&apos;s community setups are shared by other LMU drivers and linked to the fastest verified
-              clean lap driven on that exact setup — so before you download anything you can see
-              what it has already achieved, and choose a credible baseline rather than a hopeful
-              one.
-            </p>
-            <p className="mt-4 text-muted">
-              Publishing your own is the same flow in reverse: share an .svm setup with its track,
-              car, class and handling tags attached, and your clean lap goes with it. Publishing and
-              downloading are part of the app — there is no per-setup charge.
-            </p>
-          </Reveal>
-          <Reveal delay={140}>
+      {/* 01 · Community setups: the browser, drawn up as a teardown */}
+      <section id="community-setups" className="container-rail scroll-mt-36 py-20">
+        <SectionHeading
+          index="01"
+          label="Community setups"
+          title="Free LMU community setups, ranked by verified lap"
+          lead="Start from a setup another LMU driver has already proved on track instead of buying a pack blind. Each shared setup is linked to the fastest verified clean lap driven on it, so you can see what it has done before you download it."
+        />
+
+        <Reveal>
+          <AnnotatedFigure callouts={BROWSER_CALLOUTS}>
             <SetupBrowserMock />
-          </Reveal>
-        </div>
+          </AnnotatedFigure>
+        </Reveal>
 
-        <div className="container-rail mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {COMMUNITY_FEATURES.map((item, i) => (
-            <Reveal key={item.title} delay={i * 90} className="h-full">
-              <Card variant="default" className="flex h-full flex-col gap-3 p-6">
-                <item.icon size={22} className="text-cyan" aria-hidden />
-                <h3 className="text-lg font-bold text-ink">{item.title}</h3>
-                <p className="text-sm text-muted">{item.body}</p>
-              </Card>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Setups for every class ──────────────────────────────────────── */}
-      <section id="classes" className="container-rail scroll-mt-36 py-16">
-        <div className="mb-10 max-w-3xl">
-          <span className="kicker mb-4">Hypercar · LMP2 · LMGT3</span>
-          <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-            LMU setups for <span className="text-gradient">every class</span>
-          </h2>
-          <p className="mt-5 text-lg text-muted">
-            Every community setup carries its class, car and track as tags, so LMU Hypercar
-            setups, LMU LMP2 setups and LMU GT3 setups aren&apos;t separate hunts — they are
-            one tagged list. And because the optimiser works from the setup keys available on the car you
-            are sitting in, it adapts to whichever class you race.
+        <div className="mt-12 grid gap-6 border-t border-line pt-8 text-muted lg:grid-cols-2 lg:gap-12">
+          <p>
+            Publishing is the same flow in reverse. Share an .svm setup with its track, car, class
+            and handling tags, and the clean lap you drove on it goes with it.
+          </p>
+          <p>
+            Publishing and downloading are part of the app. There is no per-setup charge and no
+            separate pack to buy.
           </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {CLASSES.map((c, i) => (
-            <Reveal key={c.name} delay={i * 90} className="h-full">
-              <Card variant="default" interactive className="flex h-full flex-col gap-3 p-7">
-                <span className="chip w-fit border-accent/40 text-xs text-accent-2">{c.name}</span>
-                <h3 className="text-2xl font-bold text-ink">LMU {c.name} setups</h3>
-                <p className="text-muted">{c.body}</p>
-              </Card>
-            </Reveal>
-          ))}
+      </section>
+
+      {/* 02 · Classes: a spec sheet, one row per class */}
+      <section id="classes" className="scroll-mt-36 border-y border-line bg-surface/30 py-20">
+        <div className="container-rail">
+          <SectionHeading
+            index="02"
+            label="Hypercar · LMP2 · LMGT3"
+            title="LMU setups for every class"
+            lead="Class, car and track are tags on every community setup, so LMU Hypercar setups, LMP2 setups and GT3 setups come from one tagged list. The optimiser works from the setup keys on the car you are sitting in, so it follows whichever class you race."
+          />
+          <div className="border-t border-line">
+            {CLASSES.map((c) => (
+              <Reveal key={c.name}>
+                <div className="grid gap-3 border-b border-line py-7 md:grid-cols-[16rem_1fr] md:gap-10">
+                  <p
+                    aria-hidden
+                    className="font-mono text-3xl font-semibold uppercase tracking-wider text-ink sm:text-4xl"
+                  >
+                    {c.name}
+                  </p>
+                  <div>
+                    <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-cyan">
+                      LMU {c.name} setups
+                    </h3>
+                    <p className="mt-2 max-w-2xl text-muted">{c.body}</p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── Optimiser ───────────────────────────────────────────────────── */}
-      <section id="optimiser" className="scroll-mt-36 border-y border-line bg-surface/30 py-16">
-        <div className="container-rail grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-start">
-          <Reveal>
-            <span className="kicker mb-4">Setup optimiser · Race engineer</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              The LMU setup optimiser: tell it what the{" "}
-              <span className="text-gradient">car should do</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              You know how the car feels; you shouldn&apos;t need to know which five clicks fix it.
+      {/* 03 · Optimiser: the sequence on the left, the spec on the right */}
+      <section id="optimiser" className="container-rail scroll-mt-36 py-20">
+        <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+          <div className="lg:col-span-7">
+            <SectionHeading
+              index="03"
+              label="Setup optimiser"
+              title="The LMU setup optimiser: tell it what the car should do"
+              lead="You know how the car feels. You shouldn't need to know which five clicks fix it."
+            />
+            <p className="-mt-4 max-w-2xl text-lg leading-relaxed text-muted">
               Ask for more front turn-in, better rear traction, braking stability or compliance over
-              the kerbs, and the Race engineer translates that intent into balanced setup changes
-              for the car you are driving — without silently overwriting the garage.
+              the kerbs. The Race engineer turns that into balanced setup changes across the real
+              setup keys on the car you are driving, and stages them for you to check before
+              anything reaches the garage.
             </p>
-            <Points items={OPTIMISER_POINTS} />
-            <div className="mt-6 flex items-center gap-2 rounded-card border border-cyan/25 bg-cyan/5 p-4 text-sm text-subtle">
-              <SlidersHorizontal aria-hidden size={18} className="shrink-0 text-cyan" />
-              This is intent-based setup engineering, not a black-box lap-time promise.
+
+            <ol className="mt-10 space-y-8">
+              {OPTIMISER_STEPS.map((step, i) => (
+                <li key={step.title} className="grid grid-cols-[3rem_1fr] gap-4">
+                  <span className="font-mono text-2xl font-semibold tabular-nums text-subtle">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <div className="border-t border-line pt-3">
+                    <h3 className="font-display text-xl font-bold uppercase tracking-wide text-ink">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 text-muted">{step.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <Reveal delay={120} className="lg:col-span-5 lg:pt-24">
+            <div className="border border-line bg-base/60">
+              <p className="border-b border-line px-4 py-3 font-mono text-[10px] uppercase tracking-[0.24em] text-subtle">
+                Optimiser · spec
+              </p>
+              <dl>
+                {OPTIMISER_SPEC.map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="grid grid-cols-[1fr_auto] items-baseline gap-4 border-b border-line/70 px-4 py-3 last:border-0"
+                  >
+                    <dt className="text-sm text-muted">{label}</dt>
+                    <dd className="text-right font-mono text-sm tabular-nums text-ink">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+            <p className="mt-4 text-sm text-subtle">
+              This is intent-based setup engineering. It makes no promise about lap time.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* 04 · Editor and library: one big number, then two columns of prose */}
+      <section id="editor" className="scroll-mt-36 border-y border-line bg-surface/30 py-20">
+        <div className="container-rail grid gap-12 lg:grid-cols-12 lg:gap-16">
+          <Reveal className="lg:col-span-4">
+            <div className="border-l-2 border-cyan pl-6">
+              <p className="font-mono text-[8rem] font-semibold leading-none tabular-nums text-ink sm:text-[10rem]">
+                6
+              </p>
+              <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.24em] text-subtle">
+                LMU garage pages, in one panel
+              </p>
             </div>
           </Reveal>
 
-          <div className="grid gap-4">
-            <Reveal delay={100}>
-              <Card variant="glow" className="p-7">
-                <div className="flex items-center gap-3">
-                  <Gauge size={22} className="text-cyan" aria-hidden />
-                  <h3 className="text-2xl font-bold text-ink">Ten engineer macros</h3>
-                </div>
+          <div className="lg:col-span-8">
+            <SectionHeading
+              index="04"
+              label="Editor · Library"
+              title="A live LMU setup editor, and your own setup library"
+            />
+            <div className="grid gap-10 md:grid-cols-2">
+              <div>
+                <h3 className="font-display text-xl font-bold uppercase tracking-wide text-ink">
+                  Live garage editor
+                </h3>
                 <p className="mt-3 text-muted">
-                  Each slider is an intent, not a single setting. Move front turn-in up and the
-                  engineer stages a set of related changes across the real keys on your car, so the
-                  balance moves the way you asked rather than one value lurching on its own.
+                  Brake balance, ducts, wing, anti-roll bars: every garage setting, edited from the
+                  Apex AIO panel instead of the garage menus. Changes you make by hand land in the
+                  car instantly.
                 </p>
-              </Card>
-            </Reveal>
-            <Reveal delay={160}>
-              <Card variant="default" className="p-7">
-                <div className="flex items-center gap-3">
-                  <RotateCcw size={22} className="text-accent" aria-hidden />
-                  <h3 className="text-2xl font-bold text-ink">Apply or Revert</h3>
-                </div>
                 <p className="mt-3 text-muted">
-                  Nothing is applied until you say so. Staged values sit beside the live ones; Apply
-                  sends the staged setup to LMU, Revert removes the preview and leaves the car
-                  exactly as it was.
+                  Settings fixed by the ruleset are marked and left alone. The optimiser works on
+                  the same screen, so its staged changes sit beside the live values.
                 </p>
-              </Card>
-            </Reveal>
-            <Reveal delay={220}>
-              <Card variant="default" className="p-7">
-                <div className="flex items-center gap-3">
-                  <LockKeyhole size={22} className="text-flag-amber" aria-hidden />
-                  <h3 className="text-2xl font-bold text-ink">Ruleset-aware</h3>
-                </div>
+              </div>
+              <div>
+                <h3 className="font-display text-xl font-bold uppercase tracking-wide text-ink">
+                  Private setup library
+                </h3>
                 <p className="mt-3 text-muted">
-                  Settings the ruleset fixes, or that the current car doesn&apos;t have, are skipped
-                  — the preview tells you how many were staged and how many were left alone.
+                  Named, tagged copies of real .svm files, kept where LMU can&apos;t overwrite them.
+                  A qualifying setup, a wet race setup, the Spa setup that stopped the rear stepping
+                  out.
                 </p>
-              </Card>
-            </Reveal>
+                <p className="mt-3 text-muted">
+                  They are genuine LMU setups, not a proprietary format, so any of them can be
+                  published to the community with its clean lap attached.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Live editor + library ───────────────────────────────────────── */}
-      <section id="editor" className="container-rail scroll-mt-36 py-16">
-        <div className="grid gap-10 lg:grid-cols-2">
-          <Reveal>
-            <span className="kicker mb-4">Setup editor · Live</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              A live <span className="text-gradient">LMU setup editor</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              Every garage setting in an editor where changes land in the car instantly. Brake
-              balance, ducts, wing, anti-roll bars — edit them from the Apex AIO panel instead of
-              clicking through the garage menus, with the optimiser&apos;s staged changes shown
-              right beside the live values.
+      {/* A member, in their own words */}
+      {SETUPS_REVIEW && (
+        <section aria-label="Member review" className="container-rail py-20">
+          <figure className="grid gap-6 lg:grid-cols-12">
+            <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-subtle lg:col-span-3 lg:pt-3">
+              Member review
             </p>
-            <Points items={EDITOR_POINTS} />
-          </Reveal>
+            <div className="lg:col-span-9">
+              <blockquote className="font-display text-3xl font-bold uppercase leading-tight tracking-wide text-ink sm:text-4xl">
+                &ldquo;{SETUPS_REVIEW.body}&rdquo;
+              </blockquote>
+              <figcaption className="mt-5 font-mono text-xs uppercase tracking-[0.2em] text-subtle">
+                {SETUPS_REVIEW.author} · {SETUPS_REVIEW.context}
+              </figcaption>
+            </div>
+          </figure>
+        </section>
+      )}
 
-          <Reveal delay={120}>
-            <span className="kicker mb-4">Setup library · Private</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              Your own <span className="text-gradient">setup library</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted">
-              The setups you trust deserve somewhere safe. The library keeps named, tagged copies
-              of real .svm files where LMU can&apos;t overwrite them — your qualifying tune, your
-              wet race setup, the one that finally stopped the rear stepping out at Spa.
-            </p>
-            <Card variant="default" className="mt-6 flex items-start gap-4 p-6">
-              <FolderLock size={22} className="mt-0.5 shrink-0 text-cyan" aria-hidden />
-              <p className="text-sm text-muted">
-                <strong className="text-ink">Real files, not a proprietary format.</strong> The
-                library holds genuine LMU .svm setups, so what you save is a genuine LMU setup —
-                and one you can publish to the community with its clean lap attached.
-              </p>
-            </Card>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ── How to install ──────────────────────────────────────────────── */}
-      <section id="install" className="scroll-mt-36 border-y border-line bg-surface/30 py-16">
+      {/* 05 · Install: four steps on one line */}
+      <section id="install" className="scroll-mt-36 border-t border-line py-20">
         <div className="container-rail">
-          <div className="mb-10 text-center">
-            <span className="kicker mb-4">Download → in the garage</span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              How to install LMU setups <span className="text-gradient">in one click</span>
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-muted">
-              Installing a Le Mans Ultimate setup usually means downloading an .svm file and working
-              out where it goes. With Apex AIO the setup is sent straight into LMU&apos;s own setup
-              screen from the app.
-            </p>
-          </div>
+          <SectionHeading
+            index="05"
+            label="Install"
+            title="How to install LMU setups in one click"
+            lead="Installing an LMU setup usually means downloading an .svm file and working out which folder it belongs in. Apex AIO sends it straight into LMU's own setup screen."
+          />
 
-          <ol className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <ol className="grid gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
             {INSTALL_STEPS.map((step, i) => (
-              <li key={step.title}>
-                <Card variant="default" className="flex h-full flex-col gap-4 p-6">
-                  <div className="flex items-center justify-between">
-                    <span className="font-display text-4xl font-bold text-line">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <step.icon size={24} className="text-accent" aria-hidden />
-                  </div>
-                  <h3 className="text-xl font-bold text-ink">{step.title}</h3>
-                  <p className="text-sm text-muted">{step.body}</p>
-                </Card>
+              <li key={step.title} className="relative border-t border-line pt-6">
+                <span
+                  aria-hidden
+                  className="absolute -top-[5px] left-0 h-[9px] w-[9px] rounded-full border border-cyan bg-base"
+                />
+                <span className="font-mono text-[11px] tabular-nums tracking-[0.24em] text-cyan">
+                  STEP {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="mt-3 font-display text-xl font-bold uppercase tracking-wide text-ink">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-sm text-muted">{step.body}</p>
               </li>
             ))}
           </ol>
 
-          <p className="mx-auto mt-8 max-w-3xl text-center text-sm text-subtle">
+          <p className="mt-14 max-w-3xl text-sm text-subtle">
             The setup tools are part of the same app as the{" "}
             <Link href="/lmu-overlays" className="text-cyan hover:underline">
               LMU overlays
@@ -397,13 +442,13 @@ export default function LmuSetupsPage() {
             and{" "}
             <Link href="/lmu-telemetry" className="text-cyan hover:underline">
               lap-by-lap telemetry review
-            </Link>{" "}
-            — one subscription,{" "}
+            </Link>
+            . One subscription,{" "}
             <Link href="/apex-overlay-system#pricing" className="text-cyan hover:underline">
               {priceDisplay} a month
             </Link>
-            , everything included. Setup features are LMU-only; rFactor 2 doesn&apos;t publish the
-            data they need.
+            , everything included. Setup features are LMU-only, because rFactor 2 doesn&apos;t
+            publish the data they need.
           </p>
         </div>
       </section>
@@ -413,7 +458,7 @@ export default function LmuSetupsPage() {
       <AioRelatedPages current="setups" />
 
       <AioTrialCta
-        body={`Download community setups with verified lap times, tune them with the optimiser and keep them safe in your library — the whole setup workshop is in the ${trialDays}-day free trial.`}
+        body={`Download community setups with verified lap times, tune them with the optimiser and keep them in your library. The whole setup workshop is in the ${trialDays}-day free trial.`}
       />
     </>
   );

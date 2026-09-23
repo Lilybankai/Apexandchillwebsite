@@ -1,68 +1,60 @@
-import { CheckCircle2, ShieldCheck } from "lucide-react";
-import { Card } from "@/components/ui/Card";
+import { CheckCircle2 } from "lucide-react";
 import { AioTrialButton } from "@/components/aio/AioTrialCta";
+import { SectionHeading } from "@/components/aio/SectionHeading";
 import { AIO_PRODUCT } from "@/lib/aio";
 
 const { priceDisplay: PRICE, trialDays: TRIAL_DAYS } = AIO_PRODUCT;
 
+/** The page's one checkmark list: what the single plan includes. */
 const PLAN_POINTS = [
   "Every widget, in OBS and in game",
-  "The voice race engineer, bundled and included",
+  "The voice race engineer, bundled",
   "Setup optimiser, team pit wall, leaderboards and StreamBot",
-  "Review — every session and every lap you have driven",
+  "Review of every session and every lap you have driven",
   "Team and Solo engineer boards in a browser, on any device",
   "Every update, on the day it ships",
-  "Cancel any time — including during the trial",
+  "Cancel any time, including during the trial",
 ] as const;
 
 const BILLING: readonly [string, string][] = [
-  ["The app never sees your card", "Checkout and card entry happen on Stripe's own hosted pages, not in the app."],
-  [
-    "A card up front, charged only after the trial",
-    `You won't pay a penny unless you're still subscribed when the ${TRIAL_DAYS} days end.`,
-  ],
-  [
-    "Cancel yourself, in the app",
-    "The subscription card opens Stripe's customer portal — cancel, change card or grab invoices without asking anyone.",
-  ],
-  [
-    "72 hours of offline grace",
-    "A confirmed subscription keeps working for three days with no internet, so a race weekend away is never a lockout.",
-  ],
+  ["Card entry", "On Stripe's own hosted checkout. The app never sees your card"],
+  ["First charge", `Only if you're still subscribed when the ${TRIAL_DAYS} days end`],
+  ["Cancelling", "In the app: the subscription card opens Stripe's customer portal for cancelling, cards and invoices"],
+  ["Offline", "72 hours of grace on a confirmed subscription, so a weekend without internet isn't a lockout"],
+  ["League codes", "League racers and beta testers redeem a code on the subscribe screen instead"],
 ];
 
 /** Install → on screen. Deliberately short. */
 const STEPS: readonly [string, string][] = [
-  ["Install and sign in", "One signed Windows installer; start the trial and the server starts itself."],
+  ["Install and sign in", "One signed Windows installer. Start the trial and the server starts itself."],
   ["Tick the overlays you want", "Each widget has its own switch for OBS and for in-game."],
   ["Paste a URL into OBS", "Or skip OBS and drag widgets over the sim on the in-game layer."],
-  ["Stay current, quietly", "Updates announce themselves and are never installed mid-stream."],
+  ["Stay current", "Updates announce themselves and never install mid-stream."],
 ];
 
-export function HubPricing({ version }: { version: string }) {
+export function HubPricing({ version, index }: { version: string; index?: string }) {
   return (
-    <section id="pricing" className="container-rail scroll-mt-36 py-16">
-      <div className="mb-10 text-center">
-        <span className="kicker mb-4">Pricing</span>
-        <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-          One price, <span className="text-gradient">every LMU tool in it</span>
-        </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-muted">
-          No cut-down tier and no feature held back to upsell you later: the overlays, the race
-          engineer, setups, the pit wall, telemetry review and StreamBot, with every update.
-        </p>
-      </div>
+    <section id="pricing" aria-labelledby="pricing-heading" className="container-rail scroll-mt-36 py-20">
+      <SectionHeading
+        index={index}
+        id="pricing-heading"
+        label="Pricing"
+        title="One plan, everything in it"
+        lead="The overlays, the race engineer, setups, the pit wall, telemetry review and StreamBot, with every update. There is no second tier."
+      />
 
-      <div className="mx-auto grid max-w-4xl gap-4 md:grid-cols-2">
-        <Card variant="glow" clip className="relative flex flex-col p-8">
-          <span className="kicker mb-3">The only plan</span>
-          <p className="font-display text-5xl font-bold text-ink">
-            {TRIAL_DAYS} days <span className="text-gradient">free</span>
+      <div className="grid gap-px overflow-hidden rounded-card border border-line bg-line lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        {/* The plan */}
+        <div className="flex flex-col bg-surface p-8">
+          <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-subtle">The only plan</p>
+          <p className="mt-4 font-mono text-6xl font-bold tabular-nums leading-none text-ink">
+            {TRIAL_DAYS}
+            <span className="ml-2 font-display text-2xl font-bold uppercase tracking-wide text-muted">days free</span>
           </p>
           <p className="mt-3 text-lg text-muted">
-            then <strong className="text-ink">{PRICE}</strong> per month
+            then <strong className="font-mono tabular-nums text-ink">{PRICE}</strong> a month
           </p>
-          <ul className="mt-6 flex-1 space-y-3">
+          <ul className="mt-6 flex-1 space-y-2.5">
             {PLAN_POINTS.map((point) => (
               <li key={point} className="flex items-start gap-3 text-sm text-muted">
                 <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-success" aria-hidden />
@@ -71,47 +63,41 @@ export function HubPricing({ version }: { version: string }) {
             ))}
           </ul>
           <AioTrialButton label="Start the free trial" className="mt-8 w-full" />
-          <p className="mt-3 text-center text-xs text-subtle">
+          <p className="mt-3 text-center font-mono text-[11px] uppercase tracking-[0.16em] text-subtle">
             Windows · v{version} · nothing charged until day {TRIAL_DAYS + 1}
           </p>
-        </Card>
+        </div>
 
-        <Card variant="default" className="flex flex-col p-8">
-          <span className="kicker mb-3">How billing works</span>
-          <div className="flex items-center gap-3">
-            <ShieldCheck size={24} className="text-cyan" aria-hidden />
-            <p className="text-lg font-bold text-ink">Stripe, and only Stripe</p>
-          </div>
-          <ul className="mt-6 flex-1 space-y-4">
-            {BILLING.map(([title, body]) => (
-              <li key={title} className="flex items-start gap-3 text-sm text-muted">
-                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-success" aria-hidden />
+        {/* Billing, as a spec sheet */}
+        <div className="bg-base p-8">
+          <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-subtle">Billing · Stripe only</p>
+          <dl className="mt-5 border-t border-line">
+            {BILLING.map(([label, value]) => (
+              <div
+                key={label}
+                className="grid gap-1 border-b border-line py-3 sm:grid-cols-[140px_minmax(0,1fr)] sm:gap-6"
+              >
+                <dt className="pt-px font-mono text-[11px] uppercase tracking-[0.16em] text-subtle">{label}</dt>
+                <dd className="text-sm text-ink">{value}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <h3 className="mt-10 font-mono text-[11px] uppercase tracking-[0.24em] text-subtle">
+            Install to on screen · {STEPS.length} steps, no config files
+          </h3>
+          <ol className="mt-4 grid gap-5 sm:grid-cols-2">
+            {STEPS.map(([title, body], i) => (
+              <li key={title} className="flex gap-4">
+                <span className="font-mono text-sm tabular-nums text-cyan">{String(i + 1).padStart(2, "0")}</span>
                 <span>
-                  <strong className="text-ink">{title}</strong>
-                  <span className="mt-0.5 block">{body}</span>
+                  <span className="block font-display text-sm uppercase tracking-wide text-ink">{title}</span>
+                  <span className="mt-1 block text-sm text-muted">{body}</span>
                 </span>
               </li>
             ))}
-          </ul>
-          <p className="mt-8 rounded-card border border-line bg-base/50 p-4 text-center text-sm text-subtle">
-            League racer or beta tester? Redeem a league code on the subscribe screen instead.
-          </p>
-        </Card>
-      </div>
-
-      <div className="mx-auto mt-10 max-w-4xl">
-        <h3 className="mb-4 text-center font-display text-sm uppercase tracking-widest text-subtle">
-          Running in minutes — {STEPS.length} steps, no config files
-        </h3>
-        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map(([title, body], i) => (
-            <li key={title} className="rounded-card border border-line bg-surface/40 p-4">
-              <span className="font-display text-2xl font-bold text-line">{String(i + 1).padStart(2, "0")}</span>
-              <p className="mt-1 font-display text-sm uppercase tracking-wide text-ink">{title}</p>
-              <p className="mt-1 text-xs text-muted">{body}</p>
-            </li>
-          ))}
-        </ol>
+          </ol>
+        </div>
       </div>
     </section>
   );

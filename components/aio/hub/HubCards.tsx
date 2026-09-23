@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 /**
  * Two small panels for features that have no widget mock of their own: the
  * engineer's radio log and StreamBot + the league board. Representative
- * data, written in the app's own phrasing — not live.
+ * data, written in the app's own phrasing. Not live.
  */
 
 function PanelChrome({
@@ -19,13 +19,14 @@ function PanelChrome({
   className?: string;
 }) {
   return (
-    <div className={cn("overflow-hidden rounded-card border border-line bg-[#080a0f] shadow-card", className)}>
+    <div className={cn("overflow-hidden rounded-card border border-line bg-[#080a0f]", className)}>
       <div className="flex items-center justify-between border-b border-line bg-elevated/80 px-4 py-3">
         <span className="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-widest text-ink">
           {icon}
           {title}
         </span>
-        <span className="motion-live-pulse inline-flex items-center gap-1.5 rounded-full border border-success/40 bg-success/10 px-2.5 py-1 font-mono text-[10px] font-bold text-success">
+        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-bold tracking-widest text-success">
+          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success" />
           LIVE
         </span>
       </div>
@@ -80,7 +81,7 @@ const CHAT: { user: string; text: string; bot?: boolean }[] = [
   { user: "kerb_hopper", text: "!gap" },
   { user: "Apex Bot", text: "P4 in Hypercar, +1.2 s to the car ahead.", bot: true },
   { user: "late_apex_liz", text: "!setup" },
-  { user: "Apex Bot", text: "Tonight's Spa setup is on the league board — clean lap 2:18.4.", bot: true },
+  { user: "Apex Bot", text: "Tonight's Spa setup is on the league board. Clean lap 2:18.4.", bot: true },
   { user: "Apex Bot", text: "Goal: 42 / 50 members. Thanks for joining, slipstream_sam!", bot: true },
 ];
 

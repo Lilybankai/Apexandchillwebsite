@@ -4,7 +4,7 @@ import { useCallback, useRef, useState, type KeyboardEvent } from "react";
 
 /**
  * The keyboard half of the WAI-ARIA tabs pattern: one tab in the tab order at
- * a time, arrows move between them (and select — "automatic activation"),
+ * a time, arrows move between them (and select: "automatic activation"),
  * Home and End jump to the ends. `orientation: "both"` accepts up/down as well
  * as left/right, for a tablist that is a row on a phone and a column on a
  * desktop.

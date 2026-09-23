@@ -2,8 +2,11 @@ import { CheckCircle2, Download, Star, UploadCloud, Users } from "lucide-react";
 
 /**
  * What the community setup browser looks like. The listings are illustrative
- * samples (the same two the hub's community section shows), not a live feed —
- * the caption under the mock says so.
+ * samples (the same two the hub's community section shows), not a live feed.
+ * The caption under the mock says so.
+ *
+ * The setups page pins annotation callouts onto this layout by position, so a
+ * change to its spacing or structure means re-checking those pins.
  */
 const SAMPLE_SETUPS = [
   {
@@ -93,10 +96,6 @@ export function SetupBrowserMock() {
         aria-label="Apex AIO community setup browser showing sample LMU setups with verified clean laps, handling tags, ratings and download counts"
         className="relative overflow-hidden rounded-card border border-line bg-[#080a0f] shadow-card"
       >
-        <span
-          aria-hidden
-          className="motion-scanline pointer-events-none absolute inset-y-0 z-10 w-24 bg-gradient-to-r from-transparent via-cyan/5 to-transparent"
-        />
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-elevated/80 px-4 py-3">
           <div className="flex items-center gap-2">
             <Users size={15} className="text-cyan" />
@@ -140,8 +139,8 @@ export function SetupBrowserMock() {
           </div>
         </div>
       </div>
-      <figcaption className="mt-3 text-center text-xs text-subtle">
-        What the browser looks like — the listings shown are illustrative samples, not a live feed.
+      <figcaption className="mt-3 text-xs text-subtle">
+        What the browser looks like. The listings shown are illustrative samples, not a live feed.
       </figcaption>
     </figure>
   );

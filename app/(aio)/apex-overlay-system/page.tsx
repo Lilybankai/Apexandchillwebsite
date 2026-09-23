@@ -1,21 +1,21 @@
 import { Suspense } from "react";
-import { ArrowRight, CheckCircle2, Download, Globe, Layers } from "lucide-react";
+import { ArrowRight, Download, Globe } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Reveal } from "@/components/ui/Reveal";
-import { AioReviews } from "@/components/overlay/AioReviews";
 import { WidgetCatalogue } from "@/components/overlay/WidgetCatalogue";
 import { ReferralBanner } from "@/components/overlay/ReferralBanner";
 import { ChannelPartners } from "@/components/partners/ChannelPartners";
 import { AioFaq } from "@/components/aio/AioFaq";
 import { AioTrialCta } from "@/components/aio/AioTrialCta";
 import { JsonLd } from "@/components/aio/JsonLd";
+import { SectionHeading } from "@/components/aio/SectionHeading";
+import { BroadcastFrame } from "@/components/aio/broadcast/BroadcastFrame";
+import { StintStory } from "@/components/aio/broadcast/StintStory";
+import { STINT_BEATS, STINT_TOTAL_LAPS } from "@/components/aio/broadcast/stint";
 import { CompactCatalogue } from "@/components/aio/hub/CompactCatalogue";
 import { FeatureExplorer } from "@/components/aio/hub/FeatureExplorer";
-import { HeroDemo } from "@/components/aio/hub/HeroDemo";
 import { HubPricing } from "@/components/aio/hub/HubPricing";
+import { HubReviews } from "@/components/aio/hub/HubReviews";
 import { ProofStrip } from "@/components/aio/hub/ProofStrip";
-import { HERO_DEMO_TABS } from "@/components/aio/hub/demo";
 import { HUB_FEATURES } from "@/components/aio/hub/features";
 import { AIO_PRODUCT } from "@/lib/aio";
 import { getAioFaq } from "@/lib/aio-faq";
@@ -52,22 +52,36 @@ const {
  * Re-render the page on the same cadence as the release lookup, so the version
  * on screen never lags behind the installer the button hands out. Next.js
  * requires a static literal, so this cannot reference
- * {@link AIO_RELEASE_TTL_SECONDS} — keep the two in sync manually.
+ * {@link AIO_RELEASE_TTL_SECONDS}. Keep the two in sync manually.
  */
 export const revalidate = 1800;
 
 export const metadata = AIO_METADATA;
 
 /**
- * The hub. Deliberately short: one hero with a live demo, one feature
- * explorer that links out to each topic page, the widget list, proof,
- * pricing and the FAQ. Depth lives on the topic pages in `lib/aio-pages.ts`
- * — add a feature to `components/aio/hub/features.tsx`, not a section here.
+ * The hub. The hero is a paused broadcast frame with the real widgets where a
+ * stream puts them; the stint story walks one race through the rest; then the
+ * feature explorer (one tab per feature, each linking to its topic page), the
+ * widget list, numbers, reviews, pricing and the FAQ. Depth lives on the topic
+ * pages in `lib/aio-pages.ts`: add a feature to
+ * `components/aio/hub/features.tsx`, not a section here.
+ *
+ * SVG ids: the track map and speedo appear only in the hero frame, the radar
+ * only in the stint story and the Review mock only in the explorer. Each
+ * carries fixed gradient ids and must stay on the page once.
  */
 export default async function ApexAioSystemPage() {
   // The newest published release, or the pinned fallback if GitHub is unreachable.
   const release = await getLatestAioRelease();
   const { version: APP_VERSION, installerFilename: INSTALLER_FILENAME } = release;
+
+  const heroFacts = [
+    `${PRICE}/month after the trial`,
+    "Signed installer, no SmartScreen warning",
+    "No plugin needed for LMU",
+    "Runs inside OBS's own browser",
+    `v${APP_VERSION} · Windows`,
+  ];
 
   return (
     <div className="pb-8">
@@ -81,168 +95,168 @@ export default async function ApexAioSystemPage() {
           query string in the server component would opt the whole page out of
           that to personalise one strip.
 
-          Suspense is not optional around useSearchParams — without the
+          Suspense is not optional around useSearchParams. Without the
           boundary the production build fails, which is at least the right end
           to find out. */}
       <Suspense fallback={null}>
         <ReferralBanner />
       </Suspense>
 
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      {/* ── Hero: the headline, then a paused frame of the stream ─────────── */}
       <section className="relative overflow-hidden border-b border-line">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-grid-lines bg-grid opacity-25 [mask-image:radial-gradient(70%_60%_at_50%_0%,black,transparent)]"
+          className="pointer-events-none absolute inset-0 bg-grid-lines bg-grid opacity-20 [mask-image:radial-gradient(70%_50%_at_30%_0%,black,transparent)]"
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-accent/15 blur-[120px]"
-        />
-        <div className="container-rail relative py-16 lg:py-20">
-          <Reveal>
-            <span className="kicker mb-4">Apex AIO System · Le Mans Ultimate · rFactor 2</span>
-            <h1 className="max-w-4xl text-4xl font-bold text-ink sm:text-5xl lg:text-6xl">
-              LMU overlays, race engineer &amp; setups — <span className="text-gradient">one app</span>
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg text-muted">
-              Your whole pit wall for Le Mans Ultimate:{" "}
-              <strong className="text-ink">lightweight overlays</strong> for OBS and over the sim, a{" "}
-              <strong className="text-ink">voice race engineer</strong> on push-to-talk,{" "}
-              <strong className="text-ink">setups</strong> tuned from intent, a live{" "}
-              <strong className="text-ink">team pit wall</strong> on any device and{" "}
-              <strong className="text-ink">telemetry review</strong> of every lap you have ever
-              driven.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button href={DOWNLOAD_PATH} size="lg" clip download={INSTALLER_FILENAME}>
-                <Download size={18} />
-                Start your {TRIAL_DAYS}-day free trial
-              </Button>
-              <Button
-                href={WEB_BOARDS_URL}
-                size="lg"
-                variant="outline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Globe size={18} />
-                Open the boards on any device
-              </Button>
+        <div className="container-rail relative pt-14 lg:pt-20">
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-12">
+            <div className="lg:col-span-7">
+              <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.28em] text-subtle">
+                Apex AIO System · Le Mans Ultimate · rFactor 2
+              </p>
+              <h1 className="text-4xl font-bold text-ink sm:text-5xl lg:text-6xl">
+                LMU overlays, race engineer &amp; setups in <span className="text-gradient">one app</span>
+              </h1>
             </div>
+            <div className="lg:col-span-5">
+              <p className="text-lg leading-relaxed text-muted">
+                Overlays for OBS and over the sim, a voice race engineer on push-to-talk, setups tuned
+                from what you ask for, a live team pit wall on any device, and telemetry review of
+                every lap you&apos;ve driven.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button href={DOWNLOAD_PATH} size="lg" clip download={INSTALLER_FILENAME}>
+                  <Download size={18} />
+                  Start your {TRIAL_DAYS}-day free trial
+                </Button>
+                <Button
+                  href={WEB_BOARDS_URL}
+                  size="lg"
+                  variant="outline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Globe size={18} />
+                  Boards on any device
+                </Button>
+              </div>
+            </div>
+          </div>
 
-            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
-              {[
-                `${PRICE}/month after the trial`,
-                "Signed installer — no SmartScreen warning",
-                "No plugin needed for LMU",
-                "Runs inside OBS's own browser",
-                `v${APP_VERSION} · Windows`,
-              ].map((point) => (
-                <li key={point} className="inline-flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-success" />
-                  {point}
-                </li>
-              ))}
-            </ul>
-          </Reveal>
+          <ul className="mt-8 flex flex-wrap gap-y-2 border-t border-line pt-4 font-mono text-[11px] uppercase tracking-[0.14em] text-subtle">
+            {heroFacts.map((fact, i) => (
+              <li key={fact} className={i > 0 ? "border-l border-line pl-4 pr-4" : "pr-4"}>
+                {fact}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-          {/* The live wall: the real widgets rebuilt in HTML/CSS/SVG from the
-              app's own rendering code, one view at a time. */}
-          <Reveal delay={150} className="mt-12">
-            <HeroDemo tabs={HERO_DEMO_TABS} />
-          </Reveal>
+        {/* The widgets as a stream shows them: rebuilt in HTML/CSS/SVG from
+            the app's own rendering code, laid out on a 16:9 frame. */}
+        <div id="broadcast" className="mx-auto mt-10 w-full max-w-[1440px] scroll-mt-36 px-5 pb-14 sm:px-8 lg:pb-16">
+          <BroadcastFrame />
         </div>
       </section>
 
       {/* ── Trial band ───────────────────────────────────────────────────── */}
-      <section className="border-b border-line bg-gradient-to-r from-accent/10 via-accent-2/10 to-cyan/10">
-        <div className="container-rail flex flex-wrap items-center justify-between gap-6 py-6">
-          <div className="flex items-center gap-4">
-            <span className="chip border-accent/50 text-accent-2">Everything included</span>
-            <p className="font-display text-xl uppercase tracking-wide text-ink">
+      <section aria-label="Free trial" className="border-b border-line bg-surface/40">
+        <div className="container-rail flex flex-wrap items-center justify-between gap-x-8 gap-y-4 py-5">
+          <p className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-subtle">One plan</span>
+            <span className="font-display text-xl uppercase tracking-wide text-ink">
               {TRIAL_DAYS} days free, then {PRICE}/month
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
+            </span>
+          </p>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-sm">
             <a
               href={WEB_BOARDS_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-card border border-cyan/50 bg-base/60 px-4 py-2 font-mono text-sm font-semibold text-cyan transition-all duration-200 hover:border-cyan hover:shadow-glow-cyan"
+              className="inline-flex items-center gap-2 text-cyan hover:underline"
             >
-              <Globe size={16} aria-hidden />
-              Engineer boards on any device: {WEB_BOARDS_LABEL}
+              <Globe size={15} aria-hidden />
+              Engineer boards: {WEB_BOARDS_LABEL}
             </a>
-            <Button href="#pricing" size="sm" variant="outline">
-              See the pricing
-              <ArrowRight size={16} />
-            </Button>
+            <a href="#pricing" className="inline-flex items-center gap-1.5 text-muted hover:text-ink">
+              Pricing
+              <ArrowRight size={15} aria-hidden />
+            </a>
           </div>
         </div>
+      </section>
+
+      {/* ── Stint story ──────────────────────────────────────────────────────
+          One race in five beats, scroll-driven on a desktop. */}
+      <section id="stint" aria-labelledby="stint-heading" className="container-rail scroll-mt-36 py-20">
+        <SectionHeading
+          index="01"
+          id="stint-heading"
+          label="Race story"
+          title="One race, lights to flag"
+          lead={`Five moments from a ${STINT_TOTAL_LAPS}-lap race and what the app has on screen at each of them.`}
+        />
+        <StintStory beats={STINT_BEATS} totalLaps={STINT_TOTAL_LAPS} />
       </section>
 
       {/* ── Feature explorer ─────────────────────────────────────────────────
           Every feature, one tab each, from HUB_FEATURES. Each panel links to
           the topic page that covers it in depth. */}
-      <section id="features" className="scroll-mt-36 py-16">
+      <section id="features" aria-labelledby="features-heading" className="scroll-mt-36 border-t border-line py-20">
         <div className="container-rail">
-          <Reveal className="mb-10 max-w-3xl">
-            <span className="kicker mb-4">
-              {HUB_FEATURES.length} features · overlays · race engineer · setups · pit wall · telemetry
-            </span>
-            <h2 className="text-4xl font-bold text-ink sm:text-5xl">
-              Everything an LMU driver needs, <span className="text-gradient">in one app</span>
-            </h2>
-            <p className="mt-4 text-lg text-muted">
-              Plenty of tools will draw you a standings tower. Pick a feature to see the parts that
-              took real work — each one a working rebuild of the app&apos;s own panel, not a
-              screenshot.
-            </p>
-          </Reveal>
+          <SectionHeading
+            index="02"
+            id="features-heading"
+            label={`Features · ${HUB_FEATURES.length}`}
+            title="Everything an LMU driver needs, in one app"
+            lead="Pick a feature for the spec and a working rebuild of the app's own panel, then follow the link for the full page on it."
+          />
           <FeatureExplorer features={HUB_FEATURES} />
         </div>
       </section>
 
       {/* ── Widget inventory ─────────────────────────────────────────────── */}
-      <section id="widgets" className="scroll-mt-36 border-y border-line bg-surface/30 py-16">
-        <div className="container-rail">
-          <div className="mb-4 flex items-center gap-3">
-            <Layers size={20} className="text-accent" />
-            <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-ink">
-              Every LMU overlay in the box
-            </h2>
-            <span className="h-px flex-1 bg-line" />
+      <section id="widgets" aria-labelledby="widgets-heading" className="scroll-mt-36 border-t border-line py-20">
+        <div className="container-rail grid gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <SectionHeading
+              index="03"
+              id="widgets-heading"
+              label="Widgets"
+              title="Every LMU overlay in the box"
+              lead="Each widget has its own switch, two destinations (an OBS Browser Source and the in-game layer) and its own background opacity. All of them are in the one price."
+              className="lg:sticky lg:top-36"
+            />
           </div>
-          <p className="mb-8 max-w-3xl text-muted">
-            Each widget has its own switch, its own two destinations — an OBS Browser Source and the
-            in-game layer — and its own background opacity. All of them are in the one price.
-          </p>
-          <CompactCatalogue>
-            <WidgetCatalogue />
-          </CompactCatalogue>
+          <div className="lg:col-span-8">
+            <CompactCatalogue>
+              <WidgetCatalogue />
+            </CompactCatalogue>
+          </div>
         </div>
       </section>
 
       {/* ── Proof ────────────────────────────────────────────────────────── */}
-      <ProofStrip />
-      <AioReviews />
+      <ProofStrip index="04" />
+      <HubReviews index="05" />
 
       {/* ── Pricing + install steps ──────────────────────────────────────── */}
-      <HubPricing version={APP_VERSION} />
+      <HubPricing version={APP_VERSION} index="06" />
 
       <AioFaq items={getAioFaq("overview")} />
 
       {/* ── Channel partners ────────────────────────────────────────────── */}
       <ChannelPartners
         className="border-t border-line py-16"
-        blurb="Teams and communities we work with. They're not affiliates or resellers — they're the people we race, stream and build alongside."
-        heading={<>Partnered <span className="text-gradient">communities</span></>}
+        kicker="Partners"
+        blurb="Teams and communities we race, stream and build alongside. None of them are affiliates or resellers."
+        heading="Partnered communities"
       />
 
       {/* ── Credit ───────────────────────────────────────────────────────── */}
-      <section className="container-rail py-4">
-        <Card variant="outline" className="p-6">
+      <section aria-label="Credit" className="container-rail py-6">
+        <div className="grid gap-2 border-y border-line py-5 md:grid-cols-[200px_minmax(0,1fr)] md:gap-8">
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-subtle">Reference times</p>
           <p className="text-sm text-subtle">
             The reference lap times and the Alien → Offline pace bands behind the Reference Pace
             widget are{" "}
@@ -257,11 +271,11 @@ export default async function ApexAioSystemPage() {
             &apos;s work, with lap times contributed by beAlien, Go and Hymo. The Apex AIO System
             only reads them, and credits them in the app wherever a score is shown.
           </p>
-        </Card>
+        </div>
       </section>
 
       {/* ── Final CTA ────────────────────────────────────────────────────── */}
-      <AioTrialCta body="The whole pit wall — every LMU overlay, the engineer on the radio, your setups, your telemetry and your stream, in one app. Install it before your next session and see what you've been driving without." />
+      <AioTrialCta body="Every LMU overlay, the engineer on the radio, your setups, your telemetry and your stream, in one app. Install it before your next session." />
     </div>
   );
 }

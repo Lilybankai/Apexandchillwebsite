@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MessageCircle, Youtube, Twitch, HeartHandshake, Mail } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ApexChevron } from "@/components/ui/Logo";
+import { AIO_PAGES } from "@/lib/aio-pages";
 
 const DISCORD_URL = "https://discord.gg/MBew2Bb2hj";
 const YOUTUBE_URL = "https://youtube.com/channel/UCu7lyaGuo3sY2wWZo42-LVw";
@@ -23,6 +24,15 @@ const FOOTER_NAV = {
     { href: "/schedule", label: "Schedule" },
     { href: "/lmu-special-events", label: "LMU Special Events" },
     { href: "/replays", label: "Replays" },
+  ],
+  // The Apex AIO topic pages — linked site-wide from here so they aren't only
+  // reachable from inside the product section.
+  "Apex AIO": [
+    ...AIO_PAGES.map((page) => ({
+      href: page.path,
+      label: page.key === "overview" ? "Apex AIO System" : page.breadcrumb,
+    })),
+    { href: "/lmu-livery-studio", label: "LMU Livery Studio" },
   ],
   League: [
     { href: "/join", label: "Join the League" },
@@ -87,7 +97,7 @@ export function Footer() {
       </div>
 
       {/* Main footer grid */}
-      <div className="container-rail grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
+      <div className="container-rail grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-[1.4fr_repeat(5,1fr)]">
         <div className="space-y-4">
           <Link href="/" className="flex items-center gap-2.5" aria-label="Apex & Chill Racing home">
             <ApexChevron className="h-8 w-8" />

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ApexChevron } from "@/components/ui/Logo";
+import { AIO_PAGES } from "@/lib/aio-pages";
 import { cn } from "@/lib/utils";
 
 /** A leaf link, or a parent with a dropdown of `children`. */
@@ -17,6 +18,8 @@ type NavItem = {
     label: string;
     description?: string;
     badge?: string;
+    /** Other routes that count as this entry for the active highlight. */
+    activePaths?: readonly string[];
   }[];
 };
 
@@ -35,7 +38,10 @@ const NAV_LINKS: readonly NavItem[] = [
       {
         href: "/apex-overlay-system",
         label: "Apex AIO System",
-        description: "LMU overlays, voice race engineer + setups",
+        description: "LMU overlays, race engineer, setups + pit wall",
+        // The topic pages live in the product bar, not here — one entry keeps
+        // the site header the same size however many pages the product has.
+        activePaths: AIO_PAGES.map((p) => p.path),
       },
       {
         href: "/lmu-livery-studio",
@@ -101,10 +107,13 @@ export function Header() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+  const isChildActive = (child: NonNullable<NavItem["children"]>[number]) =>
+    isActive(child.href) || (child.activePaths?.some((path) => isActive(path)) ?? false);
+
   /** A parent is "active" when the current route matches any of its children. */
   const isItemActive = (item: NavItem) =>
     item.children
-      ? item.children.some((c) => isActive(c.href))
+      ? item.children.some((c) => isChildActive(c))
       : isActive(item.href);
 
   return (
@@ -179,7 +188,7 @@ export function Header() {
                         href={child.href}
                         className={cn(
                           "block rounded-[10px] px-3 py-2.5 transition-colors",
-                          isActive(child.href)
+                          isChildActive(child)
                             ? "bg-elevated text-accent"
                             : "text-muted hover:bg-elevated hover:text-ink",
                         )}
@@ -264,7 +273,7 @@ export function Header() {
                     href={child.href}
                     className={cn(
                       "flex items-center gap-2 border-l-2 px-4 py-3 pl-7 font-display text-base uppercase tracking-wide transition-colors",
-                      isActive(child.href)
+                      isChildActive(child)
                         ? "border-accent bg-elevated text-accent"
                         : "border-transparent text-muted hover:text-ink",
                     )}

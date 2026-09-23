@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { AIO_PAGES } from "@/lib/aio-pages";
 import { SITE_URL } from "@/lib/site";
 import { loadMergedCatalog } from "@/lib/merch/store";
 
@@ -10,7 +11,11 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: "/", changeFrequency: "daily", priority: 1 },
   { path: "/live", changeFrequency: "always", priority: 0.8 },
   { path: "/standings", changeFrequency: "daily", priority: 0.9 },
-  { path: "/apex-overlay-system", changeFrequency: "monthly", priority: 0.9 },
+  ...AIO_PAGES.map((page) => ({
+    path: page.path,
+    changeFrequency: "monthly" as const,
+    priority: page.key === "overview" ? 0.9 : 0.8,
+  })),
   { path: "/lmu-livery-studio", changeFrequency: "monthly", priority: 0.9 },
   { path: "/merch", changeFrequency: "weekly", priority: 0.8 },
   { path: "/schedule", changeFrequency: "weekly", priority: 0.8 },

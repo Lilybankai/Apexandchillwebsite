@@ -1,14 +1,81 @@
 import type { Metadata } from "next";
 import { AIO_PRODUCT, AIO_REVIEWS } from "@/lib/aio";
 import { AIO_FALLBACK_RELEASE, type AioRelease } from "@/lib/aio-release";
+import { getAioPage, type AioPageKey } from "@/lib/aio-pages";
 import { SITE_URL } from "@/lib/site";
 
-const PAGE_PATH = "/apex-overlay-system";
+const HUB = getAioPage("overview");
+const PAGE_PATH = HUB.path;
 const PAGE_URL = `${SITE_URL}${PAGE_PATH}`;
 
-const TITLE = "Apex AIO System | LMU Overlays & Voice Race Engineer";
-const DESCRIPTION =
-  "Download Apex AIO for 20 lightweight LMU and rFactor 2 overlays, a voice race engineer, setup optimiser, live team pit wall and Review — every lap you have driven, compared lap against lap. Try it free for 7 days.";
+const TITLE = HUB.title;
+const DESCRIPTION = HUB.description;
+
+const ROBOTS: Metadata["robots"] = {
+  index: true,
+  follow: true,
+  googleBot: {
+    index: true,
+    follow: true,
+    "max-image-preview": "large",
+    "max-snippet": -1,
+    "max-video-preview": -1,
+  },
+};
+
+/**
+ * Metadata for one of the topic pages in `lib/aio-pages.ts`. Title and
+ * description come from the registry so the product bar, sitemap and search
+ * result always describe the page the same way.
+ */
+export function buildAioPageMetadata(key: Exclude<AioPageKey, "overview">): Metadata {
+  const page = getAioPage(key);
+  return {
+    title: { absolute: page.title },
+    description: page.description,
+    applicationName: AIO_PRODUCT.name,
+    category: "Sim racing software",
+    creator: "Apex & Chill Racing",
+    publisher: "Apex & Chill Racing",
+    alternates: { canonical: page.path },
+    robots: ROBOTS,
+    openGraph: {
+      type: "website",
+      url: page.path,
+      siteName: "Apex & Chill Racing",
+      title: page.title,
+      description: page.description,
+    },
+    // The image comes from each page's own `opengraph-image.tsx`, which
+    // Next.js attaches to both the Open Graph and Twitter cards.
+    twitter: {
+      card: "summary_large_image",
+      title: page.title,
+      description: page.description,
+    },
+  };
+}
+
+/** Home → Apex AIO → this page, or Home → Apex AIO for the hub itself. */
+export function buildAioBreadcrumbJsonLd(key: AioPageKey) {
+  const items = [
+    { name: "Home", item: SITE_URL },
+    { name: HUB.breadcrumb, item: PAGE_URL },
+  ];
+  if (key !== "overview") {
+    const page = getAioPage(key);
+    items.push({ name: page.breadcrumb, item: `${SITE_URL}${page.path}` });
+  }
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((entry, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      ...entry,
+    })),
+  };
+}
 
 export const AIO_METADATA: Metadata = {
   title: { absolute: TITLE },
@@ -49,17 +116,7 @@ export const AIO_METADATA: Metadata = {
     "Apex AIO",
   ],
   alternates: { canonical: PAGE_PATH },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
+  robots: ROBOTS,
   openGraph: {
     type: "website",
     url: PAGE_PATH,
@@ -159,21 +216,4 @@ export function buildAioSoftwareJsonLd(release: AioRelease = AIO_FALLBACK_RELEAS
   };
 }
 
-export const AIO_BREADCRUMB_JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    {
-      "@type": "ListItem",
-      position: 1,
-      name: "Home",
-      item: SITE_URL,
-    },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: AIO_PRODUCT.name,
-      item: PAGE_URL,
-    },
-  ],
-};
+export const AIO_BREADCRUMB_JSON_LD = buildAioBreadcrumbJsonLd("overview");

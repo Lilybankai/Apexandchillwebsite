@@ -4,7 +4,15 @@ export const SOCIAL_IMAGE_SIZE = { width: 1200, height: 630 };
 export const SOCIAL_IMAGE_ALT =
   "Apex AIO System — LMU overlays, voice race engineer, setup optimiser and team pit wall";
 
-export function renderAioSocialImage() {
+/**
+ * The share card for any Apex AIO page. The hub renders it with its defaults;
+ * each topic page passes its own headline so a shared /lmu-setups link reads
+ * "LMU Setups", not the product name.
+ */
+export function renderAioSocialImage({
+  headline = "Apex AIO System",
+  tagline = "Your whole pit wall in one app.",
+}: { headline?: string; tagline?: string } = {}) {
   return new ImageResponse(
     (
       <div
@@ -57,7 +65,7 @@ export function renderAioSocialImage() {
                 lineHeight: 1,
               }}
             >
-              Apex AIO System
+              {headline}
             </div>
             <div
               style={{
@@ -67,7 +75,7 @@ export function renderAioSocialImage() {
                 marginTop: 26,
               }}
             >
-              Your whole pit wall in one app.
+              {tagline}
             </div>
           </div>
 

@@ -11,12 +11,6 @@ const PAGE_URL = `${SITE_URL}${PAGE_PATH}`;
 const TITLE = HUB.title;
 const DESCRIPTION = HUB.description;
 
-/**
- * The topic pages share the hub's social card: it is generated from the hub
- * route by `opengraph-image.tsx`, so every page in the section links to it.
- */
-const SHARED_SOCIAL_IMAGE = `${PAGE_PATH}/opengraph-image`;
-
 const ROBOTS: Metadata["robots"] = {
   index: true,
   follow: true,
@@ -51,13 +45,13 @@ export function buildAioPageMetadata(key: Exclude<AioPageKey, "overview">): Meta
       siteName: "Apex & Chill Racing",
       title: page.title,
       description: page.description,
-      images: [SHARED_SOCIAL_IMAGE],
     },
+    // The image comes from each page's own `opengraph-image.tsx`, which
+    // Next.js attaches to both the Open Graph and Twitter cards.
     twitter: {
       card: "summary_large_image",
       title: page.title,
       description: page.description,
-      images: [SHARED_SOCIAL_IMAGE],
     },
   };
 }

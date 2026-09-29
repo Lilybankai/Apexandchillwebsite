@@ -40,7 +40,8 @@ export async function AioTrialCta({
 }) {
   const release = await getLatestAioRelease();
   return (
-    <section className="container-rail py-12">
+    // `#free-trial` is where the product bar's phone button lands.
+    <section id="free-trial" className="container-rail scroll-mt-36 py-12">
       <div className="border-y border-line">
         <div className="flex items-center justify-between gap-4 border-b border-line py-2 font-mono text-[10px] uppercase tracking-[0.24em] text-subtle">
           <span>Apex AIO</span>

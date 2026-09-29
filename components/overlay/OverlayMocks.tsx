@@ -1141,15 +1141,19 @@ const TM_AMBIENT = 0.3; // ambient floor — deep shadow faces stay dark maroon
 const TM_BASE = [235, 45, 48]; // the classic palette's flat red
 const TM_LINE = "#141821"; // classic start/finish bar colour
 
+/** One decimal place: a tenth of a unit is ~0.1 px at the size this draws, and
+    the full float precision was most of the map's ~96 KB of markup. */
+const r1 = (n: number) => Math.round(n * 10) / 10;
+
 /** A representative circuit, sampled like the learned centreline. `lift` is
     the (exaggerated) elevation, exactly as the renderer treats it. */
 const TM_PTS = Array.from({ length: TM_N }, (_, i) => {
   const t = i / TM_N;
   const th = t * Math.PI * 2;
   return {
-    x: 150 + 110 * Math.cos(th) + 22 * Math.cos(2 * th + 1.1) + 8 * Math.cos(4 * th + 0.4),
-    y: 108 + 44 * Math.sin(th) + 12 * Math.sin(3 * th + 0.6),
-    lift: 15 + 9 * Math.sin(2 * th + 0.9) + 3 * Math.sin(5 * th + 1.7),
+    x: r1(150 + 110 * Math.cos(th) + 22 * Math.cos(2 * th + 1.1) + 8 * Math.cos(4 * th + 0.4)),
+    y: r1(108 + 44 * Math.sin(th) + 12 * Math.sin(3 * th + 0.6)),
+    lift: r1(15 + 9 * Math.sin(2 * th + 0.9) + 3 * Math.sin(5 * th + 1.7)),
     t,
   };
 });
@@ -1172,7 +1176,8 @@ const TM_SEGS = TM_PTS.map((p, i) => {
   const nx = -dy / len;
   const ny = dx / len;
   const k = TM_AMBIENT + (1 - TM_AMBIENT) * Math.abs(nx * TM_LIGHT.x + ny * TM_LIGHT.y);
-  const shade = (m: number) => `rgb(${TM_BASE.map((c) => Math.round(c * k * m)).join(",")})`;
+  const shade = (m: number) =>
+    `#${TM_BASE.map((c) => Math.round(c * k * m).toString(16).padStart(2, "0")).join("")}`;
   return { p, q, top: shade(1), shade };
 });
 
@@ -1243,37 +1248,38 @@ export function TrackMapMock({ large = false, className }: { large?: boolean; cl
         {/* The curtain: the road extruded the FULL way down to the ground
             plane, in stacked bands — darkest at the foot, lightening toward
             the lip. This tall wall is most of the 2.5-D read. */}
-        {TM_SEGS.map((s, i) => {
-          const steps = Math.max(2, Math.round(Math.min(s.p.lift, s.q.lift) / 3.2));
-          return Array.from({ length: steps }, (_, b) => {
-            const f = b / steps; // 0 = ground … →1 just under the road
-            return (
-              <line
-                key={`c${i}-${b}`}
-                x1={s.p.x}
-                y1={s.p.y - s.p.lift * f}
-                x2={s.q.x}
-                y2={s.q.y - s.q.lift * f}
-                stroke={s.shade(0.28 + 0.42 * f)}
-                strokeWidth="10"
-                strokeLinecap="round"
-              />
-            );
-          });
-        })}
+        {/* ~550 lines, so the shared stroke settings sit on the group. */}
+        <g strokeWidth="10" strokeLinecap="round">
+          {TM_SEGS.map((s, i) => {
+            const steps = Math.max(2, Math.round(Math.min(s.p.lift, s.q.lift) / 3.2));
+            return Array.from({ length: steps }, (_, b) => {
+              const f = b / steps; // 0 = ground … →1 just under the road
+              return (
+                <line
+                  key={`c${i}-${b}`}
+                  x1={s.p.x}
+                  y1={r1(s.p.y - s.p.lift * f)}
+                  x2={s.q.x}
+                  y2={r1(s.q.y - s.q.lift * f)}
+                  stroke={s.shade(0.28 + 0.42 * f)}
+                />
+              );
+            });
+          })}
+        </g>
         {/* The lit road surface, one Lambert-shaded flat fill per segment */}
-        {TM_SEGS.map((s, i) => (
-          <line
-            key={`hi${i}`}
-            x1={s.p.x}
-            y1={s.p.y - s.p.lift}
-            x2={s.q.x}
-            y2={s.q.y - s.q.lift}
-            stroke={s.top}
-            strokeWidth="11"
-            strokeLinecap="round"
-          />
-        ))}
+        <g strokeWidth="11" strokeLinecap="round">
+          {TM_SEGS.map((s, i) => (
+            <line
+              key={`hi${i}`}
+              x1={s.p.x}
+              y1={r1(s.p.y - s.p.lift)}
+              x2={s.q.x}
+              y2={r1(s.q.y - s.q.lift)}
+              stroke={s.top}
+            />
+          ))}
+        </g>
 
         {/* Start/finish bar across the road, in the classic line colour */}
         <line

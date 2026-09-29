@@ -1,15 +1,6 @@
 import type { ReactNode } from "react";
 import { ArrowUp } from "lucide-react";
-import {
-  DamagePredictorMock,
-  MfdMock,
-  RefPaceMock,
-  TrackLimitsMock,
-} from "@/components/overlay/OverlayMocks";
-import { ReviewLapMock } from "@/components/overlay/ReviewMocks";
-import { SetupOptimiserMock } from "@/components/overlay/SetupOptimiserMock";
-import { TeamPitWallMock } from "@/components/overlay/TeamPitWallMock";
-import { RadioCallsCard, StreamBotCard } from "@/components/aio/hub/HubCards";
+import { LazyVisual } from "@/components/aio/hub/LazyVisual";
 import { getAioPage, type AioPageKey } from "@/lib/aio-pages";
 
 /**
@@ -17,8 +8,10 @@ import { getAioPage, type AioPageKey } from "@/lib/aio-pages";
  * here and it gets a tab, a panel, its copy in the server HTML and a link to
  * its topic page. Nothing else to edit.
  *
- * Built on the server so the mocks render there; the explorer itself only
- * receives finished ReactNodes and strings.
+ * The copy is built on the server. The mocks are not: each is a
+ * `<LazyVisual id>` that loads when its tab is first shown, because rendered
+ * into every hidden panel they were most of the hub's HTML. A new mock needs
+ * an entry in LazyVisual's loader map.
  *
  * SVG ids: every panel is in the DOM with inactive ones `hidden`, and a
  * gradient defined inside a hidden subtree stops painting for any other copy
@@ -99,7 +92,7 @@ const SOURCES: FeatureSource[] = [
       ["Free-form", "Sent to an AI engineer; your voice is transcribed locally"],
       ["Proactive calls", "A dial you set: off, essential or standard"],
     ],
-    visual: <RadioCallsCard />,
+    visual: <LazyVisual id="radio-calls" />,
     page: "race-engineer",
   },
   {
@@ -114,7 +107,7 @@ const SOURCES: FeatureSource[] = [
       ["Read-back", "Every value is read back from the game, so you see what LMU kept"],
       ["Key binding", "Unbound keys found and bound in one click, with a backup and an undo"],
     ],
-    visual: <MfdMock />,
+    visual: <LazyVisual id="mfd" />,
     page: "overlays",
   },
   {
@@ -130,7 +123,7 @@ const SOURCES: FeatureSource[] = [
       ["Updates", "Live, as you improve"],
       ["League", "Feeds your Pace rank on the league board"],
     ],
-    visual: <RefPaceMock />,
+    visual: <LazyVisual id="ref-pace" />,
     page: "telemetry",
   },
   {
@@ -145,7 +138,7 @@ const SOURCES: FeatureSource[] = [
       ["Library", "Your real .svm files, kept where LMU can't overwrite them"],
       ["Community", "Setups sorted by proven pace, downloaded straight into the game"],
     ],
-    visual: <SetupOptimiserMock />,
+    visual: <LazyVisual id="setup-optimiser" />,
     page: "setups",
   },
   {
@@ -161,7 +154,7 @@ const SOURCES: FeatureSource[] = [
       ["Devices", "Team and Solo boards open in any browser: a phone, a tablet or another PC"],
     ],
     note: "Team relay needs each crew member to run Apex AIO on their own active subscription.",
-    visual: <TeamPitWallMock />,
+    visual: <LazyVisual id="team-pit-wall" />,
     page: "pit-wall",
   },
   {
@@ -176,7 +169,7 @@ const SOURCES: FeatureSource[] = [
       ["Per 500 m", "A chip saying what that stretch of road cost"],
       ["Consistency", "A spread in seconds, not a percentage score"],
     ],
-    visual: <ReviewLapMock />,
+    visual: <LazyVisual id="review-lap" />,
     page: "telemetry",
   },
   {
@@ -207,12 +200,7 @@ const SOURCES: FeatureSource[] = [
       ["Penalties", "DRIVE THROUGH, STOP-GO 10S and PENALTY SERVED"],
       ["Pit timer", "Repair and tyre time side by side, never guessed into one figure"],
     ],
-    visual: (
-      <div className="grid gap-4 md:grid-cols-2">
-        <TrackLimitsMock />
-        <DamagePredictorMock />
-      </div>
-    ),
+    visual: <LazyVisual id="track-limits" />,
     page: "overlays",
   },
   {
@@ -227,7 +215,7 @@ const SOURCES: FeatureSource[] = [
       ["YouTube quota", "Tracked in a ledger, so a long stream can't run dry without warning"],
       ["League board", "Every member's best clean lap, filtered by track, class and car"],
     ],
-    visual: <StreamBotCard />,
+    visual: <LazyVisual id="streambot" />,
   },
 ];
 

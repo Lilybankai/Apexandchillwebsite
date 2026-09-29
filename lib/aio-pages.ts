@@ -77,7 +77,7 @@ export const AIO_PAGES: readonly AioPage[] = [
     key: "telemetry",
     path: "/lmu-telemetry",
     navLabel: "Telemetry",
-    title: "LMU Telemetry & Lap Comparison | Apex AIO Review",
+    title: "LMU Telemetry & Lap Comparison | Apex AIO",
     description:
       "Le Mans Ultimate telemetry on your own PC: every lap you've driven, your optimal lap, and two laps compared corner by corner.",
     breadcrumb: "LMU Telemetry",

@@ -11,7 +11,7 @@ import { Annotated, type Annotation } from "@/components/aio/overlays/Annotated"
 import { RadioPanel } from "@/components/aio/race-engineer/RadioPanel";
 import { AIO_PRODUCT } from "@/lib/aio";
 import { getAioFaq, type AioFaqItem } from "@/lib/aio-faq";
-import { buildAioBreadcrumbJsonLd, buildAioPageMetadata } from "@/lib/aio-seo";
+import { buildAioBreadcrumbJsonLd, buildAioPageMetadata, buildAioWebPageJsonLd } from "@/lib/aio-seo";
 import { cn } from "@/lib/utils";
 
 const { priceDisplay: PRICE, trialDays: TRIAL_DAYS } = AIO_PRODUCT;
@@ -128,6 +128,7 @@ export default function LmuRaceEngineerPage() {
   return (
     <>
       <JsonLd data={buildAioBreadcrumbJsonLd("race-engineer")} />
+      <JsonLd data={buildAioWebPageJsonLd("race-engineer")} />
 
       <AioPageHero
         kicker="Apex AIO · Voice race engineer · Le Mans Ultimate"

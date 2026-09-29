@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { AIO_PRODUCT, AIO_REVIEWS } from "@/lib/aio";
 import { getAioFaq, type AioFaqItem } from "@/lib/aio-faq";
-import { buildAioBreadcrumbJsonLd, buildAioPageMetadata } from "@/lib/aio-seo";
+import { buildAioBreadcrumbJsonLd, buildAioPageMetadata, buildAioWebPageJsonLd } from "@/lib/aio-seo";
 import { cn } from "@/lib/utils";
 
 export const metadata = buildAioPageMetadata("pit-wall");
@@ -285,6 +285,7 @@ export default function LmuPitWallPage() {
   return (
     <>
       <JsonLd data={buildAioBreadcrumbJsonLd("pit-wall")} />
+      <JsonLd data={buildAioWebPageJsonLd("pit-wall")} />
 
       <AioPageHero
         kicker="Apex AIO · Team engineering"

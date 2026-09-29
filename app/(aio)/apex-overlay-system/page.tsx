@@ -24,6 +24,7 @@ import {
   AIO_BREADCRUMB_JSON_LD,
   AIO_METADATA,
   buildAioSoftwareJsonLd,
+  buildAioWebPageJsonLd,
 } from "@/lib/aio-seo";
 
 /**
@@ -87,6 +88,7 @@ export default async function ApexAioSystemPage() {
     <div className="pb-8">
       <JsonLd data={buildAioSoftwareJsonLd(release)} />
       <JsonLd data={AIO_BREADCRUMB_JSON_LD} />
+      <JsonLd data={buildAioWebPageJsonLd("overview")} />
 
       {/* ── Referral banner ──────────────────────────────────────────────────
           Only renders for someone who arrived on a partner's /r/CODE link, and

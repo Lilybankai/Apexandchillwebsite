@@ -173,6 +173,21 @@ const SOURCES: FeatureSource[] = [
     page: "telemetry",
   },
   {
+    id: "race-log",
+    label: "Race log & replays",
+    tag: "Incident review",
+    title: "LMU incident review, one click from the replay",
+    summary:
+      "Every race LMU has saved results for, read back as a timeline: each contact and who it was with, track limits, penalties, damage and places gained and lost. Replay on any line opens the game's own replay five seconds before it.",
+    specs: [
+      ["Contacts", "Named, numbered and graded light or heavy"],
+      ["Replay", "Camera on your car, then Previous and Next through the incidents"],
+      ["Protests", "Copy as text, ready for Discord or a protest form"],
+    ],
+    visual: <LazyVisual id="race-log" />,
+    page: "incident-review",
+  },
+  {
     id: "track-map",
     label: "3D track maps",
     tag: "32 bundled",

@@ -13,7 +13,8 @@ export type AioPageKey =
   | "race-engineer"
   | "setups"
   | "pit-wall"
-  | "telemetry";
+  | "telemetry"
+  | "incident-review";
 
 export type AioPage = {
   key: AioPageKey;
@@ -81,6 +82,15 @@ export const AIO_PAGES: readonly AioPage[] = [
     description:
       "Le Mans Ultimate telemetry on your own PC: every lap you've driven, your optimal lap, and two laps compared corner by corner.",
     breadcrumb: "LMU Telemetry",
+  },
+  {
+    key: "incident-review",
+    path: "/lmu-incident-review",
+    navLabel: "Race Log",
+    title: "LMU Incident Review: Race Log & Replays | Apex AIO",
+    description:
+      "Review every LMU race incident: contacts graded light or heavy, track limits, penalties and damage on a timeline, each a click from the game's replay.",
+    breadcrumb: "LMU Incident Review",
   },
 ] as const;
 

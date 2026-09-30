@@ -32,6 +32,12 @@ const LOADERS = {
     import("@/components/overlay/SetupOptimiserMock").then((m) => m.SetupOptimiserMock),
   "team-pit-wall": () => import("@/components/overlay/TeamPitWallMock").then((m) => m.TeamPitWallMock),
   "review-lap": () => import("@/components/overlay/ReviewMocks").then((m) => m.ReviewLapMock),
+  "race-log": () =>
+    import("@/components/overlay/RaceLogMock").then(({ RaceLogMock }) =>
+      function RaceLogIncidents() {
+        return <RaceLogMock variant="hero" />;
+      },
+    ),
 } as const;
 
 export type LazyVisualId = keyof typeof LOADERS;

@@ -184,6 +184,7 @@ const DEVICES = [
   ["Phone", "Follow the stint from the sofa, the garage or the other side of the country."],
   ["Tablet", "A second pit-wall screen next to the wheel, without a second PC."],
   ["Any other machine", "Mac, Linux, a work laptop. Anything with a browser opens the same board."],
+  ["Schedule", "League rounds and LMU's daily races with countdowns, in your time zone. No game or PC needed."],
 ] as const;
 
 const TEAM_VS_SOLO = [
@@ -560,6 +561,14 @@ export default function LmuPitWallPage() {
                 and the teammate who just climbed out never overrides the one in the car.
               </p>
               <p>Every panel carries a state label, so old telemetry never reads as current.</p>
+              <p>
+                The same relay reaches your own overlays. Watch a teammate&rsquo;s stint from the
+                garage and the Tyre Temps, Damage and Fuel widgets show their live numbers
+                (temperatures, wear, pressures, damage, fuel and the booked stop) under a{" "}
+                <span className="font-mono text-cyan">RELAY · NAME</span> tag, instead of the dashes
+                LMU gives a spectator. If the relay goes quiet for more than a few seconds they go
+                back to dashes rather than show old numbers.
+              </p>
             </div>
             <dl className="border-t border-line">
               {STATE_LABELS.map((s) => (
@@ -610,7 +619,7 @@ export default function LmuPitWallPage() {
           </a>
         </Reveal>
 
-        <div className="mt-10 grid gap-8 md:grid-cols-3">
+        <div className="mt-10 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {DEVICES.map(([device, body]) => (
             <div key={device}>
               <h3 className="font-mono text-[11px] uppercase tracking-[0.22em] text-cyan">

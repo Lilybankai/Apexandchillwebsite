@@ -83,7 +83,7 @@ export function buildAioBreadcrumbJsonLd(key: AioPageKey) {
 
 /**
  * The page itself, tied to the product. The hub's main entity is the app; each
- * topic page is `about` it by `@id`, which links the six pages together without
+ * topic page is `about` it by `@id`, which links the pages together without
  * repeating the offer and rating — review markup belongs only on the page that
  * shows the reviews, and that's the hub.
  */
@@ -131,6 +131,9 @@ export const AIO_METADATA: Metadata = {
     "LMU telemetry analysis",
     "LMU lap comparison",
     "LMU stint review",
+    "LMU incident review",
+    "LMU replay",
+    "LMU race log",
     "Le Mans Ultimate driving coach",
     "Le Mans Ultimate endurance race strategy",
     "LMU track map overlay",

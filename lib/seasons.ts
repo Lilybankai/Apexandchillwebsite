@@ -40,7 +40,7 @@ export const PAST_CHAMPIONS: readonly SeasonChampions[] = [
     league: 'THU',
     seasonLabel: 'Season 1',
     champions: [
-      { className: 'LMGT3', driver: 'Andy' },
+      { className: 'LMGT3', driver: 'Andy Winters' },
       { className: 'LMP2', driver: 'Tom Mould' },
     ],
   },

@@ -1,5 +1,5 @@
 import type { ApiResult, League, NextRace, Standings } from "@/lib/types";
-import { fetchGt7Standings, fetchGt7NextRace } from "@/lib/api/simleaguepro";
+import { fetchGt7Standings, fetchGt7NextRace } from "@/lib/api/gt7";
 import {
   fetchLmuStandings,
   fetchLmuNextRace,

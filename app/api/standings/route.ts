@@ -19,7 +19,7 @@
 
 import { NextResponse } from 'next/server';
 import type { ApiResult, League, Standings } from '@/lib/types';
-import { fetchGt7Standings } from '@/lib/api/simleaguepro';
+import { fetchGt7Standings } from '@/lib/api/gt7';
 import { fetchLmuStandings, fetchThursdayStandings } from '@/lib/api/simgrid';
 import { isThursdayConfigured } from '@/lib/leagues';
 import { CACHE_TTL_SECONDS } from '@/lib/env';

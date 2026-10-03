@@ -43,6 +43,9 @@ export const simgrid = {
     LMU: CURRENT_SIMGRID_CHAMPIONSHIPS.LMU ?? read('SIMGRID_LMU_CHAMPIONSHIP_ID'),
     // The season set in lib/seasons.ts wins over the env var.
     THU: CURRENT_SIMGRID_CHAMPIONSHIPS.THU ?? read('SIMGRID_THURSDAY_CHAMPIONSHIP_ID'),
+    // GT7 moved from Sim League Pro to SimGrid; while this is unset GT7 stays
+    // on Sim League Pro.
+    GT7: CURRENT_SIMGRID_CHAMPIONSHIPS.GT7 ?? read('SIMGRID_GT7_CHAMPIONSHIP_ID'),
   } as Record<string, string | undefined>,
 } as const;
 

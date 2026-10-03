@@ -77,7 +77,7 @@ interface SlpLeague {
  * Bundled sample GT7 standings, used when live credentials are absent.
  * Team names mirror the real Season 3 grid so the fallback looks authentic.
  */
-const SAMPLE_GT7_STANDINGS: StandingRow[] = [
+export const SAMPLE_GT7_STANDINGS: StandingRow[] = [
   { position: 1, driver: 'ApexJake_87', team: 'Apex Originals', teamColor: '#00ff88', points: 212, wins: 6, podiums: 9, avgQuali: 1.8, avgFinish: 2.0, penalties: 0, class: 'Gr.3', league: 'GT7' },
   { position: 2, driver: 'NumptyKing', team: 'GT97 Numpty Squad', teamColor: '#00d4ff', points: 198, wins: 4, podiums: 10, avgQuali: 2.4, avgFinish: 2.6, penalties: 3, class: 'Gr.3', league: 'GT7' },
   { position: 3, driver: 'V10_Sombra', team: 'Chemistry Racing Team', teamColor: '#9b59b6', points: 176, wins: 3, podiums: 7, avgQuali: 3.1, avgFinish: 3.3, penalties: 0, class: 'Gr.3', league: 'GT7' },
@@ -99,7 +99,7 @@ const SAMPLE_GT7_STANDINGS: StandingRow[] = [
  * Bundled sample GT7 schedule used until the Sim League Pro schedule endpoint is
  * wired live. GT7 Season 3 (per Scout) ran on Sundays at 20:00.
  */
-const SAMPLE_GT7_SCHEDULE: ScheduleRound[] = [
+export const SAMPLE_GT7_SCHEDULE: ScheduleRound[] = [
   { league: 'GT7', round: 1, track: 'Nürburgring GP', class: 'GR.3', date: '2026-01-11', time: '20:00', status: 'completed' },
   { league: 'GT7', round: 2, track: 'Suzuka Circuit', class: 'GR.2', date: '2026-01-18', time: '20:00', status: 'completed' },
   { league: 'GT7', round: 3, track: 'Brands Hatch', class: 'GR.3', date: '2026-01-25', time: '20:00', variableWeather: true, status: 'completed' },
@@ -115,7 +115,7 @@ const SAMPLE_GT7_SCHEDULE: ScheduleRound[] = [
 ];
 
 /** Bundled sample next GT7 race. */
-const SAMPLE_GT7_NEXT_RACE: NextRace = {
+export const SAMPLE_GT7_NEXT_RACE: NextRace = {
   league: 'GT7',
   round: 7,
   track: 'Nürburgring GP',

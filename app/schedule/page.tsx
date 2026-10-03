@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import type { League, ApiResult, Schedule } from "@/lib/types";
-import { fetchGt7Schedule } from "@/lib/api/simleaguepro";
+import { fetchGt7Schedule } from "@/lib/api/gt7";
 import { fetchLmuSchedule, fetchThursdaySchedule } from "@/lib/api/simgrid";
 import { isThursdayConfigured } from "@/lib/leagues";
 import { Button } from "@/components/ui/Button";

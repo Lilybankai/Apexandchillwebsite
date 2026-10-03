@@ -12,7 +12,7 @@ import { JsonLd } from "@/components/aio/JsonLd";
 import { SectionHeading } from "@/components/aio/SectionHeading";
 import { AnnotatedFigure, type Callout } from "@/components/aio/setups/AnnotatedFigure";
 import { getAioFaq, type AioFaqItem } from "@/lib/aio-faq";
-import { buildAioBreadcrumbJsonLd, buildAioPageMetadata } from "@/lib/aio-seo";
+import { buildAioBreadcrumbJsonLd, buildAioPageMetadata, buildAioWebPageJsonLd } from "@/lib/aio-seo";
 
 export const metadata = buildAioPageMetadata("telemetry");
 
@@ -205,6 +205,7 @@ export default function LmuTelemetryPage() {
   return (
     <>
       <JsonLd data={buildAioBreadcrumbJsonLd("telemetry")} />
+      <JsonLd data={buildAioWebPageJsonLd("telemetry")} />
 
       <AioPageHero
         kicker="Apex AIO · Review · Reference Pace"

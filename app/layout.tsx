@@ -60,6 +60,7 @@ export const metadata: Metadata = {
     "Apex and Chill",
   ],
   openGraph: {
+    locale: "en_GB",
     type: "website",
     url: SITE_URL,
     title: "Apex & Chill Racing — Multi-Platform Sim Racing League",
@@ -90,7 +91,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en"
+      lang="en-GB"
       className={`${oswald.variable} ${barlow.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >

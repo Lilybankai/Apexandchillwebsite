@@ -26,7 +26,7 @@ import { SectionHeading } from "@/components/aio/SectionHeading";
 import { Annotated, type Annotation } from "@/components/aio/overlays/Annotated";
 import { AIO_PRODUCT, AIO_REVIEWS } from "@/lib/aio";
 import { getAioFaq, type AioFaqItem } from "@/lib/aio-faq";
-import { buildAioBreadcrumbJsonLd, buildAioPageMetadata } from "@/lib/aio-seo";
+import { buildAioBreadcrumbJsonLd, buildAioPageMetadata, buildAioWebPageJsonLd } from "@/lib/aio-seo";
 
 const { priceDisplay: PRICE, trialDays: TRIAL_DAYS } = AIO_PRODUCT;
 
@@ -184,6 +184,7 @@ export default function LmuOverlaysPage() {
   return (
     <div className="pb-8">
       <JsonLd data={buildAioBreadcrumbJsonLd("overlays")} />
+      <JsonLd data={buildAioWebPageJsonLd("overlays")} />
 
       <AioPageHero
         kicker="Apex AIO · Le Mans Ultimate · rFactor 2"

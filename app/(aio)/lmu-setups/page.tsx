@@ -11,7 +11,7 @@ import { SetupOptimiserMock } from "@/components/overlay/SetupOptimiserMock";
 import { Reveal } from "@/components/ui/Reveal";
 import { AIO_PRODUCT, AIO_REVIEWS } from "@/lib/aio";
 import { getAioFaq, type AioFaqItem } from "@/lib/aio-faq";
-import { buildAioBreadcrumbJsonLd, buildAioPageMetadata } from "@/lib/aio-seo";
+import { buildAioBreadcrumbJsonLd, buildAioPageMetadata, buildAioWebPageJsonLd } from "@/lib/aio-seo";
 
 export const metadata = buildAioPageMetadata("setups");
 
@@ -177,6 +177,7 @@ export default function LmuSetupsPage() {
   return (
     <>
       <JsonLd data={buildAioBreadcrumbJsonLd("setups")} />
+      <JsonLd data={buildAioWebPageJsonLd("setups")} />
 
       <AioPageHero
         kicker="Apex AIO · Setup workshop"

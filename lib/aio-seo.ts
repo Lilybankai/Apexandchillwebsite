@@ -11,6 +11,9 @@ const PAGE_URL = `${SITE_URL}${PAGE_PATH}`;
 const TITLE = HUB.title;
 const DESCRIPTION = HUB.description;
 
+/** The app's node id, so every Apex AIO page can say it is about the one product. */
+export const AIO_SOFTWARE_ID = `${PAGE_URL}#software`;
+
 const ROBOTS: Metadata["robots"] = {
   index: true,
   follow: true,
@@ -40,6 +43,7 @@ export function buildAioPageMetadata(key: Exclude<AioPageKey, "overview">): Meta
     alternates: { canonical: page.path },
     robots: ROBOTS,
     openGraph: {
+      locale: "en_GB",
       type: "website",
       url: page.path,
       siteName: "Apex & Chill Racing",
@@ -77,6 +81,29 @@ export function buildAioBreadcrumbJsonLd(key: AioPageKey) {
   };
 }
 
+/**
+ * The page itself, tied to the product. The hub's main entity is the app; each
+ * topic page is `about` it by `@id`, which links the pages together without
+ * repeating the offer and rating — review markup belongs only on the page that
+ * shows the reviews, and that's the hub.
+ */
+export function buildAioWebPageJsonLd(key: AioPageKey) {
+  const page = getAioPage(key);
+  const url = `${SITE_URL}${page.path}`;
+  const product = { "@id": AIO_SOFTWARE_ID, name: AIO_PRODUCT.name };
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${url}#webpage`,
+    url,
+    name: page.title,
+    description: page.description,
+    inLanguage: "en-GB",
+    isPartOf: { "@type": "WebSite", name: "Apex & Chill Racing", url: SITE_URL },
+    ...(key === "overview" ? { mainEntity: product } : { about: product }),
+  };
+}
+
 export const AIO_METADATA: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
@@ -104,6 +131,9 @@ export const AIO_METADATA: Metadata = {
     "LMU telemetry analysis",
     "LMU lap comparison",
     "LMU stint review",
+    "LMU incident review",
+    "LMU replay",
+    "LMU race log",
     "Le Mans Ultimate driving coach",
     "Le Mans Ultimate endurance race strategy",
     "LMU track map overlay",
@@ -118,6 +148,7 @@ export const AIO_METADATA: Metadata = {
   alternates: { canonical: PAGE_PATH },
   robots: ROBOTS,
   openGraph: {
+    locale: "en_GB",
     type: "website",
     url: PAGE_PATH,
     siteName: "Apex & Chill Racing",
@@ -148,6 +179,7 @@ export function buildAioSoftwareJsonLd(release: AioRelease = AIO_FALLBACK_RELEAS
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
+    "@id": AIO_SOFTWARE_ID,
     name: AIO_PRODUCT.name,
     url: PAGE_URL,
     downloadUrl: release.installerUrl,

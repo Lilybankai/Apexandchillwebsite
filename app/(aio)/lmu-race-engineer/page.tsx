@@ -11,7 +11,7 @@ import { Annotated, type Annotation } from "@/components/aio/overlays/Annotated"
 import { RadioPanel } from "@/components/aio/race-engineer/RadioPanel";
 import { AIO_PRODUCT } from "@/lib/aio";
 import { getAioFaq, type AioFaqItem } from "@/lib/aio-faq";
-import { buildAioBreadcrumbJsonLd, buildAioPageMetadata } from "@/lib/aio-seo";
+import { buildAioBreadcrumbJsonLd, buildAioPageMetadata, buildAioWebPageJsonLd } from "@/lib/aio-seo";
 import { cn } from "@/lib/utils";
 
 const { priceDisplay: PRICE, trialDays: TRIAL_DAYS } = AIO_PRODUCT;
@@ -128,6 +128,7 @@ export default function LmuRaceEngineerPage() {
   return (
     <>
       <JsonLd data={buildAioBreadcrumbJsonLd("race-engineer")} />
+      <JsonLd data={buildAioWebPageJsonLd("race-engineer")} />
 
       <AioPageHero
         kicker="Apex AIO · Voice race engineer · Le Mans Ultimate"
@@ -323,6 +324,16 @@ export default function LmuRaceEngineerPage() {
               </li>
             ))}
           </ol>
+          <figure className="mx-auto mt-10 max-w-3xl border-y border-line py-6 text-center">
+            <blockquote className="font-mono text-lg text-ink sm:text-xl">
+              &ldquo;Yellow in sector two, Smith is stopped, about 400 metres up the road.&rdquo;
+            </blockquote>
+            <figcaption className="mt-3 text-sm text-muted">
+              A yellow comes with the car behind it and how far up the road it is. He only names a
+              car while the race is running under green, so nobody sitting on the grid gets the
+              blame; if no stopped car can be found in that sector, you get the sector on its own.
+            </figcaption>
+          </figure>
           <p className="mt-8 text-center text-sm text-muted">
             Pair him with the radar and relative in the{" "}
             <Link href="/lmu-overlays" className="text-cyan hover:underline">

@@ -62,6 +62,7 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   // Solidify the bar once the user scrolls off the hero.
   useEffect(() => {
@@ -102,6 +103,18 @@ export function Header() {
     return () => {
       document.body.style.overflow = "";
     };
+  }, [menuOpen]);
+
+  // Escape closes the mobile drawer and hands focus back to its toggle.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setMenuOpen(false);
+      menuButtonRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
   const isActive = (href: string) =>
@@ -239,16 +252,18 @@ export function Header() {
           </Button>
         </div>
 
-        {/* Mobile toggle */}
+        {/* Mobile toggle — labelled, not just an icon, so it reads as the menu. */}
         <button
+          ref={menuButtonRef}
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
-          className="inline-flex h-11 w-11 items-center justify-center border border-line bg-elevated text-ink lg:hidden"
+          className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 border border-line bg-elevated px-3 font-display text-sm font-medium uppercase tracking-wide text-ink transition-colors hover:border-accent aria-expanded:border-accent aria-expanded:text-accent lg:hidden"
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
           aria-controls="mobile-nav"
         >
-          {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          {menuOpen ? <X size={20} aria-hidden /> : <Menu size={20} aria-hidden />}
+          <span className="max-[359px]:hidden">{menuOpen ? "Close" : "Menu"}</span>
         </button>
       </div>
 
@@ -256,15 +271,19 @@ export function Header() {
       <div
         id="mobile-nav"
         className={cn(
-          "lg:hidden fixed inset-x-0 top-16 z-40 origin-top border-b border-line bg-base shadow-2xl transition-all duration-200",
+          // Scrolls on its own: the page behind is locked, and a short phone can't fit every link.
+          "lg:hidden fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] origin-top overflow-y-auto overscroll-contain border-b border-line bg-base shadow-2xl transition-all duration-200",
           menuOpen ? "visible opacity-100" : "pointer-events-none invisible -translate-y-2 opacity-0",
         )}
       >
         <nav className="container-rail flex flex-col gap-1 py-4" aria-label="Mobile">
           {NAV_LINKS.map((link) =>
             link.children ? (
-              <div key={link.href}>
-                <span className="block border-l-2 border-transparent px-4 pb-1 pt-3 font-display text-sm uppercase tracking-widest text-muted">
+              <div key={link.href} role="group" aria-labelledby={`mobile-nav-${link.label}`}>
+                <span
+                  id={`mobile-nav-${link.label}`}
+                  className="block border-l-2 border-transparent px-4 pb-1 pt-3 font-display text-sm uppercase tracking-widest text-muted"
+                >
                   {link.label}
                 </span>
                 {link.children.map((child) => (

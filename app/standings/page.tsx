@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import type { ApiResult, League, Standings } from '@/lib/types';
-import { fetchGt7Standings } from '@/lib/api/simleaguepro';
+import { fetchGt7Standings } from '@/lib/api/gt7';
 import { fetchLmuStandings, fetchThursdayStandings } from '@/lib/api/simgrid';
 import { isThursdayConfigured } from '@/lib/leagues';
 import { Button } from '@/components/ui/Button';
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: 'Standings',
   alternates: { canonical: '/standings' },
   description:
-    'Live driver championship standings for the Apex & Chill GT7 (Sim League Pro) and LMU (SimGrid) leagues — points, wins, podiums and more.',
+    'Live driver championship standings for the Apex & Chill GT7 and LMU leagues on SimGrid — points, wins, podiums and more.',
 };
 
 /** Revalidate the standings snapshot every 5 minutes (matches the data layer). */
@@ -21,7 +21,8 @@ export const revalidate = 300;
  * Full standings page with a GT7 / LMU segmented control.
  *
  * Data is read on the server directly from the same clients that back
- * `GET /api/standings` (SimLeaguePro for GT7, SimGrid for LMU), so it renders
+ * `GET /api/standings` (SimGrid, or Sim League Pro for GT7 until its SimGrid
+ * championship is set), so it renders
  * fast and SEO-complete; the `/api/standings` route exposes the identical
  * payload for any client-side consumers. Both clients degrade gracefully to
  * sample data, surfaced via a "sample data" chip in {@link LeagueTabs}.

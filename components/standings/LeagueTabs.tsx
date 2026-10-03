@@ -2,16 +2,15 @@
 
 import { useState } from 'react';
 import { Info } from 'lucide-react';
-import type { ApiResult, League, Standings } from '@/lib/types';
+import type { ApiResult, DataSource, League, Standings } from '@/lib/types';
 import { LEAGUES, LEAGUE_LABELS } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { StandingsTable } from './StandingsTable';
 
-/** The upstream data provider label shown beneath each league's tab. */
-const PROVIDER_LABEL: Record<League, string> = {
-  GT7: 'Sim League Pro',
-  LMU: 'SimGrid',
-  THU: 'SimGrid',
+/** The provider named for each live data source. */
+const SOURCE_LABEL: Partial<Record<DataSource, string>> = {
+  simgrid: 'SimGrid',
+  simleaguepro: 'Sim League Pro',
 };
 
 export interface LeagueTabsProps {
@@ -78,7 +77,7 @@ export function LeagueTabs({ standings, initialLeague = 'GT7' }: LeagueTabsProps
               {current.data.seasonLabel}
             </span>
             <span className="ml-auto font-mono text-xs uppercase tracking-widest text-subtle">
-              Data: {PROVIDER_LABEL[active]}
+              Data: {SOURCE_LABEL[current.source] ?? 'Sample'}
             </span>
           </div>
 
@@ -86,8 +85,8 @@ export function LeagueTabs({ standings, initialLeague = 'GT7' }: LeagueTabsProps
             <div className="flex items-start gap-2 rounded-card border border-flag-amber/30 bg-flag-amber/5 px-4 py-3 text-sm text-muted">
               <Info className="mt-0.5 h-4 w-4 shrink-0 text-flag-amber" aria-hidden />
               <span>
-                Showing sample standings. Live {PROVIDER_LABEL[active]} data appears
-                here once the {active} season feed is connected.
+                Showing sample standings. Live data appears here once the{' '}
+                {LEAGUE_LABELS[active]} season feed is connected.
               </span>
             </div>
           )}

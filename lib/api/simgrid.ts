@@ -209,7 +209,7 @@ function mapStandingsRows(groups: unknown, league: League): StandingRow[] {
  * ------------------------------------------------------------------------- */
 
 /** Options describing how to present a SimGrid league's data + its sample fallbacks. */
-interface SimgridLeagueOptions {
+export interface SimgridLeagueOptions {
   /** Championship id to fetch (undefined ⇒ always sample). */
   championshipId: string | undefined;
   /** Car-class label shown on next-race / schedule cards. */

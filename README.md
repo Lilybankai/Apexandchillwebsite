@@ -115,6 +115,7 @@ secrets.**
 | `SIMGRID_API_BASE_URL` | Defaults to `https://www.thesimgrid.com/api/v1`. |
 | `SIMGRID_LMU_CHAMPIONSHIP_ID` | Championship id for the LMU (Sunday) season. It's the number in the championship URL, e.g. `thesimgrid.com/championships/24215` → `24215`. |
 | `SIMGRID_THURSDAY_CHAMPIONSHIP_ID` | Championship id for the **Midweek Endurance** (Thursday) league. Overridden by `lib/seasons.ts` when that file sets one (it does: Season 2, `28052`). |
+| `SIMGRID_GT7_CHAMPIONSHIP_ID` | Championship id for the **GT7** league once it runs on SimGrid. While unset (and absent from `lib/seasons.ts`), GT7 keeps reading Sim League Pro. |
 
 > **Adding the Thursday (Midweek Endurance) league:** it's a config-only step —
 > paste the Thursday championship's numeric id into `SIMGRID_THURSDAY_CHAMPIONSHIP_ID`

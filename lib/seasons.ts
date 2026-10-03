@@ -19,6 +19,8 @@ import type { League } from '@/lib/types';
 export const CURRENT_SIMGRID_CHAMPIONSHIPS: Partial<Record<League, string>> = {
   /** Midweek Endurance, Season 2. thesimgrid.com/championships/28052 */
   THU: '28052',
+  // GT7 moves from Sim League Pro to SimGrid next season. Add its id here,
+  // e.g. `GT7: '12345'`, and GT7 standings, schedule and next race switch over.
 };
 
 export type ClassChampion = {

@@ -16,7 +16,7 @@
 
 import { NextResponse } from 'next/server';
 import type { ApiResult, League, NextRace } from '@/lib/types';
-import { fetchGt7NextRace } from '@/lib/api/simleaguepro';
+import { fetchGt7NextRace } from '@/lib/api/gt7';
 import { fetchLmuNextRace, fetchThursdayNextRace } from '@/lib/api/simgrid';
 import { isThursdayConfigured } from '@/lib/leagues';
 import { CACHE_TTL_SECONDS } from '@/lib/env';

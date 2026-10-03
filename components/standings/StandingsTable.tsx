@@ -86,6 +86,8 @@ function formatCell(row: StandingRow, key: SortKey): string {
 export interface StandingsTableProps {
   /** Championship rows to display, already league-scoped. */
   rows: StandingRow[];
+  /** Shown instead of the table when there are no rows yet. */
+  emptyMessage?: string;
 }
 
 /**
@@ -102,7 +104,7 @@ const STAT_KEYS = ['points', 'wins', 'podiums', 'avgQuali', 'avgFinish', 'penalt
  * standings expose points + penalties but not wins/podiums/averages). */
 const HIDEABLE_KEYS = ['wins', 'podiums', 'avgQuali', 'avgFinish', 'penalties'] as const;
 
-export function StandingsTable({ rows }: StandingsTableProps) {
+export function StandingsTable({ rows, emptyMessage = 'Season data coming soon.' }: StandingsTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('position');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
@@ -155,7 +157,7 @@ export function StandingsTable({ rows }: StandingsTableProps) {
   if (rows.length === 0) {
     return (
       <div className="glass rounded-card p-10 text-center text-muted">
-        Season data coming soon.
+        {emptyMessage}
       </div>
     );
   }

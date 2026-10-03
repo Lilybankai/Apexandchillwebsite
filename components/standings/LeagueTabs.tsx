@@ -92,7 +92,10 @@ export function LeagueTabs({ standings, initialLeague = 'GT7' }: LeagueTabsProps
             </div>
           )}
 
-          <StandingsTable rows={current.data.rows} />
+          <StandingsTable
+            rows={current.data.rows}
+            emptyMessage={`${current.data.seasonLabel} hasn't raced yet. Standings appear here after round 1.`}
+          />
         </div>
       )}
     </div>

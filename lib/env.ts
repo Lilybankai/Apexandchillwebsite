@@ -12,6 +12,8 @@
  * @packageDocumentation
  */
 
+import { CURRENT_SIMGRID_CHAMPIONSHIPS } from '@/lib/seasons';
+
 /** Read an env var, returning `undefined` for missing *or* empty values. */
 function read(name: string): string | undefined {
   const value = process.env[name];
@@ -38,8 +40,9 @@ export const simgrid = {
    * {@link championshipId} for back-compat.
    */
   championships: {
-    LMU: read('SIMGRID_LMU_CHAMPIONSHIP_ID'),
-    THU: read('SIMGRID_THURSDAY_CHAMPIONSHIP_ID'),
+    LMU: CURRENT_SIMGRID_CHAMPIONSHIPS.LMU ?? read('SIMGRID_LMU_CHAMPIONSHIP_ID'),
+    // The season set in lib/seasons.ts wins over the env var.
+    THU: CURRENT_SIMGRID_CHAMPIONSHIPS.THU ?? read('SIMGRID_THURSDAY_CHAMPIONSHIP_ID'),
   } as Record<string, string | undefined>,
 } as const;
 

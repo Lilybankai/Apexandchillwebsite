@@ -5,6 +5,7 @@ import { fetchLmuStandings, fetchThursdayStandings } from '@/lib/api/simgrid';
 import { isThursdayConfigured } from '@/lib/leagues';
 import { Button } from '@/components/ui/Button';
 import { LeagueTabs } from '@/components/standings/LeagueTabs';
+import { PastChampions } from '@/components/standings/PastChampions';
 
 export const metadata: Metadata = {
   title: 'Standings',
@@ -64,6 +65,8 @@ export default async function StandingsPage() {
       <section className="container-rail py-12 sm:py-16">
         <LeagueTabs standings={standings} />
       </section>
+
+      <PastChampions />
     </>
   );
 }

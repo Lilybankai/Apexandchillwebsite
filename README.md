@@ -114,7 +114,7 @@ secrets.**
 | `SIMGRID_API_KEY` | API token — thesimgrid.com → **My Communities ▸ Developers ▸ API token**. |
 | `SIMGRID_API_BASE_URL` | Defaults to `https://www.thesimgrid.com/api/v1`. |
 | `SIMGRID_LMU_CHAMPIONSHIP_ID` | Championship id for the LMU (Sunday) season. It's the number in the championship URL, e.g. `thesimgrid.com/championships/24215` → `24215`. |
-| `SIMGRID_THURSDAY_CHAMPIONSHIP_ID` | Championship id for the **Midweek Endurance** (Thursday) league. Leave blank to hide that league entirely. |
+| `SIMGRID_THURSDAY_CHAMPIONSHIP_ID` | Championship id for the **Midweek Endurance** (Thursday) league. Overridden by `lib/seasons.ts` when that file sets one (it does: Season 2, `28052`). |
 
 > **Adding the Thursday (Midweek Endurance) league:** it's a config-only step —
 > paste the Thursday championship's numeric id into `SIMGRID_THURSDAY_CHAMPIONSHIP_ID`
@@ -122,6 +122,12 @@ secrets.**
 > Standings tabs, the Schedule toggle, the homepage (mini-standings + next-race
 > banner), and the Join form, pulling live from the same SimGrid API. Until the id
 > is set the league is hidden — nothing shows as empty or "sample".
+>
+> **Starting a new season:** edit `lib/seasons.ts`. Add the finished season's
+> class champions to `PAST_CHAMPIONS` (they appear under "Past champions" on
+> /standings) and put the new championship id in `CURRENT_SIMGRID_CHAMPIONSHIPS`.
+> An id there wins over the env var. Until the new season's first round is
+> scored, its standings say it hasn't raced yet instead of showing sample data.
 >
 > **Adding *any* further SimGrid league:** add a new id env var, expose it in
 > `lib/env.ts` (`simgrid.championships`), add the league to the `League` union +

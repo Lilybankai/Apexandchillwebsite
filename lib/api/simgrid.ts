@@ -258,10 +258,10 @@ export async function fetchSimgridStandings(
       simgridGet<SgChampionship>(`/championships/${opts.championshipId}`).catch(() => null),
     ]);
     const rows = mapStandingsRows(groups, league);
-    if (rows.length === 0) {
-      return sample(`SimGrid returned no ${league} standings — showing sample data.`);
-    }
     const seasonLabel = seasonLabelFrom(champ?.name);
+    // A live championship with no results is a season that hasn't raced yet.
+    // Return it empty (the UI says it starts soon) rather than sample drivers,
+    // which would read as real standings for a new season.
     return {
       ok: true,
       source: 'simgrid',
@@ -348,9 +348,7 @@ export async function fetchSimgridSchedule(
   try {
     const champ = await simgridGet<SgChampionship>(`/championships/${opts.championshipId}`);
     const races = Array.isArray(champ.races) ? champ.races : [];
-    if (races.length === 0) {
-      return sample(`SimGrid returned no ${league} races — showing sample data.`);
-    }
+    // No races published yet: an honest empty calendar, not a sample one.
     // Chronological order → round number (matches SimGrid's own round_number).
     const rounds: ScheduleRound[] = races
       .map((r) => ({ r, ts: new Date(r.starts_at ?? 0).getTime() }))

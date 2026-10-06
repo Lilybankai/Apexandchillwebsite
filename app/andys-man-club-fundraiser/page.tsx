@@ -20,6 +20,7 @@ import {
   AMC_EVENT,
   AMC_EVENT_PATH,
   AMC_EVENT_SNAPSHOT,
+  AMC_VIDEOS,
   DISCORD_URL,
   YOUTUBE_URL,
 } from "@/lib/events/andys-man-club";
@@ -29,6 +30,7 @@ import { Card } from "@/components/ui/Card";
 import { JsonLd } from "@/components/aio/JsonLd";
 import { AndysManClubFeature } from "@/components/partners/AndysManClubFeature";
 import { EventDetailText } from "@/components/events/EventDetailText";
+import { VideoEmbed } from "@/components/events/VideoEmbed";
 import type { EventDetail } from "@/lib/events/tbc";
 
 export const metadata: Metadata = {
@@ -186,7 +188,7 @@ export default async function AndysManClubFundraiserPage() {
                 <ArrowRight size={18} />
               </Button>
               <Button href={AMC_DONATE_URL} target="_blank" rel="noopener noreferrer" variant="outline" size="lg">
-                Donate
+                Donate on JustGiving
               </Button>
             </div>
             <p className="mt-4 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-subtle">
@@ -366,6 +368,28 @@ export default async function AndysManClubFundraiserPage() {
         </div>
       </section>
 
+      {/* Andy's Man Club in their own words */}
+      <section aria-labelledby="videos-heading" className="container-rail pb-16">
+        <header className="mb-8 max-w-2xl">
+          <span className="kicker mb-3">Why We Race</span>
+          <h2 id="videos-heading" className="text-4xl font-bold text-ink sm:text-5xl">
+            Hear It From <span className="text-gradient">The Club</span>
+          </h2>
+          <p className="mt-4 text-muted">
+            What Andy&apos;s Man Club does, in its own words — from the official #ANDYSMANCLUB
+            channel.
+          </p>
+        </header>
+        <ul className="grid gap-8 md:grid-cols-2">
+          {AMC_VIDEOS.map((video) => (
+            <li key={video.id}>
+              <VideoEmbed videoId={video.id} title={video.title} />
+              <h3 className="mt-4 font-display text-lg font-semibold uppercase text-ink">{video.title}</h3>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* How to enter */}
       <section aria-labelledby="enter-heading" className="container-rail pb-16">
         <header className="mb-8 max-w-2xl">
@@ -434,12 +458,15 @@ export default async function AndysManClubFundraiserPage() {
         <div className="flex flex-col items-center gap-5 rounded-card border border-accent/40 bg-surface/50 p-10 text-center shadow-glow-soft">
           <h2 className="text-4xl font-bold text-ink">Race For A Reason</h2>
           <p className="max-w-xl text-muted">
-            Three hours at Daytona, one grid, one cause. Enter on SimGrid, then jump into the Discord
-            for event updates.
+            Three hours at Daytona, one grid, one cause. Enter on SimGrid, back the drivers on
+            JustGiving, and jump into the Discord for event updates.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Button href={primaryCta.href} target="_blank" rel="noopener noreferrer" size="lg">
               {primaryCta.label}
+            </Button>
+            <Button href={AMC_DONATE_URL} target="_blank" rel="noopener noreferrer" variant="outline" size="lg">
+              Donate on JustGiving
             </Button>
             <Button href={DISCORD_URL} target="_blank" rel="noopener noreferrer" variant="discord" size="lg">
               Join the Discord

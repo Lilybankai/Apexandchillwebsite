@@ -60,6 +60,12 @@ export const AMC_EVENT_SNAPSHOT: SimgridEvent = {
   source: 'sample',
 };
 
+/** Videos from the official #ANDYSMANCLUB YouTube channel, shown on the page. */
+export const AMC_VIDEOS = [
+  { id: 'EcyedyEXJCg', title: 'ANDYSMANCLUB — 5 Years On' },
+  { id: 'YPQnjJNzcN8', title: 'Everything & Anything — Bravado Cartel, a single for ANDYSMANCLUB' },
+] as const;
+
 /** Apex & Chill Racing League YouTube channel (same as the footer). */
 export const YOUTUBE_URL = 'https://youtube.com/channel/UCu7lyaGuo3sY2wWZo42-LVw';
 

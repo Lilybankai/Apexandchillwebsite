@@ -7,6 +7,8 @@ import { mergeCatalogs } from '@/lib/merch/catalog';
 import { Button } from '@/components/ui/Button';
 import { ProductGrid } from '@/components/merch/ProductGrid';
 import { Cart } from '@/components/merch/Cart';
+import { JsonLd } from '@/components/aio/JsonLd';
+import { buildBreadcrumbJsonLd } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Merch',
@@ -37,6 +39,7 @@ export default async function MerchPage() {
 
   return (
     <>
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: 'Merch', path: '/merch' }])} />
       {/* Header */}
       <section className="relative overflow-hidden border-b border-line">
         <div

@@ -4,6 +4,8 @@ import { fetchLiveStreams } from "@/lib/api/youtube";
 import { youtube } from "@/lib/env";
 import { Button } from "@/components/ui/Button";
 import { LiveStreamSection } from "@/components/live/LiveStreamSection";
+import { JsonLd } from "@/components/aio/JsonLd";
+import { buildBreadcrumbJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Live",
@@ -29,6 +31,7 @@ export default async function LivePage() {
 
   return (
     <>
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: "Live", path: "/live" }])} />
       {/* Header */}
       <section className="relative overflow-hidden border-b border-line">
         <div

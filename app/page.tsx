@@ -19,6 +19,8 @@ import { PartnersStrip } from "@/components/home/PartnersStrip";
 import { ChannelPartners } from "@/components/partners/ChannelPartners";
 import { AndysManClub } from "@/components/home/AndysManClub";
 import { CommunityCTA } from "@/components/home/CommunityCTA";
+import { JsonLd } from "@/components/aio/JsonLd";
+import { buildOrganizationJsonLd } from "@/lib/seo";
 import type { Metadata } from "next";
 
 // Home uses the site-default title/description from the root layout; it only
@@ -94,6 +96,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd data={buildOrganizationJsonLd()} />
       <Hero />
       <Marquee />
       <LiveStreamSection initial={live} variant="home" />

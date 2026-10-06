@@ -3,6 +3,7 @@ import { AIO_PRODUCT, AIO_REVIEWS } from "@/lib/aio";
 import { AIO_FALLBACK_RELEASE, type AioRelease } from "@/lib/aio-release";
 import { getAioPage, type AioPageKey } from "@/lib/aio-pages";
 import { SITE_URL } from "@/lib/site";
+import { ORGANIZATION_ID, WEBSITE_ID } from "@/lib/seo";
 
 const HUB = getAioPage("overview");
 const PAGE_PATH = HUB.path;
@@ -99,7 +100,8 @@ export function buildAioWebPageJsonLd(key: AioPageKey) {
     name: page.title,
     description: page.description,
     inLanguage: "en-GB",
-    isPartOf: { "@type": "WebSite", name: "Apex & Chill Racing", url: SITE_URL },
+    isPartOf: { "@type": "WebSite", "@id": WEBSITE_ID, name: "Apex & Chill Racing", url: SITE_URL },
+    publisher: { "@id": ORGANIZATION_ID, name: "Apex & Chill Racing", url: SITE_URL },
     ...(key === "overview" ? { mainEntity: product } : { about: product }),
   };
 }
@@ -206,6 +208,7 @@ export function buildAioSoftwareJsonLd(release: AioRelease = AIO_FALLBACK_RELEAS
     ],
     publisher: {
       "@type": "Organization",
+      "@id": ORGANIZATION_ID,
       name: "Apex & Chill Racing",
       url: SITE_URL,
     },

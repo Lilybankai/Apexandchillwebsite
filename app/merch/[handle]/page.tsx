@@ -9,6 +9,8 @@ import { mergeCatalogs } from '@/lib/merch/catalog';
 import { ProductDetail } from '@/components/merch/ProductDetail';
 import { ProductCard } from '@/components/merch/ProductCard';
 import { Cart } from '@/components/merch/Cart';
+import { JsonLd } from '@/components/aio/JsonLd';
+import { buildBreadcrumbJsonLd } from '@/lib/seo';
 
 /**
  * Revalidate every 5 minutes. Next.js requires `revalidate` to be a STATIC
@@ -73,6 +75,12 @@ export default async function ProductPage({
 
   return (
     <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd([
+          { name: 'Merch', path: '/merch' },
+          { name: product.title, path: `/merch/${product.handle}` },
+        ])}
+      />
       <div className="container-rail py-10 sm:py-14">
         <nav aria-label="Breadcrumb" className="mb-8">
           <Link

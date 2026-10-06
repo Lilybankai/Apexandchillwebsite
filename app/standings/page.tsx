@@ -1,11 +1,19 @@
 import type { Metadata } from 'next';
 import type { ApiResult, League, Standings } from '@/lib/types';
-import { fetchGt7Standings } from '@/lib/api/gt7';
-import { fetchLmuStandings, fetchThursdayStandings } from '@/lib/api/simgrid';
+import { fetchGt7Schedule, fetchGt7Standings } from '@/lib/api/gt7';
+import {
+  fetchLmuSchedule,
+  fetchLmuStandings,
+  fetchThursdaySchedule,
+  fetchThursdayStandings,
+} from '@/lib/api/simgrid';
 import { isThursdayConfigured } from '@/lib/leagues';
 import { Button } from '@/components/ui/Button';
 import { LeagueTabs } from '@/components/standings/LeagueTabs';
 import { PastChampions } from '@/components/standings/PastChampions';
+import { JsonLd } from '@/components/aio/JsonLd';
+import { buildBreadcrumbJsonLd } from '@/lib/seo';
+import { formatUkDate, latestCompletedRoundDate } from '@/lib/freshness';
 
 export const metadata: Metadata = {
   title: 'Standings',
@@ -28,16 +36,24 @@ export const revalidate = 300;
  * sample data, surfaced via a "sample data" chip in {@link LeagueTabs}.
  */
 export default async function StandingsPage() {
-  const [gt7, lmu, thu] = await Promise.all([
+  const thuActive = isThursdayConfigured();
+  const [gt7, lmu, thu, gt7Schedule, lmuSchedule, thuSchedule] = await Promise.all([
     fetchGt7Standings(),
     fetchLmuStandings(),
-    isThursdayConfigured() ? fetchThursdayStandings() : Promise.resolve(undefined),
+    thuActive ? fetchThursdayStandings() : Promise.resolve(undefined),
+    // Calendars only date the "Updated after racing on" line (same cached snapshots
+    // the Schedule page reads).
+    fetchGt7Schedule(),
+    fetchLmuSchedule(),
+    thuActive ? fetchThursdaySchedule() : Promise.resolve(undefined),
   ]);
   const standings: Partial<Record<League, ApiResult<Standings>>> = { GT7: gt7, LMU: lmu };
   if (thu) standings.THU = thu;
+  const resultsThrough = latestCompletedRoundDate({ GT7: gt7Schedule, LMU: lmuSchedule, THU: thuSchedule });
 
   return (
     <>
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: 'Standings', path: '/standings' }])} />
       {/* Page header */}
       <section className="relative overflow-hidden border-b border-line">
         <div
@@ -53,6 +69,11 @@ export default async function StandingsPage() {
             Where the season is won and lost. Track the title fight across both
             leagues — updated as results are confirmed.
           </p>
+          {resultsThrough && (
+            <p className="mt-3 font-mono text-xs uppercase tracking-widest text-muted">
+              Updated after racing on <time dateTime={resultsThrough}>{formatUkDate(resultsThrough)}</time>
+            </p>
+          )}
           <div className="mt-8 flex flex-wrap gap-3">
             <Button href="/schedule" variant="outline">
               View Schedule

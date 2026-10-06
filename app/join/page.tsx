@@ -3,6 +3,8 @@ import Image from 'next/image';
 import { Trophy, Users, Radio, ShieldCheck } from 'lucide-react';
 import { JoinForm } from '@/components/join/JoinForm';
 import { activeLeagues } from '@/lib/leagues';
+import { JsonLd } from '@/components/aio/JsonLd';
+import { buildBreadcrumbJsonLd } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Join the League',
@@ -26,6 +28,7 @@ const PERKS = [
 export default function JoinPage() {
   return (
     <>
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: 'Join the League', path: '/join' }])} />
       {/* Header */}
       <section className="relative overflow-hidden border-b border-line">
         <div

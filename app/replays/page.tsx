@@ -6,6 +6,8 @@ import { youtube } from '@/lib/env';
 import { Button } from '@/components/ui/Button';
 import { FeaturedReplay } from '@/components/replays/FeaturedReplay';
 import { ReplayPlaylists } from '@/components/replays/ReplayPlaylists';
+import { JsonLd } from '@/components/aio/JsonLd';
+import { buildBreadcrumbJsonLd, buildReplaysJsonLd } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'Replays',
@@ -38,9 +40,13 @@ export default async function ReplaysPage() {
       (newest, r) => (!newest || r.publishedAt.localeCompare(newest.publishedAt) > 0 ? r : newest),
       undefined,
     );
+  // Sample replays are placeholders — only real uploads become VideoObjects.
+  const videosJsonLd = result.source === 'sample' ? null : buildReplaysJsonLd(groups.flatMap((g) => g.replays));
 
   return (
     <>
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: 'Replays', path: '/replays' }])} />
+      {videosJsonLd && <JsonLd data={videosJsonLd} />}
       {/* Header */}
       <section className="relative overflow-hidden border-b border-line">
         <div

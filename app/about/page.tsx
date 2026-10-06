@@ -3,6 +3,8 @@ import Image from "next/image";
 import { MessageCircle, Youtube, ShieldCheck, Globe, HeartHandshake } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { JsonLd } from "@/components/aio/JsonLd";
+import { buildBreadcrumbJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "About",
@@ -43,6 +45,7 @@ const VALUES = [
 export default function AboutPage() {
   return (
     <div className="pb-8">
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: "About", path: "/about" }])} />
       {/* Header */}
       <section className="relative overflow-hidden border-b border-line">
         <div

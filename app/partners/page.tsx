@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { PartnerGrid } from "@/components/partners/PartnerGrid";
 import { AndysManClubFeature } from "@/components/partners/AndysManClubFeature";
+import { JsonLd } from "@/components/aio/JsonLd";
+import { buildBreadcrumbJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Partners",
@@ -12,6 +14,7 @@ export const metadata: Metadata = {
 export default function PartnersPage() {
   return (
     <div className="pb-8">
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: "Partners", path: "/partners" }])} />
       {/* Page header */}
       <section className="relative overflow-hidden border-b border-line">
         <div

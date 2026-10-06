@@ -25,6 +25,7 @@ import {
   YOUTUBE_URL,
 } from "@/lib/events/andys-man-club";
 import { SITE_URL } from "@/lib/site";
+import { ORGANIZATION_ID } from "@/lib/seo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { JsonLd } from "@/components/aio/JsonLd";
@@ -128,7 +129,7 @@ export default async function AndysManClubFundraiserPage() {
           eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
           eventStatus: "https://schema.org/EventScheduled",
           location: { "@type": "VirtualLocation", url: event.url },
-          organizer: { "@type": "Organization", name: "Apex & Chill Racing", url: SITE_URL },
+          organizer: { "@type": "Organization", "@id": ORGANIZATION_ID, name: "Apex & Chill Racing", url: SITE_URL },
           offers: {
             "@type": "Offer",
             price: AMC_EVENT.entryFeeGbp,

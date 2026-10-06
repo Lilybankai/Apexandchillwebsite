@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { CalendarDays, Clock, Flag, Timer } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { JsonLd } from "@/components/aio/JsonLd";
+import { buildBreadcrumbJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "LMU Special Events Calendar",
@@ -103,6 +105,7 @@ const DISCORD_URL = "https://discord.gg/MBew2Bb2hj";
 export default function LmuSpecialEventsPage() {
   return (
     <div className="pb-8">
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: "LMU Special Events", path: "/lmu-special-events" }])} />
       {/* Page header */}
       <section className="relative overflow-hidden border-b border-line">
         <div

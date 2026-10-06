@@ -3,7 +3,7 @@ import { Oswald, Barlow, JetBrains_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Analytics } from "@/components/analytics/Analytics";
-import { SITE_URL } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 /** Condensed, mechanical display face for headings and CTAs. */
@@ -17,7 +17,9 @@ const oswald = Oswald({
 /** Slightly technical grotesque for body copy. */
 const barlow = Barlow({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  // Barlow ships one file per weight (it isn't a variable font), so only the
+  // weights body copy actually uses are loaded; `font-medium` falls back to 400.
+  weight: ["400", "600", "700"],
   variable: "--font-body",
   display: "swap",
 });
@@ -28,6 +30,9 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "700"],
   variable: "--font-mono",
   display: "swap",
+  // Only kickers and timing data use it — don't let it compete with the
+  // display/body faces for first paint.
+  preload: false,
 });
 
 /** Site-wide social share image (1200×630 recommended); lives in /public/brand. */
@@ -44,8 +49,12 @@ export const metadata: Metadata = {
     default: "Apex & Chill Racing — Multi-Platform Sim Racing League",
     template: "%s · Apex & Chill Racing",
   },
+  // Kept under ~155 characters so Google shows it without truncating.
   description:
-    "The home of Apex & Chill Racing — a multi-platform sim racing community running competitive GT7 and Le Mans Ultimate leagues. Clean racing, live standings, weekly replays and a thriving Discord.",
+    "Competitive GT7 & Le Mans Ultimate sim racing leagues. Clean racing, live standings, weekly replays and a thriving Discord community.",
+  authors: [{ name: SITE_NAME, url: `${SITE_URL}/about` }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
   // NOTE: canonical is intentionally set PER PAGE (not here) — a root-layout
   // canonical is inherited by every child route, which would wrongly point them
   // all at "/". Each page declares its own `alternates.canonical`.

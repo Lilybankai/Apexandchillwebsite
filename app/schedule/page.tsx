@@ -6,6 +6,8 @@ import { fetchLmuSchedule, fetchThursdaySchedule } from "@/lib/api/simgrid";
 import { isThursdayConfigured } from "@/lib/leagues";
 import { Button } from "@/components/ui/Button";
 import { ScheduleList } from "@/components/schedule/ScheduleList";
+import { JsonLd } from "@/components/aio/JsonLd";
+import { buildBreadcrumbJsonLd, buildScheduleEventsJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Schedule",
@@ -26,9 +28,12 @@ export default async function SchedulePage() {
   ]);
   const schedules: Partial<Record<League, ApiResult<Schedule>>> = { GT7: gt7, LMU: lmu };
   if (thu) schedules.THU = thu;
+  const eventsJsonLd = buildScheduleEventsJsonLd(schedules);
 
   return (
     <div className="pb-16">
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: "Schedule", path: "/schedule" }])} />
+      {eventsJsonLd && <JsonLd data={eventsJsonLd} />}
       {/* Header with brand accent */}
       <section className="relative overflow-hidden border-b border-line">
         <div

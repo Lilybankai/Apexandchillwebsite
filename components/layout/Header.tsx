@@ -30,7 +30,23 @@ const NAV_LINKS: readonly NavItem[] = [
   { href: "/standings", label: "Standings" },
   { href: "/replays", label: "Replays" },
   { href: "/schedule", label: "Schedule" },
-  { href: "/lmu-special-events", label: "LMU Events" },
+  {
+    href: "/events",
+    label: "Events",
+    children: [
+      {
+        href: "/lmu-special-events",
+        label: "LMU Special Events",
+        description: "The Le Mans Ultimate endurance calendar",
+      },
+      {
+        href: "/andys-man-club-fundraiser",
+        label: "Charity Race",
+        description: "Daytona 3 Hours for Andy's Man Club",
+        badge: "Charity",
+      },
+    ],
+  },
   {
     href: "/apps",
     label: "Apps",
@@ -61,7 +77,8 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // Wraps every desktop dropdown, so a click in any of them isn't "outside".
+  const dropdownRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   // Solidify the bar once the user scrolls off the hero.
@@ -151,12 +168,11 @@ export function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+        <nav ref={dropdownRef} className="hidden items-center gap-1 lg:flex" aria-label="Primary">
           {NAV_LINKS.map((link) =>
             link.children ? (
               <div
                 key={link.href}
-                ref={dropdownRef}
                 className="relative"
                 onMouseEnter={() => setOpenDropdown(link.label)}
                 onMouseLeave={() => setOpenDropdown(null)}

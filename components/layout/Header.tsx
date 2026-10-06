@@ -167,8 +167,8 @@ export function Header() {
           </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav ref={dropdownRef} className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+        {/* Desktop nav — from xl: below 1280px the links + CTAs don't fit beside the wordmark. */}
+        <nav ref={dropdownRef} className="hidden items-center gap-1 xl:flex" aria-label="Primary">
           {NAV_LINKS.map((link) =>
             link.children ? (
               <div
@@ -259,7 +259,7 @@ export function Header() {
         </nav>
 
         {/* Persistent CTAs (desktop) */}
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-2 xl:flex">
           <Button href={DISCORD_URL} target="_blank" rel="noopener noreferrer" variant="outline" size="sm">
             Join Discord
           </Button>
@@ -273,7 +273,7 @@ export function Header() {
           ref={menuButtonRef}
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
-          className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 border border-line bg-elevated px-3 font-display text-sm font-medium uppercase tracking-wide text-ink transition-colors hover:border-accent aria-expanded:border-accent aria-expanded:text-accent lg:hidden"
+          className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-2 border border-line bg-elevated px-3 font-display text-sm font-medium uppercase tracking-wide text-ink transition-colors hover:border-accent aria-expanded:border-accent aria-expanded:text-accent xl:hidden"
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
           aria-controls="mobile-nav"
@@ -288,7 +288,7 @@ export function Header() {
         id="mobile-nav"
         className={cn(
           // Scrolls on its own: the page behind is locked, and a short phone can't fit every link.
-          "lg:hidden fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] origin-top overflow-y-auto overscroll-contain border-b border-line bg-base shadow-2xl transition-all duration-200",
+          "xl:hidden fixed inset-x-0 top-16 z-40 max-h-[calc(100dvh-4rem)] lg:top-20 lg:max-h-[calc(100dvh-5rem)] origin-top overflow-y-auto overscroll-contain border-b border-line bg-base shadow-2xl transition-all duration-200",
           menuOpen ? "visible opacity-100" : "pointer-events-none invisible -translate-y-2 opacity-0",
         )}
       >

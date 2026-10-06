@@ -167,6 +167,50 @@ export interface Schedule {
   rounds: ScheduleRound[];
 }
 
+/** One race inside a standalone SimGrid event (e.g. a charity special). */
+export interface SimgridEventRace {
+  /** Race name as entered on SimGrid. */
+  name: string;
+  /** Circuit / track name. */
+  track: string;
+  /** Start time as an ISO-8601 timestamp (UTC); empty when unscheduled. */
+  startsAt: string;
+  /** Whether the race has already been run. */
+  ended: boolean;
+}
+
+/**
+ * A one-off SimGrid championship presented as an event (not a league): the
+ * live entry list size, registration state and race(s), from
+ * `GET /championships/{id}`.
+ */
+export interface SimgridEvent {
+  /** SimGrid championship id. */
+  id: string;
+  /** Championship name as entered on SimGrid. */
+  name: string;
+  /** Sim title, e.g. `Le Mans Ultimate`. */
+  game: string;
+  /** Public SimGrid page — where drivers register. */
+  url: string;
+  /** Public SimGrid results page. */
+  resultsUrl: string;
+  /** Races, pre-sorted chronologically. */
+  races: SimgridEventRace[];
+  /** Maximum entries, or `null` when uncapped / unknown. */
+  capacity: number | null;
+  /** Entries taken so far. */
+  spotsTaken: number;
+  /** Whether SimGrid is currently accepting registrations. */
+  acceptingRegistrations: boolean;
+  /** Whether a team (rather than a solo driver) is the unit of entry. */
+  teamsEnabled: boolean;
+  /** Entry fee in minor units (SimGrid does not report the currency), or `null` when free. */
+  entryFeeCents: number | null;
+  /** Where the data came from (`sample` = bundled snapshot, not live). */
+  source: DataSource;
+}
+
 /**
  * A YouTube replay video, normalised from the YouTube Data API v3.
  */

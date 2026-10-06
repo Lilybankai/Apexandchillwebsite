@@ -26,6 +26,7 @@ import type {
   NextRace,
   Schedule,
   ScheduleRound,
+  SimgridEvent,
   StandingRow,
   Standings,
 } from '@/lib/types';
@@ -133,6 +134,16 @@ interface SgChampionship {
   round_number?: number;
   races?: SgRace[];
   upcoming_race?: SgRace | null;
+  // Registration fields — only read by {@link fetchSimgridEvent}.
+  game_name?: string;
+  url?: string;
+  results_url?: string;
+  capacity?: number | null;
+  spots_taken?: number;
+  accepting_registrations?: boolean;
+  teams_enabled?: boolean;
+  entry_fee_required?: boolean;
+  entry_fee_cents?: number | null;
 }
 
 /**
@@ -374,6 +385,74 @@ export async function fetchSimgridSchedule(
   } catch (err) {
     return sample(
       `SimGrid request failed (${err instanceof Error ? err.message : 'unknown error'}) — showing sample data.`,
+    );
+  }
+}
+
+/**
+ * Fetch a one-off SimGrid event (a single championship that isn't a league):
+ * its race(s), entry count and registration state.
+ * @param championshipId SimGrid championship id (undefined ⇒ always fallback).
+ * @param fallback Snapshot rendered when live data is unavailable.
+ * @returns Live event when configured, otherwise `fallback`. Never throws.
+ */
+export async function fetchSimgridEvent(
+  championshipId: string | undefined,
+  fallback: SimgridEvent,
+): Promise<ApiResult<SimgridEvent>> {
+  const sample = (error: string): ApiResult<SimgridEvent> => ({
+    ok: true,
+    source: 'sample',
+    error,
+    data: { ...fallback, source: 'sample' },
+  });
+
+  if (!canFetch(championshipId)) {
+    return sample('SimGrid not configured — showing the bundled event snapshot.');
+  }
+  try {
+    const champ = await simgridGet<SgChampionship>(`/championships/${championshipId}`);
+    const races = (Array.isArray(champ.races) ? champ.races : [])
+      .map((r) => ({
+        name: r.display_name || r.race_name || '',
+        track: trackName(r),
+        startsAt: r.starts_at ?? '',
+        ended: Boolean(r.ended),
+      }))
+      // Unscheduled races (no start time) sort last so a dated race is featured.
+      .sort(
+        (a, b) =>
+          (a.startsAt ? new Date(a.startsAt).getTime() : Infinity) -
+          (b.startsAt ? new Date(b.startsAt).getTime() : Infinity),
+      );
+    if (races.length === 0) {
+      return sample('SimGrid returned no races for this event — showing the bundled snapshot.');
+    }
+    return {
+      ok: true,
+      source: 'simgrid',
+      error: null,
+      data: {
+        id: championshipId as string,
+        name: typeof champ.name === 'string' ? champ.name.trim() : fallback.name,
+        game: champ.game_name || fallback.game,
+        url: champ.url || fallback.url,
+        resultsUrl: champ.results_url || fallback.resultsUrl,
+        races,
+        capacity: typeof champ.capacity === 'number' ? champ.capacity : null,
+        spotsTaken: typeof champ.spots_taken === 'number' ? champ.spots_taken : 0,
+        acceptingRegistrations: Boolean(champ.accepting_registrations),
+        teamsEnabled: Boolean(champ.teams_enabled),
+        entryFeeCents:
+          champ.entry_fee_required && typeof champ.entry_fee_cents === 'number'
+            ? champ.entry_fee_cents
+            : null,
+        source: 'simgrid',
+      },
+    };
+  } catch (err) {
+    return sample(
+      `SimGrid request failed (${err instanceof Error ? err.message : 'unknown error'}) — showing the bundled event snapshot.`,
     );
   }
 }

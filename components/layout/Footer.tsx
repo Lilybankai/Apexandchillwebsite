@@ -23,6 +23,7 @@ const FOOTER_NAV = {
     { href: "/standings", label: "Standings" },
     { href: "/schedule", label: "Schedule" },
     { href: "/lmu-special-events", label: "LMU Special Events" },
+    { href: "/andys-man-club-fundraiser", label: "Charity Race" },
     { href: "/replays", label: "Replays" },
   ],
   // The Apex AIO topic pages — linked site-wide from here so they aren't only

@@ -47,6 +47,15 @@ export const simgrid = {
     // on Sim League Pro.
     GT7: CURRENT_SIMGRID_CHAMPIONSHIPS.GT7 ?? read('SIMGRID_GT7_CHAMPIONSHIP_ID'),
   } as Record<string, string | undefined>,
+  /**
+   * One-off SimGrid events (not leagues — never shown in standings/schedule).
+   * Ids are public, so each defaults to the live championship and the env var
+   * is only an override.
+   */
+  events: {
+    /** Andy's Man Club charity fundraiser — thesimgrid.com/championships/27985. */
+    AMC: read('SIMGRID_AMC_CHAMPIONSHIP_ID') ?? '27985',
+  },
 } as const;
 
 /**

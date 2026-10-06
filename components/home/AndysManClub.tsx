@@ -1,9 +1,7 @@
 import Image from "next/image";
 import { HeartHandshake, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-
-const JUSTGIVING_URL =
-  "https://www.justgiving.com/page/apexandchillracing?utm_medium=FA&utm_source=CL";
+import { AMC_DONATE_URL, AMC_EVENT_PATH } from "@/lib/events/andys-man-club";
 
 /**
  * Prominent, site-wide feature for Apex & Chill's exclusive mental-health
@@ -56,10 +54,13 @@ export function AndysManClub() {
                 <span className="h-1.5 w-1.5 rotate-45 bg-pink" /> No sign-up, no referral needed
               </li>
             </ul>
-            <div className="mt-8">
-              <Button href={JUSTGIVING_URL} target="_blank" rel="noopener noreferrer" size="lg">
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button href={AMC_DONATE_URL} target="_blank" rel="noopener noreferrer" size="lg">
                 Donate
                 <ArrowRight size={18} />
+              </Button>
+              <Button href={AMC_EVENT_PATH} variant="outline" size="lg">
+                Charity Race
               </Button>
             </div>
           </div>

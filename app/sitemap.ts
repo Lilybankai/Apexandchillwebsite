@@ -21,6 +21,7 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
   { path: "/schedule", changeFrequency: "weekly", priority: 0.8 },
   { path: "/replays", changeFrequency: "daily", priority: 0.7 },
   { path: "/lmu-special-events", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/andys-man-club-fundraiser", changeFrequency: "weekly", priority: 0.7 },
   { path: "/about", changeFrequency: "monthly", priority: 0.6 },
   { path: "/join", changeFrequency: "monthly", priority: 0.6 },
   { path: "/partners", changeFrequency: "monthly", priority: 0.5 },

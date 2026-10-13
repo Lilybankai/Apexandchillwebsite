@@ -25,7 +25,7 @@ import {
   YOUTUBE_URL,
 } from "@/lib/events/andys-man-club";
 import { SITE_URL } from "@/lib/site";
-import { ORGANIZATION_ID } from "@/lib/seo";
+import { ORGANIZATION_ID, buildBreadcrumbJsonLd } from "@/lib/seo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { JsonLd } from "@/components/aio/JsonLd";
@@ -34,11 +34,31 @@ import { EventDetailText } from "@/components/events/EventDetailText";
 import { VideoEmbed } from "@/components/events/VideoEmbed";
 import type { EventDetail } from "@/lib/events/tbc";
 
+const TITLE = "Andy's Man Club Charity Race · Daytona 3 Hours";
+// ~150 characters, so Google shows it whole.
+const DESCRIPTION =
+  "Race the Daytona 3 Hours in Le Mans Ultimate on Sat 12 Dec, 18:00 UK. £10 entry, and all money raised on the day goes to Andy's Man Club.";
+
 export const metadata: Metadata = {
-  title: "Andy's Man Club Charity Race — Daytona 3 Hours",
+  // A shorter brand suffix than the site template keeps it ~60 characters.
+  title: { absolute: `${TITLE} · Apex & Chill` },
   alternates: { canonical: AMC_EVENT_PATH },
-  description:
-    "Race the Daytona 3 Hours in Le Mans Ultimate on Saturday 12 December 2026 at 18:00 UK time and raise money for Andy's Man Club. Hypercar, LMP2 and LMGT3 on a 66-car grid — £10 entry, and all money raised on the day goes to the charity.",
+  description: DESCRIPTION,
+  // Without these the page inherits the homepage's share card. The image is
+  // this route's opengraph-image.tsx, which Next.js attaches to both.
+  openGraph: {
+    locale: "en_GB",
+    type: "website",
+    url: AMC_EVENT_PATH,
+    siteName: "Apex & Chill Racing",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
   keywords: [
     "Andy's Man Club",
     "charity sim race",
@@ -126,19 +146,27 @@ export default async function AndysManClubFundraiserPage() {
           name: AMC_EVENT.title,
           description: AMC_EVENT.summary,
           startDate: AMC_EVENT.raceStart,
+          endDate: new Date(Date.parse(AMC_EVENT.raceStart) + AMC_EVENT.raceHours * 3_600_000).toISOString(),
           eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
           eventStatus: "https://schema.org/EventScheduled",
           location: { "@type": "VirtualLocation", url: event.url },
+          image: `${SITE_URL}${AMC_EVENT_PATH}/opengraph-image`,
           organizer: { "@type": "Organization", "@id": ORGANIZATION_ID, name: "Apex & Chill Racing", url: SITE_URL },
           offers: {
             "@type": "Offer",
             price: AMC_EVENT.entryFeeGbp,
             priceCurrency: "GBP",
             url: event.url,
+            // Only claim sold out when SimGrid says so live.
+            availability:
+              live && (!event.acceptingRegistrations || placesLeft === 0)
+                ? "https://schema.org/SoldOut"
+                : "https://schema.org/InStock",
           },
           url: `${SITE_URL}${AMC_EVENT_PATH}`,
         }}
       />
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: "Charity Race", path: AMC_EVENT_PATH }])} />
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-line">

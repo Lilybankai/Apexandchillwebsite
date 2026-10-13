@@ -83,6 +83,8 @@ export const AMC_EVENT = {
   raceStart: '2026-12-12T18:00:00.000Z',
   /** Confirmed by the race name on SimGrid ("Daytona 3 hours special"). */
   raceLength: '3 Hours',
+  /** Race length in hours — gives search engines an end time. */
+  raceHours: 3,
   summary:
     "A one-off Le Mans Ultimate endurance race around the Daytona road course, raising money for Andy's Man Club — the men's mental-health charity we're proud to partner with.",
   carClasses: ['Hypercar', 'LMP2', 'LMGT3'],

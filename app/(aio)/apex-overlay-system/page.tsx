@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { ArrowRight, Download, Globe } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { WidgetCatalogue } from "@/components/overlay/WidgetCatalogue";
@@ -59,6 +60,10 @@ export const revalidate = 1800;
 
 export const metadata = AIO_METADATA;
 
+/** In-copy link to a topic page: reads as text, underlined so it reads as a link. */
+const TOPIC_LINK =
+  "text-ink underline decoration-cyan/50 underline-offset-4 transition-colors hover:text-cyan hover:decoration-cyan";
+
 /**
  * The hub. The hero is a paused broadcast frame with the real widgets where a
  * stream puts them; the stint story walks one race through the rest; then the
@@ -117,14 +122,18 @@ export default async function ApexAioSystemPage() {
                 Apex AIO System · Le Mans Ultimate · rFactor 2
               </p>
               <h1 className="text-4xl font-bold text-ink sm:text-5xl lg:text-6xl">
-                LMU overlays, race engineer &amp; setups in <span className="text-gradient">one app</span>
+                Apex AIO, the all-in-one <span className="text-gradient">Le Mans Ultimate</span> app
               </h1>
             </div>
             <div className="lg:col-span-5">
               <p className="text-lg leading-relaxed text-muted">
-                Overlays for OBS and over the sim, a voice race engineer on push-to-talk, setups tuned
-                from what you ask for, a live team pit wall on any device, and telemetry review of
-                every lap you&apos;ve driven.
+                {/* Each feature links to the page that ranks for it. */}
+                <Link href="/lmu-overlays" className={TOPIC_LINK}>LMU overlays</Link> for OBS and
+                over the sim, a voice <Link href="/lmu-race-engineer" className={TOPIC_LINK}>race engineer</Link>{" "}
+                on push-to-talk, <Link href="/lmu-setups" className={TOPIC_LINK}>setups</Link> tuned from
+                what you ask for, a live team <Link href="/lmu-pit-wall" className={TOPIC_LINK}>pit wall</Link>{" "}
+                on any device, and <Link href="/lmu-telemetry" className={TOPIC_LINK}>telemetry</Link>{" "}
+                review of every lap you&apos;ve driven.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button href={DOWNLOAD_PATH} size="lg" clip download={INSTALLER_FILENAME}>
@@ -225,7 +234,7 @@ export default async function ApexAioSystemPage() {
               index="03"
               id="widgets-heading"
               label="Widgets"
-              title="Every LMU overlay in the box"
+              title="All twenty widgets in the box"
               lead="Each widget has its own switch, two destinations (an OBS Browser Source and the in-game layer) and its own background opacity. All of them are in the one price."
               className="lg:sticky lg:top-36"
             />

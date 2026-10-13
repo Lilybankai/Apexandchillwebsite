@@ -33,16 +33,18 @@ export const AIO_PAGES: readonly AioPage[] = [
     key: "overview",
     path: "/apex-overlay-system",
     navLabel: "Overview",
-    title: "LMU Overlays, Race Engineer, Setups & Pit Wall | Apex AIO",
+    // Brand-led on purpose: the topic pages own "LMU overlays", "LMU race
+    // engineer" and the rest, so the hub shouldn't compete with them.
+    title: "Apex AIO: The All-in-One App for Le Mans Ultimate",
     description:
-      "LMU overlays, a voice race engineer, community setups, a team pit wall and lap telemetry in one Windows app for Le Mans Ultimate. Free for 7 days.",
+      "Apex AIO is the all-in-one Le Mans Ultimate app: overlays, a voice race engineer, setups, a team pit wall and telemetry in one download. 7 days free.",
     breadcrumb: "Apex AIO System",
   },
   {
     key: "overlays",
     path: "/lmu-overlays",
     navLabel: "Overlays",
-    title: "LMU Overlays for OBS & In-Game | Apex AIO",
+    title: "LMU Overlays: Le Mans Ultimate HUD & OBS Overlays | Apex AIO",
     description:
       "20 lightweight Le Mans Ultimate overlays for OBS or in-game: standings, relative, radar, 3D track map, fuel, track limits and a working MFD.",
     breadcrumb: "LMU Overlays",
@@ -51,7 +53,7 @@ export const AIO_PAGES: readonly AioPage[] = [
     key: "race-engineer",
     path: "/lmu-race-engineer",
     navLabel: "Race Engineer",
-    title: "LMU Race Engineer: Voice, Push-to-Talk & Offline | Apex AIO",
+    title: "LMU Race Engineer: Voice Radio for Le Mans Ultimate | Apex AIO",
     description:
       "A voice race engineer for Le Mans Ultimate. Press a wheel button, ask for gaps, fuel or pit windows, and get the answer from live telemetry, offline.",
     breadcrumb: "LMU Race Engineer",
@@ -60,7 +62,7 @@ export const AIO_PAGES: readonly AioPage[] = [
     key: "setups",
     path: "/lmu-setups",
     navLabel: "Setups",
-    title: "LMU Setups: Community Setups & Setup Optimiser | Apex AIO",
+    title: "LMU Setups: Le Mans Ultimate Community Setups | Apex AIO",
     description:
       "Le Mans Ultimate community setups ranked by verified lap times, plus a live setup editor and optimiser. Send any setup straight into LMU.",
     breadcrumb: "LMU Setups",
@@ -69,7 +71,7 @@ export const AIO_PAGES: readonly AioPage[] = [
     key: "pit-wall",
     path: "/lmu-pit-wall",
     navLabel: "Pit Wall",
-    title: "LMU Pit Wall: Team Engineering Dashboard | Apex AIO",
+    title: "LMU Pit Wall: Le Mans Ultimate Team Endurance Dashboard",
     description:
       "A live Le Mans Ultimate pit wall for endurance teams: timing, fuel strategy, tyres, weather and the track map, in the app or any browser.",
     breadcrumb: "LMU Pit Wall",
@@ -78,7 +80,7 @@ export const AIO_PAGES: readonly AioPage[] = [
     key: "telemetry",
     path: "/lmu-telemetry",
     navLabel: "Telemetry",
-    title: "LMU Telemetry & Lap Comparison | Apex AIO",
+    title: "LMU Telemetry: Le Mans Ultimate Lap Comparison | Apex AIO",
     description:
       "Le Mans Ultimate telemetry on your own PC: every lap you've driven, your optimal lap, and two laps compared corner by corner.",
     breadcrumb: "LMU Telemetry",

@@ -122,6 +122,11 @@ const PAGE_FAQ: AioFaqItem[] = [
     page: "race-engineer",
     a: "Only if you want him to. Proactive radio sits on a dial you control: Off means he only answers when asked; Essential calls flags, fuel, penalties and damage; Standard adds fastest laps, position changes and rivals' pit stops.",
   },
+  {
+    q: "Is the race engineer a spotter too?",
+    page: "race-engineer",
+    a: "Not by voice: he doesn't call cars alongside. His radio covers the race, from gaps, fuel and pit windows to flags, penalties and damage. For car-left, car-right awareness in Le Mans Ultimate, Apex AIO's proximity radar overlay does the spotting: a strip drawn to true scale beside your car, with the pit-release light built in, shown in-game or in OBS.",
+  },
 ];
 
 export default function LmuRaceEngineerPage() {

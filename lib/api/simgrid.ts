@@ -31,6 +31,7 @@ import type {
   Standings,
 } from '@/lib/types';
 import { simgrid as cfg, CACHE_TTL_SECONDS } from '@/lib/env';
+import { cacheWindowHeaders } from '@/lib/cache-window';
 
 /** Default team accent colour when the source doesn't provide one. */
 const DEFAULT_TEAM_COLOR = '#00d4ff';
@@ -156,12 +157,17 @@ async function simgridGet<T>(path: string): Promise<T> {
     headers: {
       Authorization: `Bearer ${cfg.token}`,
       Accept: 'application/json',
+      // A fresh cache key every window, so a failing SimGrid surfaces here
+      // instead of freezing the last good response (see lib/cache-window.ts).
+      ...cacheWindowHeaders(CACHE_TTL_SECONDS),
     },
     // Cache upstream responses; standings/schedule don't need to be real-time.
     next: { revalidate: CACHE_TTL_SECONDS },
   });
   if (!res.ok) {
-    throw new Error(`SimGrid ${path} responded ${res.status} ${res.statusText}`);
+    const message = `SimGrid ${path} responded ${res.status} ${res.statusText}`;
+    console.error(`[simgrid] ${message}`);
+    throw new Error(message);
   }
   return (await res.json()) as T;
 }

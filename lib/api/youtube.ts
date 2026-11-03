@@ -18,6 +18,7 @@ import {
   type YoutubePlaylistConfig,
 } from '@/lib/env';
 import { getSupabaseAdminClient } from '@/lib/supabase';
+import { cacheWindowHeaders } from '@/lib/cache-window';
 
 const API_ROOT = 'https://www.googleapis.com/youtube/v3';
 
@@ -180,10 +181,15 @@ async function ytGet<T>(
 ): Promise<T> {
   const search = new URLSearchParams({ ...params, key: cfg.apiKey ?? '' });
   const res = await fetch(`${API_ROOT}${path}?${search.toString()}`, {
+    // A fresh cache key every window, so a failing call surfaces here instead
+    // of freezing the last good response (see lib/cache-window.ts).
+    headers: cacheWindowHeaders(revalidate),
     next: { revalidate },
   });
   if (!res.ok) {
-    throw new Error(`YouTube ${path} responded ${res.status} ${res.statusText}`);
+    const message = `YouTube ${path} responded ${res.status} ${res.statusText}`;
+    console.error(`[youtube] ${message}`);
+    throw new Error(message);
   }
   return (await res.json()) as T;
 }
@@ -290,6 +296,9 @@ async function resolvePlaylistLabels(configs: YoutubePlaylistConfig[]): Promise<
   }
   return labels;
 }
+
+/** Section heading for the channel-uploads group on the replays page. */
+const LATEST_UPLOADS_LABEL = 'Latest Uploads';
 
 /** The sample fallback result (shared by success + error paths). */
 function sampleReplays(error: string | null): ApiResult<Replay[]> {
@@ -455,12 +464,28 @@ export async function fetchReplayGroups(perPlaylist = 12): Promise<ApiResult<Rep
       return sampleGroups('Could not resolve YouTube uploads playlist — showing sample replays.');
     }
 
+    // Explicit playlists only hold what someone remembered to add to them, so
+    // lead with the channel's own uploads: a new broadcast is on the page as
+    // soon as it is published, whether or not it has been filed yet.
+    if (cfg.playlists.length > 0) {
+      const uploads = await resolveUploadsPlaylistId().catch(() => null);
+      if (uploads && !configs.some((c) => c.id === uploads)) {
+        configs.unshift({ label: LATEST_UPLOADS_LABEL, id: uploads });
+      }
+    }
+
     const labels = await resolvePlaylistLabels(configs);
+    const size = Math.min(Math.max(perPlaylist, 1), 50);
     const groups = await Promise.all(
       configs.map(async (c) => ({
         id: c.id,
         label: c.label ?? labels.get(c.id) ?? 'Replays',
-        replays: await fetchPlaylistItems(c.id, perPlaylist),
+        // Playlists come back in their manual order, which is oldest-first when
+        // new videos are added to the bottom. Read a full page (same quota cost)
+        // and keep the newest, or new replays never make the first page.
+        replays: (await fetchPlaylistItems(c.id, 50))
+          .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+          .slice(0, size),
       })),
     );
 

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Apex &amp; Chill — AndysManClub Fundraiser Overlay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ───── Always-on goal / progress panel (hidden with ?mode=alert) ───── -->
+  <section id="panel" class="panel">
+    <img class="panel-logo" src="logo.png" alt="Supporting AndysManClub — It's okay to talk" />
+    <div class="panel-body">
+      <div class="panel-line">
+        <span id="raised" class="raised">£0</span>
+        <span class="of">raised of</span>
+        <span id="goal" class="goal">£500</span>
+      </div>
+      <div class="bar">
+        <div id="fill" class="bar-fill"></div>
+        <span id="pct" class="bar-pct">0%</span>
+      </div>
+      <div id="latest" class="latest">Be the first to donate 💚</div>
+      <div id="link" class="link" hidden></div>
+    </div>
+  </section>
+
+  <!-- ───── Donation alert (hidden until a new donation arrives) ───── -->
+  <div id="alert" class="alert" aria-hidden="true">
+    <div class="alert-card">
+      <div class="confetti" aria-hidden="true"></div>
+      <img class="alert-logo" src="logo.png" alt="" />
+      <div class="alert-kicker">🎉 NEW DONATION 🎉</div>
+      <div class="alert-donor"><span id="a-donor">Someone</span></div>
+      <div class="alert-amount" id="a-amount">£0</div>
+      <div class="alert-message" id="a-message"></div>
+      <div class="alert-foot">for ANDYSMANCLUB · #ITSOKAYTOTALK</div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="overlay.js"></script>
+</body>
+</html>

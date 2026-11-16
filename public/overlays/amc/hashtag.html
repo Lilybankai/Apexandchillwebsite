@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Apex &amp; Chill — #ITSOKAYTOTALK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@600;800&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<script src="qrcode.js"></script>
+<style>
+  /* Browser source: 640 x 200. Transparent around the card. */
+  html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; font-family: Inter, system-ui, sans-serif; color: #fff; }
+  .card {
+    position: absolute; left: 0; top: 0; width: 640px; height: 200px; box-sizing: border-box;
+    display: flex; align-items: center; gap: 20px; padding: 16px 16px 16px 22px;
+    background: rgba(8, 10, 12, 0.72); border: 1px solid rgba(33, 208, 122, 0.45);
+    border-radius: 18px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    transform-origin: 0 0;
+  }
+  .logo { height: 120px; width: auto; filter: invert(1); flex: none; }
+  .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .tag { font: 400 42px/1 Anton, Impact, sans-serif; letter-spacing: 0.02em; color: #21d07a; white-space: nowrap; }
+  .sub { font: 800 15px/1.2 Inter, sans-serif; letter-spacing: 0.12em; text-transform: uppercase; }
+  .url { font: 600 14px/1.2 Inter, sans-serif; color: rgba(255, 255, 255, 0.75); white-space: nowrap; }
+  .qr { flex: none; width: 168px; height: 168px; background: #fff; border-radius: 10px; padding: 8px; box-sizing: border-box; }
+  .qr svg { display: block; width: 100%; height: 100%; }
+  .scan { font: 800 12px/1 Inter, sans-serif; letter-spacing: 0.18em; text-transform: uppercase; color: #21d07a; }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <img class="logo" src="logo.png" alt="Andy's Man Club">
+  <div class="txt">
+    <div class="tag">#ITSOKAYTOTALK</div>
+    <div class="sub">Supporting Andy's Man Club</div>
+    <div class="url" id="url"></div>
+    <div class="scan">Scan to donate &rarr;</div>
+  </div>
+  <div class="qr" id="qr"></div>
+</div>
+<script>
+  // Scales with the browser source (designed at 640 x 200).
+  const card = document.getElementById("card");
+  const fit = () => { card.style.transform = `scale(${Math.min(innerWidth / 640, innerHeight / 200)})`; };
+  addEventListener("resize", fit); fit();
+
+  const u = String((window.KIT_CONFIG || {}).donateUrl || "justgiving.com/page/apexandchillracing");
+  document.getElementById("url").textContent = u;
+  const qr = qrcode(0, "M");
+  qr.addData(/^https?:\/\//i.test(u) ? u : "https://www." + u.replace(/^www\./i, ""));
+  qr.make();
+  const n = qr.getModuleCount();
+  let d = "";
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c} ${r}h1v1h-1z`;
+  document.getElementById("qr").innerHTML = `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges"><path d="${d}" fill="#000"/></svg>`;
+</script>
+</body>
+</html>

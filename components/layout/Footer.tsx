@@ -3,6 +3,7 @@ import { MessageCircle, Youtube, Twitch, HeartHandshake, Mail } from "lucide-rea
 import { Button } from "@/components/ui/Button";
 import { ApexChevron } from "@/components/ui/Logo";
 import { AIO_PAGES } from "@/lib/aio-pages";
+import { COMPARE_INDEX } from "@/lib/aio-compare";
 
 const DISCORD_URL = "https://discord.gg/MBew2Bb2hj";
 const YOUTUBE_URL = "https://youtube.com/channel/UCu7lyaGuo3sY2wWZo42-LVw";
@@ -34,6 +35,7 @@ const FOOTER_NAV = {
       label: page.key === "overview" ? "Apex AIO System" : page.breadcrumb,
     })),
     { href: "/lmu-livery-studio", label: "LMU Livery Studio" },
+    { href: COMPARE_INDEX.path, label: "LMU Apps Compared" },
   ],
   League: [
     { href: "/join", label: "Join the League" },

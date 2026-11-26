@@ -13,6 +13,7 @@ import { Hero } from "@/components/home/Hero";
 import { LiveStreamSection } from "@/components/live/LiveStreamSection";
 import { NextRaceCard } from "@/components/home/NextRaceCard";
 import { SeriesCovered } from "@/components/home/SeriesCovered";
+import { LeagueApps } from "@/components/home/LeagueApps";
 import { MiniStandings } from "@/components/home/MiniStandings";
 import { LatestReplays } from "@/components/home/LatestReplays";
 import { PartnersStrip } from "@/components/home/PartnersStrip";
@@ -102,6 +103,7 @@ export default async function HomePage() {
       <LiveStreamSection initial={live} variant="home" />
       <NextRaceCard primary={nextRace} />
       <SeriesCovered />
+      <LeagueApps />
       <MiniStandings standings={miniStandings} />
       <LatestReplays result={replays} />
       <AndysManClub />

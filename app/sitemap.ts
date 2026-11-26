@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { AIO_PAGES } from "@/lib/aio-pages";
+import { COMPARE_INDEX, COMPARE_PAGES } from "@/lib/aio-compare";
 import { BUILD_TIME, SITE_URL } from "@/lib/site";
 import { loadMergedCatalog } from "@/lib/merch/store";
 import { fetchGt7Schedule } from "@/lib/api/gt7";
@@ -22,6 +23,11 @@ const STATIC_ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[numb
     priority: page.key === "overview" ? 0.9 : 0.8,
   })),
   { path: "/lmu-livery-studio", changeFrequency: "monthly", priority: 0.9 },
+  ...[COMPARE_INDEX, ...COMPARE_PAGES].map((page) => ({
+    path: page.path,
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  })),
   { path: "/merch", changeFrequency: "weekly", priority: 0.8 },
   { path: "/schedule", changeFrequency: "weekly", priority: 0.8 },
   { path: "/replays", changeFrequency: "daily", priority: 0.7 },

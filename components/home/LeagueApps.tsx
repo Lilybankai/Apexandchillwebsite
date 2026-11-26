@@ -23,8 +23,8 @@ export function LeagueApps() {
         <span className="kicker mb-3">Built by the league</span>
         <h2 className="text-4xl font-bold text-ink sm:text-5xl">Our Le Mans Ultimate apps</h2>
         <p className="mt-4 text-muted">
-          We race LMU every week, so we built the tools we wanted. Apex AIO is the all-in-one app our drivers race
-          with. LMU Livery Studio is free for everyone.
+          We race LMU every week, so we built the tools we wanted. Apex AIO is the all-in-one app we
+          built for LMU. LMU Livery Studio is free for everyone.
         </p>
       </header>
 

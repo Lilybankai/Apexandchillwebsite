@@ -28,15 +28,24 @@ const VERDICT = {
   no: { Icon: X, label: "No", tone: "text-subtle" },
 } as const;
 
+/** The row label for a cell, or null for an "info" cell that shows its note alone. */
+function verdictOf(cell: CompareCell) {
+  return cell.v === "info" ? null : VERDICT[cell.v];
+}
+
 function Cell({ cell, strong }: { cell: CompareCell; strong?: boolean }) {
-  const { Icon, label, tone } = VERDICT[cell.v];
+  const verdict = verdictOf(cell);
   return (
     <td className={cn("px-4 py-4 align-top", strong && "bg-cyan/[0.04]")}>
-      <span className={cn("inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em]", tone)}>
-        <Icon size={14} aria-hidden />
-        {label}
-      </span>
-      <p className="mt-1.5 text-sm leading-relaxed text-muted">{cell.note}</p>
+      {verdict && (
+        <span
+          className={cn("inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em]", verdict.tone)}
+        >
+          <verdict.Icon size={14} aria-hidden />
+          {verdict.label}
+        </span>
+      )}
+      <p className={cn("text-sm leading-relaxed", verdict ? "mt-1.5 text-muted" : "text-ink")}>{cell.note}</p>
     </td>
   );
 }
@@ -92,11 +101,11 @@ export function ComparePage({ data }: { data: ComparePageData }) {
         visualMeta=""
         visual={
           <dl className="divide-y divide-line font-mono text-xs">
-            {data.rows.slice(0, 6).map((row) => (
+            {data.rows.filter((row) => row.apex.v !== "info").slice(0, 6).map((row) => (
               <div key={row.feature} className="grid grid-cols-[1fr_4.5rem_4.5rem] items-center gap-3 py-2.5">
                 <dt className="uppercase tracking-[0.14em] text-muted">{row.feature}</dt>
                 {[row.apex, row.them].map((cell, i) => {
-                  const { Icon, label, tone } = VERDICT[cell.v];
+                  const { Icon, label, tone } = verdictOf(cell) ?? VERDICT.partly;
                   return (
                     <dd key={i} className={cn("inline-flex items-center gap-1 uppercase tracking-wider", tone)}>
                       <Icon size={12} aria-hidden />
@@ -193,7 +202,7 @@ export function ComparePage({ data }: { data: ComparePageData }) {
         <section className="border-t border-line py-16">
           <div className="container-rail">
             <Reveal>
-              <SectionHeading index="05" label="Using both" title={data.together.title} />
+              <SectionHeading index="05" label={data.together.label ?? "Using both"} title={data.together.title} />
               <div className="max-w-3xl space-y-4 text-lg leading-relaxed text-muted">
                 {data.together.body.map((paragraph) => (
                   <p key={paragraph.slice(0, 32)}>{paragraph}</p>

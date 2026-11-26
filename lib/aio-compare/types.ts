@@ -1,7 +1,10 @@
 import type { AioPageKey } from "@/lib/aio-pages";
 
-/** How fully a tool covers one row of the comparison. */
-export type CompareVerdict = "yes" | "partly" | "no";
+/**
+ * How fully a tool covers one row of the comparison. "info" shows the note
+ * alone, for rows such as price where a tick or cross would be a judgement.
+ */
+export type CompareVerdict = "yes" | "partly" | "no" | "info";
 
 export type CompareCell = {
   v: CompareVerdict;
@@ -58,7 +61,12 @@ export type ComparePageData = {
   /** Where Apex AIO is the better fit for LMU. */
   apexDoesBetter: ComparePoint[];
   /** Running both side by side, where that makes sense. */
-  together?: { title: string; body: string[] };
+  together?: {
+    /** Mono label on the section rule. Defaults to "Using both". */
+    label?: string;
+    title: string;
+    body: string[];
+  };
   /** Who should stay put, and who should try Apex AIO. */
   whoFor: { stay: string[]; switch: string[] };
   faq: { q: string; a: string }[];

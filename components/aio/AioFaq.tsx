@@ -15,7 +15,8 @@ export function AioFaq({
   className,
   index,
 }: {
-  items: readonly AioFaqItem[];
+  /** Only the question and answer are read, so pages outside the registry can pass plain pairs. */
+  items: readonly Pick<AioFaqItem, "q" | "a">[];
   heading?: string;
   className?: string;
   /** Two-digit section number for the heading rule, when the page numbers its sections. */
